@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         if (animate) {
             fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
         }
-        fragmentTransaction.replace(R.id.fragment_container, fragment);
+        fragmentTransaction.replace(R.id.content_container, fragment);
         fragmentTransaction.commit();
     }
 }
