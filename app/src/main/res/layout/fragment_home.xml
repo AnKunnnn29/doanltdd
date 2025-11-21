@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/content_container"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    tools:context=".HomeFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,7 +29,8 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:contentDescription="User Avatar"
-                android:src="@drawable/img" />
+                android:src="@drawable/img"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/greeting"
@@ -42,7 +43,8 @@
                 android:gravity="center_vertical"
                 android:text="CHÀO BUỔI CHIỀU!"
                 android:textColor="@color/black"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <ImageView
                 android:id="@+id/notification_bell"
@@ -92,7 +94,6 @@
             android:orientation="horizontal">
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/service_card_delivery"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -124,7 +125,6 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/service_card_pickup"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -163,7 +163,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:text="Khung giờ áp dụng: 7:00 - 21:30" />
+            android:text="Khung giờ áp dụng: 7:00 - 21:30"
+            tools:ignore="HardcodedText" />
 
         <TextView
             android:id="@+id/section_title"
@@ -172,7 +173,8 @@
             android:text="Tính năng mới"
             android:textColor="@color/colorText"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:ignore="HardcodedText" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
