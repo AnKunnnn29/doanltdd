@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Katinat App Palette -->
+    <color name="colorPrimary">#F8C3D6</color> <!-- Pastel Pink -->
+    <color name="colorAccent">#004D40</color> <!-- Deep Teal -->
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorText">#333333</color>
+    <color name="_931923">#931923</color>
+    
+    <!-- Modern Tea Shop Colors -->
+    <color name="tea_primary">#8B4513</color> <!-- Saddle Brown -->
+    <color name="tea_secondary">#D2691E</color> <!-- Chocolate -->
+    <color name="tea_accent">#FF8C00</color> <!-- Dark Orange -->
+    <color name="tea_light">#FFF8DC</color> <!-- Cornsilk -->
+    <color name="tea_dark">#4A2511</color> <!-- Dark Brown -->
+    <color name="gradient_start">#FF8C00</color>
+    <color name="gradient_end">#FF6347</color>
+    <color name="background_light">#FFFAF0</color>
+</resources>

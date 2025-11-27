@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">DoAn</string>
+    <string name="logo">Logo</string>
+    <string name="october_26_2023">October 26, 2023</string>
+    <string name="order_12345">Order #12345</string>
+    <string name="status_delivered">Status: Delivered</string>
+</resources>

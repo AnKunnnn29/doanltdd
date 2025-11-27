@@ -1,0 +1,91 @@
+🔧 DEBUG KẾT NỐI BACKEND
+
+=== BƯỚC 1: Kiểm tra Backend ===
+1. Backend có đang chạy không?
+   - Mở browser: http://localhost:8080/swagger-ui.html
+   - Nếu thấy Swagger UI → Backend OK
+
+2. Test API trực tiếp:
+   - Mở: http://localhost:8080/api/drinks
+   - Phải thấy JSON response
+
+=== BƯỚC 2: Xác định đang chạy trên gì ===
+
+A. EMULATOR (Android Studio):
+   ✅ BASE_URL = "http://10.0.2.2:8080/api/"
+   - 10.0.2.2 là địa chỉ localhost của máy host từ emulator
+   - Không cần thay đổi gì
+
+B. THIẾT BỊ THẬT (điện thoại):
+   ❌ BASE_URL = "http://10.0.2.2:8080/api/" (SAI!)
+   ✅ BASE_URL = "http://YOUR_IP:8080/api/"
+   
+   Cách tìm IP:
+   - Windows: Mở CMD → gõ: ipconfig
+   - Tìm dòng "IPv4 Address": 192.168.x.x
+   - Ví dụ: 192.168.1.100
+   
+   Sửa trong RetrofitClient.java:
+   private static final String BASE_URL = "http://192.168.1.100:8080/api/";
+
+=== BƯỚC 3: Kiểm tra Firewall ===
+Nếu dùng thiết bị thật:
+1. Tắt Windows Firewall tạm thời
+2. Hoặc cho phép port 8080:
+   - Control Panel → Windows Defender Firewall
+   - Advanced Settings → Inbound Rules → New Rule
+   - Port → TCP → 8080 → Allow
+
+=== BƯỚC 4: Kiểm tra cùng WiFi ===
+Nếu dùng thiết bị thật:
+- Máy tính và điện thoại PHẢI cùng WiFi
+- Không dùng mobile data
+
+=== BƯỚC 5: Test kết nối từ điện thoại ===
+1. Mở Chrome trên điện thoại
+2. Truy cập: http://YOUR_IP:8080/swagger-ui.html
+3. Nếu thấy Swagger UI → Kết nối OK
+4. Nếu không thấy → Kiểm tra lại IP và Firewall
+
+=== BƯỚC 6: Xem Logcat ===
+Trong Android Studio:
+1. Mở Logcat (View → Tool Windows → Logcat)
+2. Filter: "OkHttp"
+3. Chạy app và xem log
+4. Tìm dòng:
+   - "--> POST http://10.0.2.2:8080/api/auth/login"
+   - "<-- 200 OK" (thành công)
+   - hoặc lỗi gì
+
+=== LỖI THƯỜNG GẶP ===
+
+1. "Unable to resolve host"
+   → Backend chưa chạy hoặc IP sai
+
+2. "Connection timeout"
+   → Firewall chặn hoặc không cùng WiFi
+
+3. "Connection refused"
+   → Backend chưa chạy hoặc port sai
+
+4. "Cleartext HTTP traffic not permitted"
+   → Đã fix bằng android:usesCleartextTraffic="true"
+
+=== GIẢI PHÁP NHANH ===
+
+1. Chạy trên EMULATOR (dễ nhất):
+   - BASE_URL = "http://10.0.2.2:8080/api/"
+   - Không cần config gì thêm
+
+2. Chạy trên THIẾT BỊ THẬT:
+   a. Tìm IP máy tính: ipconfig
+   b. Sửa BASE_URL: "http://YOUR_IP:8080/api/"
+   c. Tắt Firewall
+   d. Cùng WiFi
+   e. Test bằng Chrome trên điện thoại trước
+
+=== TEST NHANH ===
+Trong LoginActivity, thêm log:
+Log.d("API", "BASE_URL: " + RetrofitClient.getBaseUrl());
+
+Chạy app và xem Logcat để confirm URL đúng chưa.
