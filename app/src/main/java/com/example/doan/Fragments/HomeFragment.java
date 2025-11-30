@@ -41,7 +41,6 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
     private final List<Product> allProducts = new ArrayList<>(); 
     private final List<Category> categoryList = new ArrayList<>();
     
-    // Lưu lại category đang chọn để khi reload data vẫn giữ đúng tab
     private int selectedCategoryId = -1; 
 
     @Nullable
@@ -51,6 +50,7 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
 
         // Setup Product RecyclerView
         productRecyclerView = view.findViewById(R.id.product_recycler_view);
+        // Sử dụng GridLayoutManager với 2 cột
         productRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         productAdapter = new ProductAdapter(currentProductList);
         productRecyclerView.setAdapter(productAdapter);
@@ -75,17 +75,14 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
                         categoryList.clear();
                         
-                        // Thêm danh mục "Tất cả"
                         Category allCategory = new Category();
                         allCategory.setId(-1);
                         allCategory.setName("Tất cả");
-                        // Hình ảnh sẽ được cập nhật sau khi load sản phẩm
                         categoryList.add(allCategory);
                         
                         categoryList.addAll(apiResponse.getData());
                         categoryAdapter.notifyDataSetChanged();
                         
-                        // Sau khi có danh mục thì tải sản phẩm
                         loadAllProducts();
                     }
                 } else {
@@ -109,7 +106,6 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
                         allProducts.clear();
                         
-                        // Xử lý URL hình ảnh
                         String baseUrl = RetrofitClient.getBaseUrl(); 
                         String rootUrl = baseUrl.replace("/api/", ""); 
                         if (rootUrl.endsWith("/")) rootUrl = rootUrl.substring(0, rootUrl.length() - 1);
@@ -121,27 +117,37 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
                                 imageUrl = rootUrl + imageUrl;
                             }
 
-                            // Chuyển đổi Drink -> Product
+                            int pCategoryId = drink.getCategoryId();
+                            
+                            // Log để kiểm tra ID từ Server trả về
+                            Log.d("HomeFragment", "Sản phẩm: " + drink.getName() + " - Category ID: " + pCategoryId);
+
+                            String categoryDisplayName = "";
+                            for(Category c : categoryList) {
+                                if(c.getId() == pCategoryId) {
+                                    categoryDisplayName = c.getName();
+                                    break;
+                                }
+                            }
+                            if(categoryDisplayName.isEmpty()) categoryDisplayName = drink.getCategoryName();
+
+
                             Product product = new Product(
                                 drink.getId(),
                                 drink.getName(),
                                 drink.getDescription() != null ? drink.getDescription() : "",
                                 drink.getBasePrice(),
-                                drink.getCategoryName() != null ? drink.getCategoryName() : "",
-                                drink.getCategoryId(), // QUAN TRỌNG: Lấy ID danh mục từ Drink
+                                categoryDisplayName, 
+                                pCategoryId,         
                                 imageUrl,
                                 drink.isActive()
                             );
-                            // Thêm Size nếu cần thiết (Product model mới đã hỗ trợ list size)
                             product.setSizes(drink.getSizes());
                             
                             allProducts.add(product);
                         }
 
-                        // Cập nhật hình ảnh cho Category (Lấy hình của sản phẩm đầu tiên thuộc Category đó)
                         updateCategoryImages();
-                        
-                        // Hiển thị sản phẩm theo category đang chọn (mặc định là -1: Tất cả)
                         filterProductsByCategory(selectedCategoryId);
                     }
                 }
@@ -162,17 +168,14 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
 
         for (Category cat : categoryList) {
             if (cat.getId() == -1) {
-                // Category "Tất cả" lấy hình đầu tiên
                 cat.setImage(defaultImage);
             } else {
-                // Tìm sản phẩm đầu tiên có categoryId trùng khớp
                 for (Product p : allProducts) {
                     if (p.getCategoryId() == cat.getId()) {
                         cat.setImage(p.getImageUrl());
                         break; 
                     }
                 }
-                // Fallback: nếu chưa có hình, dùng hình mặc định
                 if (cat.getImage() == null) {
                     cat.setImage(defaultImage);
                 }
@@ -191,10 +194,8 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
         currentProductList.clear();
         
         if (categoryId == -1) {
-            // Hiển thị tất cả
             currentProductList.addAll(allProducts);
         } else {
-            // Lọc theo ID
             for (Product product : allProducts) {
                 if (product.getCategoryId() == categoryId) {
                     currentProductList.add(product);
@@ -202,9 +203,16 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
             }
         }
         
-        // Sắp xếp theo tên (A-Z)
-        currentProductList.sort((p1, p2) -> p1.getName().compareToIgnoreCase(p2.getName()));
+        // DEBUG: Hiển thị số lượng tìm thấy để kiểm tra
+        if (categoryId != -1) {
+            if (currentProductList.isEmpty()) {
+                Toast.makeText(getContext(), "Không tìm thấy sản phẩm nào cho danh mục ID: " + categoryId, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Tìm thấy " + currentProductList.size() + " sản phẩm", Toast.LENGTH_SHORT).show();
+            }
+        }
         
+        currentProductList.sort((p1, p2) -> p1.getName().compareToIgnoreCase(p2.getName()));
         productAdapter.notifyDataSetChanged();
     }
 }
