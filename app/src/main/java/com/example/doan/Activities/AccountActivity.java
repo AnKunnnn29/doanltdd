@@ -50,24 +50,24 @@ public class AccountActivity extends AppCompatActivity {
 
 
         profileOption.setOnClickListener(v -> {
-
             if (isUserLoggedIn()) {
-
-                Toast.makeText(AccountActivity.this, "Chuyển đến Hồ sơ.", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(AccountActivity.this, UserProfileActivity.class));
             } else {
+                Log.e(TAG, "User not logged in, redirecting to LoginActivity.");
                 Toast.makeText(AccountActivity.this, "Vui lòng đăng nhập để xem hồ sơ.", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(AccountActivity.this, LoginActivity.class));
             }
         });
 
         settingsOption.setOnClickListener(v -> {
-            Toast.makeText(AccountActivity.this, "Chuyển đến Cài đặt.", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(AccountActivity.this, SettingsActivity.class));
         });
 
         logoutOption.setOnClickListener(v -> {
             if (isUserLoggedIn()) {
                 performLogout();
             } else {
-                Toast.makeText(AccountActivity.this, "Chuyển đến Đăng nhập.", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(AccountActivity.this, LoginActivity.class));
             }
         });
     }
@@ -81,12 +81,15 @@ public class AccountActivity extends AppCompatActivity {
 
     private boolean isUserLoggedIn() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
+        boolean isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false);
+        // VERIFY READ: Log the value being read
+        Log.d(TAG, "VERIFY READ - isLoggedIn read as: " + isLoggedIn);
+        return isLoggedIn;
     }
 
     private void updateUI() {
-        TextView logoutText = (logoutOption.getChildCount() > 2 && logoutOption.getChildAt(2) instanceof TextView)
-                ? (TextView) logoutOption.getChildAt(2) : null;
+        TextView logoutText = (logoutOption.getChildCount() > 1 && logoutOption.getChildAt(1) instanceof TextView)
+                ? (TextView) logoutOption.getChildAt(1) : null;
 
         if (isUserLoggedIn()) {
             SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -118,7 +121,7 @@ public class AccountActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
         editor.clear();
         editor.putBoolean(KEY_IS_LOGGED_IN, false);
-        editor.apply();
+        editor.commit(); // Use commit() for synchronous save
 
 
         Toast.makeText(AccountActivity.this, "Đã đăng xuất thành công!", Toast.LENGTH_LONG).show();

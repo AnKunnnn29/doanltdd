@@ -17,29 +17,22 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.doan.Activities.LoginActivity;
-// Cần đảm bảo các file này tồn tại
-// import com.example.doan.Activities.UserProfileActivity;
-// import com.example.doan.Activities.SettingsActivity;
+import com.example.doan.Activities.SettingsActivity;
+import com.example.doan.Activities.UserProfileActivity;
 import com.example.doan.R;
-import com.example.doan.Network.RetrofitClient; // Sử dụng tên lớp RetrofitClient
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class AccountFragment extends Fragment {
 
     private static final String TAG = "AccountFragment";
     private static final String PREFS_NAME = "UserPrefs";
-    private static final String KEY_USER_ID = "userId";
     private static final String KEY_USER_NAME = "userName";
     private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
 
     private LinearLayout profileOption;
     private LinearLayout settingsOption;
     private LinearLayout logoutOption;
-    private TextView profileNameText; // TextView hiển thị trạng thái/tên người dùng
-    private TextView logoutText; // Để truy cập trực tiếp text Đăng xuất/Đăng nhập
+    private TextView profileNameText;
+    private TextView logoutText;
 
     private Context mContext;
 
@@ -54,19 +47,11 @@ public class AccountFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_account, container, false);
 
-
         profileOption = view.findViewById(R.id.profile_option);
         settingsOption = view.findViewById(R.id.settings_option);
         logoutOption = view.findViewById(R.id.logout_option);
-
-
         profileNameText = view.findViewById(R.id.profile_name);
-
-
-        if (logoutOption.getChildCount() > 2 && logoutOption.getChildAt(2) instanceof TextView) {
-            logoutText = (TextView) logoutOption.getChildAt(2);
-        }
-
+        logoutText = view.findViewById(R.id.logout_text);
 
         profileOption.setOnClickListener(v -> handleProfileClick());
         settingsOption.setOnClickListener(v -> handleSettingsClick());
@@ -81,44 +66,39 @@ public class AccountFragment extends Fragment {
         updateUI();
     }
 
-
     private boolean isUserLoggedIn() {
+        if (mContext == null) return false;
         SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
+        boolean isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false);
+        Log.d(TAG, "VERIFY READ - isLoggedIn in Fragment read as: " + isLoggedIn);
+        return isLoggedIn;
     }
 
     private void updateUI() {
+        if (!isAdded() || mContext == null) return; // Ensure fragment is attached
+
         if (isUserLoggedIn()) {
             SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             String userName = prefs.getString(KEY_USER_NAME, "Người dùng");
-
-
             profileNameText.setText("Xin chào, " + userName);
-            if (logoutText != null) {
-                logoutText.setText("Đăng xuất");
-            }
+            if(logoutText != null) logoutText.setText("Đăng xuất");
         } else {
-
             profileNameText.setText("Đăng nhập / Đăng ký");
-            if (logoutText != null) {
-                logoutText.setText("Đăng nhập");
-            }
+            if(logoutText != null) logoutText.setText("Đăng nhập");
         }
     }
 
-
     private void handleProfileClick() {
         if (isUserLoggedIn()) {
-            Toast.makeText(mContext, "Chuyển đến Hồ sơ (Profile)", Toast.LENGTH_SHORT).show();
-
+            startActivity(new Intent(mContext, UserProfileActivity.class));
         } else {
+            Toast.makeText(mContext, "Vui lòng đăng nhập để xem hồ sơ.", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(mContext, LoginActivity.class));
         }
     }
 
     private void handleSettingsClick() {
-        Toast.makeText(mContext, "Chuyển đến Cài đặt (Settings)", Toast.LENGTH_SHORT).show();
-
+        startActivity(new Intent(mContext, SettingsActivity.class));
     }
 
     private void handleLogoutClick() {
@@ -129,23 +109,13 @@ public class AccountFragment extends Fragment {
         }
     }
 
-
     private void performLogout() {
-        // Đăng xuất local, không cần gọi API
-        handleLogoutSuccess();
-    }
-
-    private void handleLogoutSuccess() {
-        // Xóa session bằng SessionManager
-        com.example.doan.Utils.SessionManager sessionManager = new com.example.doan.Utils.SessionManager(mContext);
-        sessionManager.logout();
-        
-        // Xóa SharedPreferences cũ
+        if (mContext == null) return;
         SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.clear();
         editor.putBoolean(KEY_IS_LOGGED_IN, false);
-        editor.apply();
+        editor.commit(); // Use commit for synchronous save in critical operations
 
         Toast.makeText(mContext, "Đã đăng xuất thành công!", Toast.LENGTH_LONG).show();
         updateUI();

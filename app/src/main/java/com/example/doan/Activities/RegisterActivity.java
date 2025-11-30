@@ -13,7 +13,7 @@ import com.example.doan.R;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText usernameInput, passwordInput, confirmPasswordInput, phoneInput;
+    private EditText usernameInput, passwordInput, confirmPasswordInput, emailInput;
     private Button registerButton;
     private TextView loginLink;
 
@@ -25,7 +25,7 @@ public class RegisterActivity extends AppCompatActivity {
         usernameInput = findViewById(R.id.input_reg_username);
         passwordInput = findViewById(R.id.input_reg_password);
         confirmPasswordInput = findViewById(R.id.input_reg_confirm_password);
-        phoneInput = findViewById(R.id.input_reg_email);
+        emailInput = findViewById(R.id.input_reg_email);
         registerButton = findViewById(R.id.btn_register_submit);
         loginLink = findViewById(R.id.text_login_link);
 
@@ -37,7 +37,7 @@ public class RegisterActivity extends AppCompatActivity {
         String username = usernameInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
         String confirmPassword = confirmPasswordInput.getText().toString().trim();
-        String email = phoneInput.getText().toString().trim();
+        String email = emailInput.getText().toString().trim();
 
         if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin bắt buộc.", Toast.LENGTH_SHORT).show();

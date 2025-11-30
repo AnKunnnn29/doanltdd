@@ -66,10 +66,22 @@
             android:theme="@style/Theme.DoAn" />
 
         <!-- Other Activities -->
-        <activity android:name=".Activities.AddProductActivity" />
-        <activity android:name=".Activities.AccountActivity" />
-        <activity android:name=".Activities.SettingsActivity" />
-        <activity android:name=".Activities.UserProfileActivity" />
+        <activity
+            android:name=".Activities.AddProductActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn"/>
+        <activity
+            android:name=".Activities.AccountActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn"/>
+        <activity
+            android:name=".Activities.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn"/>
+        <activity
+            android:name=".Activities.UserProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn"/>
 
     </application>
 

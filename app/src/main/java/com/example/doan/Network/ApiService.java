@@ -10,6 +10,8 @@ import com.example.doan.Models.Product;
 import com.example.doan.Models.RegisterRequest;
 import com.example.doan.Models.RegisterResponse;
 import com.example.doan.Models.Store;
+import com.example.doan.Models.UpdateProfileRequest;
+import com.example.doan.Models.UserProfileDto;
 import com.example.doan.Models.VerifyOtpRequest;
 
 import java.util.List;
@@ -18,7 +20,9 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Multipart;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
@@ -44,6 +48,13 @@ public interface ApiService {
 
     @GET("auth/health")
     Call<ApiResponse<String>> healthCheck();
+
+    // ==================== USER PROFILE ====================
+    @GET("me")
+    Call<ApiResponse<UserProfileDto>> getProfile(@Header("Authorization") String authToken);
+
+    @PUT("me")
+    Call<ApiResponse<UserProfileDto>> updateProfile(@Header("Authorization") String authToken, @Body UpdateProfileRequest request);
 
     // ==================== CATEGORIES ====================
     @GET("categories")

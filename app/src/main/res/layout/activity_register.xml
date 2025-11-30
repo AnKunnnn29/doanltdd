@@ -111,7 +111,7 @@
                     app:boxCornerRadiusBottomEnd="16dp"
                     app:startIconDrawable="@android:drawable/ic_dialog_email"
                     app:startIconTint="@color/tea_secondary"
-                    android:hint="Số điện thoại / Email">
+                    android:hint="Email">
                     
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/input_reg_email"
