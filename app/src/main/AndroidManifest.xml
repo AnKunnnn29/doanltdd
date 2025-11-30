@@ -65,6 +65,12 @@
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
 
+        <!-- Product Detail Activity -->
+        <activity
+            android:name=".Activities.ProductDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+
         <!-- Other Activities -->
         <activity
             android:name=".Activities.AddProductActivity"

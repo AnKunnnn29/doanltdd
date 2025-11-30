@@ -1,0 +1,44 @@
+package com.example.doan.Models;
+
+import com.google.gson.annotations.SerializedName;
+
+public class OrderItemRequest {
+    @SerializedName("product_id")
+    private int productId;
+    
+    @SerializedName("quantity")
+    private int quantity;
+    
+    @SerializedName("price")
+    private double price;
+
+    public OrderItemRequest(int productId, int quantity, double price) {
+        this.productId = productId;
+        this.quantity = quantity;
+        this.price = price;
+    }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+}

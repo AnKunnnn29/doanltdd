@@ -79,17 +79,21 @@
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
+        <!-- Changed Category Input to Spinner -->
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Danh mục sản phẩm"
+            android:layout_marginBottom="8dp"
+            android:textSize="16sp"/>
+
+        <Spinner
+            android:id="@+id/spinner_category"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
             android:layout_marginBottom="16dp"
-            android:hint="Danh Mục (Trà sữa, Cà phê,...)">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edit_text_category"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textCapWords" />
-        </com.google.android.material.textfield.TextInputLayout>
+            android:background="@drawable/edit_text_background"
+            android:padding="8dp"/>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
