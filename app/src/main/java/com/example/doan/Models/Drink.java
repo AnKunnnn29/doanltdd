@@ -24,7 +24,7 @@ public class Drink implements Serializable {
     @SerializedName("isActive")
     private boolean isActive;
 
-    @SerializedName("categoryId")
+    @SerializedName(value = "categoryId", alternate = {"category_id"})
     private int categoryId;
 
     @SerializedName("categoryName")

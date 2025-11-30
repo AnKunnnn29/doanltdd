@@ -15,27 +15,26 @@
         android:gravity="center"
         android:padding="24dp">
 
-        <!-- Logo và Title Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="24dp">
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="32dp">
 
             <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@drawable/ic_tea_cup"
-                android:contentDescription="Tea Shop Logo"
-                android:layout_marginBottom="12dp"/>
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:contentDescription="Logo"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/ic_lock"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Xác Thực Tài Khoản"
-                android:textSize="28sp"
+                android:text="Xác thực OTP"
+                android:textSize="32sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
                 android:fontFamily="sans-serif-medium"/>
@@ -44,21 +43,19 @@
                 android:id="@+id/text_otp_instruction"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mã OTP đã được gửi đến email của bạn."
-                android:textSize="14sp"
+                android:text="Nhập mã OTP đã được gửi đến bạn"
                 android:textColor="@color/white"
                 android:alpha="0.9"
-                android:layout_marginTop="4dp"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                android:layout_marginTop="8dp"/>
         </LinearLayout>
 
-        <!-- OTP Form Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="24dp"
             app:cardElevation="8dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -66,30 +63,31 @@
                 android:orientation="vertical"
                 android:padding="28dp">
 
+                <!-- OTP Input -->
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
                     android:text="Nhập Mã OTP"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
                     android:textColor="@color/tea_dark"
-                    android:layout_marginBottom="20dp"/>
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
 
-                <!-- OTP Input -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
+                    android:layout_marginBottom="24dp"
                     app:boxBackgroundMode="filled"
                     app:boxBackgroundColor="#F5F5F5"
                     app:boxCornerRadiusTopStart="16dp"
                     app:boxCornerRadiusTopEnd="16dp"
                     app:boxCornerRadiusBottomStart="16dp"
                     app:boxCornerRadiusBottomEnd="16dp"
-                    app:startIconDrawable="@android:drawable/ic_dialog_info"
+                    app:startIconDrawable="@android:drawable/ic_lock_lock"
                     app:startIconTint="@color/tea_secondary"
                     android:hint="Mã OTP gồm 6 chữ số">
-
+                    
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/input_otp"
                         android:layout_width="match_parent"
@@ -97,7 +95,7 @@
                         android:inputType="number"
                         android:maxLength="6"
                         android:textSize="16sp"
-                        android:padding="14dp"/>
+                        android:padding="16dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Verify Button -->
@@ -114,36 +112,20 @@
                     android:elevation="4dp"
                     app:backgroundTint="@null"/>
 
+                <!-- Resend OTP Link -->
+                <TextView
+                    android:id="@+id/text_resend_otp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chưa nhận được mã? Gửi lại"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:textColor="@color/tea_secondary"
+                    android:textStyle="bold"
+                    android:textSize="14sp"/>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
-        <!-- Resend Link -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chưa nhận được mã? "
-                android:textColor="@color/white"
-                android:textSize="16sp"/>
-
-            <TextView
-                android:id="@+id/text_resend_otp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Gửi lại"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="8dp"/>
-        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

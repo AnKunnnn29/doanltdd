@@ -1,24 +1,21 @@
 package com.example.doan.Models;
 
-import com.google.gson.annotations.SerializedName;
-
 public class VerifyOtpRequest {
-    @SerializedName("email")
-    private String email;
+    private String username;
     private String otp;
 
-    public VerifyOtpRequest(String email, String otp) {
-
-        this.email = email;
+    public VerifyOtpRequest(String username, String otp) {
+        this.username = username;
         this.otp = otp;
     }
 
-    public String getEmail() {
-        return email;
+    // Getters and setters
+    public String getUsername() {
+        return username;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getOtp() {

@@ -33,14 +33,8 @@ public interface ApiService {
     @POST("auth/register")
     Call<ApiResponse<RegisterResponse>> register(@Body RegisterRequest request);
 
-    @POST("auth/register-with-otp")
-    Call<ApiResponse<String>> registerWithOtp(@Body RegisterRequest request);
-
-    @POST("auth/otp-verify")
-    Call<ApiResponse<String>> verifyOtp(@Body VerifyOtpRequest request);
-
-    @POST("auth/resend-otp")
-    Call<ApiResponse<String>> resendOtp(@Query("target") String emailOrPhone);
+    @POST("auth/verify-otp")
+    Call<ApiResponse<Void>> verifyOtp(@Body VerifyOtpRequest request);
 
     @GET("auth/health")
     Call<ApiResponse<String>> healthCheck();

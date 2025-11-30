@@ -3,7 +3,6 @@ package com.example.doan.Network;
 import android.content.Context;
 import com.example.doan.Utils.SessionManager;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -11,6 +10,7 @@ import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import java.util.concurrent.TimeUnit;
 
 public class RetrofitClient {
 
@@ -25,13 +25,12 @@ public class RetrofitClient {
 
         AuthInterceptor authInterceptor = new AuthInterceptor(context);
 
-        // TĂNG THỜI GIAN TIMEOUT
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(logging)
                 .addInterceptor(authInterceptor)
-                .connectTimeout(60, TimeUnit.SECONDS) // Tăng từ 30s -> 60s
-                .readTimeout(60, TimeUnit.SECONDS)    // Tăng từ 30s -> 60s
-                .writeTimeout(60, TimeUnit.SECONDS)   // Tăng từ 30s -> 60s
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()

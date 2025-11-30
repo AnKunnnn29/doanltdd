@@ -14,6 +14,9 @@ public class Category implements Serializable {
     @SerializedName("description")
     private String description;
 
+    @SerializedName("image")
+    private String image;
+
     @SerializedName("displayOrder")
     private int displayOrder;
 
@@ -52,6 +55,14 @@ public class Category implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public int getDisplayOrder() {

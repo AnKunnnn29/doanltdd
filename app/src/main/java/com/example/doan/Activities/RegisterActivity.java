@@ -2,16 +2,28 @@ package com.example.doan.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.doan.Models.ApiResponse;
+import com.example.doan.Models.RegisterRequest;
+import com.example.doan.Models.RegisterResponse;
+import com.example.doan.Network.RetrofitClient;
 import com.example.doan.R;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class RegisterActivity extends AppCompatActivity {
+
+    private static final String TAG = "RegisterActivity";
 
     private EditText usernameInput, passwordInput, confirmPasswordInput, phoneInput;
     private Button registerButton;
@@ -37,9 +49,9 @@ public class RegisterActivity extends AppCompatActivity {
         String username = usernameInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
         String confirmPassword = confirmPasswordInput.getText().toString().trim();
-        String email = phoneInput.getText().toString().trim();
+        String phone = phoneInput.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
+        if (username.isEmpty() || password.isEmpty() || phone.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin bắt buộc.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -54,12 +66,35 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Chuyển sang OtpActivity ngay lập tức với dữ liệu đăng ký
-        Intent intent = new Intent(RegisterActivity.this, OtpActivity.class);
-        intent.putExtra("USERNAME", username);
-        intent.putExtra("PASSWORD", password);
-        intent.putExtra("EMAIL", email);
-        startActivity(intent);
-        finish();
+        RegisterRequest registerRequest = new RegisterRequest(username, phone, password, username, "");
+
+        RetrofitClient.getInstance(this).getApiService().register(registerRequest).enqueue(new Callback<ApiResponse<RegisterResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiResponse<RegisterResponse>> call, @NonNull Response<ApiResponse<RegisterResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<RegisterResponse> apiResponse = response.body();
+                    if (apiResponse.isSuccess()) {
+                        Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng xác thực OTP.", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(RegisterActivity.this, OtpActivity.class);
+                        intent.putExtra("USER_IDENTIFIER", username);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        String message = apiResponse.getMessage() != null ? apiResponse.getMessage() : "Đăng ký thất bại.";
+                        Toast.makeText(RegisterActivity.this, message, Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Register failed: " + message);
+                    }
+                } else {
+                    Toast.makeText(RegisterActivity.this, "Đăng ký thất bại. Lỗi Server.", Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Register failed, Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiResponse<RegisterResponse>> call, @NonNull Throwable t) {
+                Toast.makeText(RegisterActivity.this, "Không thể kết nối Server để đăng ký.", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Lỗi kết nối: " + t.getMessage());
+            }
+        });
     }
 }

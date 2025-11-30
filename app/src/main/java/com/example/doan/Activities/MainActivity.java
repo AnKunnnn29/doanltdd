@@ -2,6 +2,7 @@ package com.example.doan.Activities;
 
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import com.example.doan.Fragments.HomeFragment;
 import com.example.doan.Fragments.OrderFragment;
 import com.example.doan.R;
 import com.example.doan.Fragments.StoreFragment;
+import com.example.doan.Utils.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -26,6 +28,16 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        TextView userNameTextView = findViewById(R.id.user_name);
+        SessionManager sessionManager = new SessionManager(this);
+        String fullName = sessionManager.getFullName();
+
+        if(sessionManager.isLoggedIn() && fullName != null && !fullName.isEmpty()){
+            userNameTextView.setText("Hi, " + fullName);
+        } else {
+            userNameTextView.setText("Hi, Guest");
+        }
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnItemSelectedListener(this);

@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@drawable/gradient_background"
+    android:fillViewport="true"
     tools:context=".Activities.LoginActivity">
 
     <LinearLayout
@@ -15,7 +15,7 @@
         android:gravity="center"
         android:padding="24dp">
 
-        <!-- Logo và Title Section -->
+        <!-- Phần Header: Logo và Tên App -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,18 +24,18 @@
             android:layout_marginTop="40dp"
             android:layout_marginBottom="32dp">
 
-            <!-- Tea Cup Icon -->
             <ImageView
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:src="@drawable/ic_tea_cup"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:contentDescription="Tea Shop Logo"
-                android:layout_marginBottom="16dp"/>
+                android:src="@drawable/ic_tea_cup"
+                android:layout_marginBottom="16dp"
+                app:tint="@color/white"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="UTE Tea Shop"
+                android:text="Houjicha"
                 android:textSize="32sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
@@ -45,18 +45,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chào mừng bạn trở lại!"
-                android:textSize="16sp"
                 android:textColor="@color/white"
                 android:alpha="0.9"
+                android:textSize="16sp"
                 android:layout_marginTop="8dp"/>
         </LinearLayout>
 
-        <!-- Login Form Card -->
+        <!-- CardView chứa Form Đăng nhập -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="24dp"
             app:cardElevation="8dp"
+            app:cardBackgroundColor="@color/white"
             android:layout_marginBottom="24dp">
 
             <LinearLayout
@@ -71,7 +72,7 @@
                     android:text="Đăng Nhập"
                     android:textSize="28sp"
                     android:textStyle="bold"
-                    android:textColor="@color/tea_dark"
+                    android:textColor="#3E2723" 
                     android:layout_marginBottom="24dp"/>
 
                 <!-- Username Input -->
@@ -81,12 +82,14 @@
                     android:layout_marginBottom="16dp"
                     app:boxBackgroundMode="filled"
                     app:boxBackgroundColor="#F5F5F5"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
                     app:startIconDrawable="@android:drawable/ic_dialog_email"
-                    app:startIconTint="@color/tea_secondary"
+                    app:startIconTint="#D76D2F"
                     android:hint="Tên đăng nhập">
                     
                     <com.google.android.material.textfield.TextInputEditText
@@ -95,24 +98,27 @@
                         android:layout_height="wrap_content"
                         android:inputType="text"
                         android:textSize="16sp"
-                        android:padding="16dp"/>
+                        android:padding="16dp"
+                        android:textColor="#3E2723"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Password Input -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
+                    android:layout_marginBottom="32dp"
                     app:boxBackgroundMode="filled"
                     app:boxBackgroundColor="#F5F5F5"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
                     app:startIconDrawable="@android:drawable/ic_lock_lock"
-                    app:startIconTint="@color/tea_secondary"
+                    app:startIconTint="#D76D2F"
                     app:passwordToggleEnabled="true"
-                    app:passwordToggleTint="@color/tea_secondary"
+                    app:passwordToggleTint="#D76D2F"
                     android:hint="Mật khẩu">
                     
                     <com.google.android.material.textfield.TextInputEditText
@@ -121,27 +127,28 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:textSize="16sp"
-                        android:padding="16dp"/>
+                        android:padding="16dp"
+                        android:textColor="#3E2723"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Login Button -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_login"
                     android:layout_width="match_parent"
-                    android:layout_height="64dp"
+                    android:layout_height="60dp"
                     android:text="ĐĂNG NHẬP"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/white"
                     android:background="@drawable/button_gradient"
-                    app:cornerRadius="32dp"
+                    app:cornerRadius="30dp"
                     android:elevation="4dp"
                     app:backgroundTint="@null"/>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Register Link -->
+        <!-- Footer: Đăng ký -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -153,7 +160,8 @@
                 android:layout_height="wrap_content"
                 android:text="Chưa có tài khoản? "
                 android:textColor="@color/white"
-                android:textSize="16sp"/>
+                android:textSize="14sp"
+                android:alpha="0.8"/>
 
             <TextView
                 android:id="@+id/text_register_link"
@@ -161,11 +169,9 @@
                 android:layout_height="wrap_content"
                 android:text="Đăng ký ngay"
                 android:textColor="@color/white"
-                android:textSize="16sp"
                 android:textStyle="bold"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="8dp"/>
+                android:textSize="14sp"
+                android:layout_marginLeft="4dp"/>
         </LinearLayout>
 
     </LinearLayout>
