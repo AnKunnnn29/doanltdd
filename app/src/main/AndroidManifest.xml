@@ -71,23 +71,23 @@
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
 
+        <!-- Manager Activity -->
+        <activity
+            android:name=".Activities.ManagerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+
         <!-- Other Activities -->
-        <activity
-            android:name=".Activities.AddProductActivity"
+        <activity android:name=".Activities.AddProductActivity" />
+        <activity android:name=".Activities.AddEditDrinkActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn"/>
-        <activity
-            android:name=".Activities.AccountActivity"
+            android:theme="@style/Theme.DoAn" />
+        <activity android:name=".Activities.AddEditCategoryActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn"/>
-        <activity
-            android:name=".Activities.SettingsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.DoAn"/>
-        <activity
-            android:name=".Activities.UserProfileActivity"
-            android:exported="false"
-            android:theme="@style/Theme.DoAn"/>
+            android:theme="@style/Theme.DoAn" />
+        <activity android:name=".Activities.AccountActivity" />
+        <activity android:name=".Activities.SettingsActivity" />
+        <activity android:name=".Activities.UserProfileActivity" />
 
     </application>
 
