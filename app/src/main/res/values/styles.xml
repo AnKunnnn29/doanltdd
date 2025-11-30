@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bottom Navigation Active Indicator -->
+    <style name="App.Widget.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/primary_container</item>
+    </style>
+    
+    <!-- Status Chip Styles -->
+    <style name="StatusChip" parent="Widget.Material3.Chip.Assist">
+        <item name="chipCornerRadius">8dp</item>
+        <item name="chipMinHeight">28dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    
+    <style name="StatusChip.Pending">
+        <item name="chipBackgroundColor">@color/status_pending_bg</item>
+        <item name="android:textColor">@color/status_pending</item>
+    </style>
+    
+    <style name="StatusChip.Making">
+        <item name="chipBackgroundColor">@color/status_making_bg</item>
+        <item name="android:textColor">@color/status_making</item>
+    </style>
+    
+    <style name="StatusChip.Shipping">
+        <item name="chipBackgroundColor">@color/status_shipping_bg</item>
+        <item name="android:textColor">@color/status_shipping</item>
+    </style>
+    
+    <style name="StatusChip.Done">
+        <item name="chipBackgroundColor">@color/status_done_bg</item>
+        <item name="android:textColor">@color/status_done</item>
+    </style>
+    
+    <style name="StatusChip.Canceled">
+        <item name="chipBackgroundColor">@color/status_canceled_bg</item>
+        <item name="android:textColor">@color/status_canceled</item>
+    </style>
+    
+    <!-- KPI Card Style -->
+    <style name="KpiCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="contentPadding">16dp</item>
+    </style>
+    
+    <!-- Section Title -->
+    <style name="SectionTitle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+</resources>

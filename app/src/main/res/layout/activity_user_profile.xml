@@ -29,6 +29,7 @@
             android:layout_height="100dp"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/img"
+            android:background="@drawable/bg_circle"
             android:contentDescription="Ảnh đại diện"
             android:layout_marginBottom="32dp"/>
 
@@ -44,41 +45,16 @@
                 android:inputType="textCapWords" />
         </com.google.android.material.textfield.TextInputLayout>
 
-
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="32dp"
             android:hint="Địa chỉ Email">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_profile_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Số điện thoại">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/input_profile_phone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:hint="Địa chỉ">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/input_profile_address"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton

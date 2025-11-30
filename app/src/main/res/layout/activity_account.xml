@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#F5F5F5"
-    tools:context=".Activities.AccountActivity">
+    tools:context=".Fragments.AccountFragment">
 
     <!-- Profile Header -->
     <RelativeLayout
@@ -138,7 +138,6 @@
                     app:tint="@color/black"/>
 
                 <TextView
-                    android:id="@+id/logout_text" 
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
