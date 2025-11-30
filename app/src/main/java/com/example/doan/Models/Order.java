@@ -2,51 +2,39 @@ package com.example.doan.Models;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class Order implements Serializable {
 
     @SerializedName("id")
     private int id;
 
-    // Bảng DB không có order_number, dùng ID làm mã đơn
-    @SerializedName("order_number")
+    @SerializedName("orderNumber")
     private String orderNumber;
 
-    // Ánh xạ từ created_at trong DB
-    @SerializedName("created_at")
+    @SerializedName(value = "createdAt", alternate = {"created_at"})
     private String date;
 
     @SerializedName("status")
     private String status;
 
-    // Ánh xạ từ total_price trong DB
-    @SerializedName("total_price")
+    @SerializedName(value = "totalPrice", alternate = {"total_price"})
     private double totalAmount;
     
-    @SerializedName("final_price")
+    @SerializedName(value = "finalPrice", alternate = {"final_price"})
     private double finalPrice;
     
     @SerializedName("address")
     private String address;
 
-    // Customer info
-    @SerializedName("customer_name")
-    private String customerName;
-    
-    @SerializedName("customer_phone")
-    private String customerPhone;
-    
-    // Payment info
-    @SerializedName("payment_status")
-    private String paymentStatus;
-    
-    @SerializedName("payment_method")
+    @SerializedName("userName")
+    private String userName;
+
+    @SerializedName("paymentMethod")
     private String paymentMethod;
-    
-    // Timestamp
-    @SerializedName("createdAt")
-    private Date createdAt;
 
     public Order(int id, String orderNumber, String date, String status, double totalAmount) {
         this.id = id;
@@ -63,91 +51,104 @@ public class Order implements Serializable {
         return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getOrderNumber() {
-        // Nếu server không trả về order_number, dùng ID thay thế
         if (orderNumber == null || orderNumber.isEmpty()) {
             return String.valueOf(id);
         }
         return orderNumber;
     }
 
-    public String getDate() {
-        return date;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public double getTotalAmount() {
-        return totalAmount;
-    }
-    
-    public double getFinalPrice() {
-        return finalPrice;
-    }
-    
-    public String getAddress() {
-        return address;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public void setOrderNumber(String orderNumber) {
         this.orderNumber = orderNumber;
+    }
+
+    public String getDate() {
+        return date;
     }
 
     public void setDate(String date) {
         this.date = date;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public double getTotalAmount() {
+        return totalAmount;
     }
 
     public void setTotalAmount(double totalAmount) {
         this.totalAmount = totalAmount;
     }
-    
-    public String getCustomerName() {
-        return customerName;
+
+    public double getFinalPrice() {
+        return finalPrice;
     }
-    
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+
+    public void setFinalPrice(double finalPrice) {
+        this.finalPrice = finalPrice;
     }
-    
-    public String getCustomerPhone() {
-        return customerPhone;
+
+    public String getAddress() {
+        return address;
     }
-    
-    public void setCustomerPhone(String customerPhone) {
-        this.customerPhone = customerPhone;
+
+    public void setAddress(String address) {
+        this.address = address;
     }
-    
-    public String getPaymentStatus() {
-        return paymentStatus;
+
+    public String getUserName() {
+        return userName;
     }
-    
-    public void setPaymentStatus(String paymentStatus) {
-        this.paymentStatus = paymentStatus;
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
-    
+
     public String getPaymentMethod() {
         return paymentMethod;
     }
-    
+
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
-    
-    public Date getCreatedAt() {
-        return createdAt;
+
+    // Helper methods for Adapter compatibility
+    public String getCustomerName() {
+        return userName;
     }
-    
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+
+    public String getCustomerPhone() {
+        return null; // Phone not available in DTO
+    }
+
+    public String getPaymentStatus() {
+        return paymentMethod;
+    }
+
+    public Date getCreatedAt() {
+        if (date == null) return null;
+        try {
+            // Handle ISO 8601 format (e.g., 2023-11-27T10:30:00)
+            // Note: Locale.US is better for standard date formats
+            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+            return isoFormat.parse(date);
+        } catch (ParseException e) {
+            try {
+                 SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+                 return simpleFormat.parse(date);
+            } catch (ParseException ex) {
+                return null;
+            }
+        }
     }
 }

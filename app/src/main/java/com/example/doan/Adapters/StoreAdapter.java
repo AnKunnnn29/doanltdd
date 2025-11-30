@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.doan.Models.Store;
 import com.example.doan.R;
+import com.example.doan.Utils.SessionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 
@@ -21,10 +22,17 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
 
     private Context context;
     private List<Store> stores;
+    private boolean isManager;
 
     public StoreAdapter(Context context, List<Store> stores) {
         this.context = context;
         this.stores = stores;
+        
+        // Kiểm tra quyền Manager ngay khi khởi tạo Adapter
+        SessionManager sessionManager = new SessionManager(context);
+        // Kiểm tra role là MANAGER hoặc ADMIN (tùy logic backend của bạn)
+        String role = sessionManager.getRole();
+        this.isManager = "MANAGER".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role);
     }
 
     @NonNull
@@ -71,22 +79,31 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
             tvStoreAddress.setText(store.getAddress());
             tvStorePhone.setText(store.getPhone() != null ? store.getPhone() : "N/A");
             
-            // Mock hours - replace with actual data if available
-            tvStoreHours.setText("8:00 - 22:00");
+            // Mock hours
+            tvStoreHours.setText(store.getOpenTime() + " - " + store.getCloseTime());
             
             // Status
             chipStoreStatus.setText("Hoạt động");
-            chipStoreStatus.setChipBackgroundColorResource(R.color.success);
+            // chipStoreStatus.setChipBackgroundColorResource(R.color.success); // Comment out color if resource missing
 
-            // Edit button
-            btnEditStore.setOnClickListener(v -> {
-                Toast.makeText(context, "Sửa: " + store.getName(), Toast.LENGTH_SHORT).show();
-            });
+            // PHÂN QUYỀN: Ẩn nút nếu không phải Manager
+            if (isManager) {
+                btnEditStore.setVisibility(View.VISIBLE);
+                btnDeleteStore.setVisibility(View.VISIBLE);
+                
+                btnEditStore.setOnClickListener(v -> {
+                    Toast.makeText(context, "Sửa: " + store.getName(), Toast.LENGTH_SHORT).show();
+                    // TODO: Chuyển sang màn hình EditStoreActivity
+                });
 
-            // Delete button
-            btnDeleteStore.setOnClickListener(v -> {
-                Toast.makeText(context, "Xóa: " + store.getName(), Toast.LENGTH_SHORT).show();
-            });
+                btnDeleteStore.setOnClickListener(v -> {
+                    Toast.makeText(context, "Xóa: " + store.getName(), Toast.LENGTH_SHORT).show();
+                    // TODO: Gọi API xóa Store
+                });
+            } else {
+                btnEditStore.setVisibility(View.GONE);
+                btnDeleteStore.setVisibility(View.GONE);
+            }
         }
     }
 }

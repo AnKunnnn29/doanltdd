@@ -1,6 +1,7 @@
 package com.example.doan.Activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,12 +18,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.doan.Models.ApiResponse;
 import com.example.doan.Models.CreateOrderRequest;
+import com.example.doan.Models.DrinkSize;
 import com.example.doan.Models.OrderItemRequest;
 import com.example.doan.Models.Order;
 import com.example.doan.Models.Product;
 import com.example.doan.Models.Store;
 import com.example.doan.Network.RetrofitClient;
 import com.example.doan.R;
+import com.example.doan.Utils.CartManager;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
@@ -41,9 +44,9 @@ public class ProductDetailActivity extends AppCompatActivity {
     private static final String KEY_USER_ID = "userId";
 
     private ImageView productImage;
-    private TextView productName, productPrice, productDescription, tvQuantity, tvTotalPrice;
+    private TextView productName, productPrice, productDescription, tvQuantity, tvTotalPrice, detailProductCategory;
     private Spinner spinnerBranch;
-    private MaterialButton btnDecrease, btnIncrease, btnConfirmOrder;
+    private MaterialButton btnDecrease, btnIncrease, btnConfirmOrder, btnAddToCart;
 
     private Product product;
     private int quantity = 1;
@@ -55,7 +58,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_detail);
 
-        // Retrieve product from Intent
         if (getIntent().hasExtra("product")) {
             product = (Product) getIntent().getSerializableExtra("product");
         }
@@ -77,18 +79,21 @@ public class ProductDetailActivity extends AppCompatActivity {
         productName = findViewById(R.id.detail_product_name);
         productPrice = findViewById(R.id.detail_product_price);
         productDescription = findViewById(R.id.detail_product_description);
+        detailProductCategory = findViewById(R.id.detail_product_category);
         spinnerBranch = findViewById(R.id.spinner_branch);
         tvQuantity = findViewById(R.id.tv_quantity);
         tvTotalPrice = findViewById(R.id.tv_total_price);
         btnDecrease = findViewById(R.id.btn_decrease_qty);
         btnIncrease = findViewById(R.id.btn_increase_qty);
         btnConfirmOrder = findViewById(R.id.btn_confirm_order);
+        btnAddToCart = findViewById(R.id.btn_add_to_cart);
     }
 
     private void setupData() {
         productName.setText(product.getName());
         productPrice.setText(String.format(Locale.getDefault(), "%,.0f VNĐ", product.getPrice()));
         productDescription.setText(product.getDescription());
+        detailProductCategory.setText(product.getCategory());
         
         Glide.with(this)
                 .load(product.getImageUrl())
@@ -142,11 +147,26 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
 
         btnConfirmOrder.setOnClickListener(v -> placeOrder());
+        
+        btnAddToCart.setOnClickListener(v -> addToCart());
     }
 
     private void updateTotalPrice() {
         double total = quantity * product.getPrice();
         tvTotalPrice.setText(String.format(Locale.getDefault(), "%,.0f VNĐ", total));
+    }
+
+    private void addToCart() {
+        String selectedSize = "M"; // Default
+        if (product.getSizes() != null && !product.getSizes().isEmpty()) {
+            selectedSize = product.getSizes().get(0).getSizeName();
+        }
+        
+        CartManager.getInstance().addToCart(product, quantity, selectedSize, product.getPrice());
+        Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+        
+        // Chuyển sang CartActivity để xem giỏ hàng
+        startActivity(new Intent(this, CartActivity.class));
     }
 
     private void placeOrder() {
@@ -162,17 +182,20 @@ public class ProductDetailActivity extends AppCompatActivity {
         }
         
         int storeId = storeList.get(selectedStoreIndex).getId();
+        
         int userId = getLoggedInUserId();
-
         if (userId == -1) {
             Toast.makeText(this, "Vui lòng đăng nhập để đặt hàng", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        double totalAmount = quantity * product.getPrice();
+        String selectedSize = "M"; 
+        if (product.getSizes() != null && !product.getSizes().isEmpty()) {
+            selectedSize = product.getSizes().get(0).getSizeName();
+        }
         
-        OrderItemRequest item = new OrderItemRequest(product.getId(), quantity, product.getPrice());
-        CreateOrderRequest orderRequest = new CreateOrderRequest(userId, storeId, totalAmount, Collections.singletonList(item));
+        OrderItemRequest item = new OrderItemRequest(product.getId(), selectedSize, quantity);
+        CreateOrderRequest orderRequest = new CreateOrderRequest(storeId, Collections.singletonList(item));
 
         btnConfirmOrder.setEnabled(false);
         btnConfirmOrder.setText("Đang xử lý...");
@@ -181,7 +204,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call<ApiResponse<Order>> call, @NonNull Response<ApiResponse<Order>> response) {
                 btnConfirmOrder.setEnabled(true);
-                btnConfirmOrder.setText("XÁC NHẬN ĐẶT HÀNG");
+                btnConfirmOrder.setText("MUA NGAY");
 
                 if (response.isSuccessful() && response.body() != null) {
                     if (response.body().isSuccess()) {
@@ -205,7 +228,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Call<ApiResponse<Order>> call, @NonNull Throwable t) {
                 btnConfirmOrder.setEnabled(true);
-                btnConfirmOrder.setText("XÁC NHẬN ĐẶT HÀNG");
+                btnConfirmOrder.setText("MUA NGAY");
                 Log.e(TAG, "Lỗi đặt hàng: " + t.getMessage());
                 Toast.makeText(ProductDetailActivity.this, "Không thể kết nối đến máy chủ", Toast.LENGTH_SHORT).show();
             }

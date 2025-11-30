@@ -7,6 +7,9 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    
+    <!-- Permission for Notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:allowBackup="true"
@@ -70,24 +73,20 @@
             android:name=".Activities.ProductDetailActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
-
-        <!-- Manager Activity -->
+            
+        <!-- Cart Activity -->
         <activity
-            android:name=".Activities.ManagerActivity"
+            android:name=".Activities.CartActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
 
         <!-- Other Activities -->
         <activity android:name=".Activities.AddProductActivity" />
-        <activity android:name=".Activities.AddEditDrinkActivity"
-            android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-        <activity android:name=".Activities.AddEditCategoryActivity"
-            android:exported="false"
-            android:theme="@style/Theme.DoAn" />
         <activity android:name=".Activities.AccountActivity" />
         <activity android:name=".Activities.SettingsActivity" />
         <activity android:name=".Activities.UserProfileActivity" />
+        
+        <!-- Removed Firebase Messaging Service -->
 
     </application>
 
