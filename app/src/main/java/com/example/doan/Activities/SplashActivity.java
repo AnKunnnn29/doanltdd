@@ -9,12 +9,11 @@ import android.os.Looper;
 import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.doan.R;
+import com.example.doan.Utils.SessionManager;
 
 public class SplashActivity extends AppCompatActivity {
 
     private static final String TAG = "SplashActivity";
-    private static final String PREFS_NAME = "UserPrefs";
-    private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
     private static final int SPLASH_DELAY = 2000; // 2 seconds
 
     @Override
@@ -41,18 +40,36 @@ public class SplashActivity extends AppCompatActivity {
 
     private void navigateToNextScreen() {
         try {
-            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            boolean isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false);
+            // Sử dụng SessionManager để check session
+            SessionManager sessionManager = new SessionManager(this);
+            boolean isLoggedIn = sessionManager.isLoggedIn();
+            boolean isManager = sessionManager.isManager();
+            String role = sessionManager.getRole();
+            String username = sessionManager.getUsername();
             
+            Log.d(TAG, "=== SESSION CHECK ===");
             Log.d(TAG, "User logged in: " + isLoggedIn);
+            Log.d(TAG, "Username: " + username);
+            Log.d(TAG, "Role: " + role);
+            Log.d(TAG, "Is Manager: " + isManager);
+            Log.d(TAG, "====================");
 
             Intent intent;
             if (isLoggedIn) {
-                // User is logged in, go to MainActivity
-                intent = new Intent(SplashActivity.this, MainActivity.class);
+                // Check role để redirect đúng
+                if (isManager) {
+                    // Manager → ManagerActivity
+                    intent = new Intent(SplashActivity.this, ManagerActivity.class);
+                    Log.d(TAG, "✓ Redirecting to ManagerActivity");
+                } else {
+                    // User → MainActivity
+                    intent = new Intent(SplashActivity.this, MainActivity.class);
+                    Log.d(TAG, "✓ Redirecting to MainActivity");
+                }
             } else {
-                // User is not logged in, go to WelcomeActivity
+                // Not logged in → WelcomeActivity
                 intent = new Intent(SplashActivity.this, WelcomeActivity.class);
+                Log.d(TAG, "✓ Redirecting to WelcomeActivity");
             }
 
             startActivity(intent);
@@ -62,6 +79,9 @@ public class SplashActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error navigating: " + e.getMessage());
             e.printStackTrace();
+            // Fallback
+            startActivity(new Intent(this, WelcomeActivity.class));
+            finish();
         }
     }
 }

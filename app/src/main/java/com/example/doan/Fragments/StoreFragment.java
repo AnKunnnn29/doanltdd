@@ -57,7 +57,7 @@ public class StoreFragment extends Fragment {
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
                         // Cập nhật adapter
                         storeList = apiResponse.getData();
-                        storeAdapter = new StoreAdapter(storeList);
+                        storeAdapter = new StoreAdapter(getContext(), storeList);
                         storesRecyclerView.setAdapter(storeAdapter);
                     } else {
                         String message = apiResponse.getMessage() != null ? apiResponse.getMessage() : "Lỗi tải dữ liệu cửa hàng";

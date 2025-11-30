@@ -25,9 +25,15 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         void onCategoryClick(Category category);
     }
 
-    public CategoryAdapter(List<Category> categoryList, OnCategoryClickListener listener) {
+    public CategoryAdapter(android.content.Context context, List<Category> categoryList, OnCategoryClickListener listener) {
         this.categoryList = categoryList;
         this.listener = listener;
+    }
+
+    public void updateCategories(List<Category> newList) {
+        this.categoryList.clear();
+        this.categoryList.addAll(newList);
+        notifyDataSetChanged();
     }
 
     @NonNull

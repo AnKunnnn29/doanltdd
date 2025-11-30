@@ -2,6 +2,7 @@ package com.example.doan.Models;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
+import java.util.Date;
 
 public class Order implements Serializable {
 
@@ -28,6 +29,24 @@ public class Order implements Serializable {
     
     @SerializedName("address")
     private String address;
+
+    // Customer info
+    @SerializedName("customer_name")
+    private String customerName;
+    
+    @SerializedName("customer_phone")
+    private String customerPhone;
+    
+    // Payment info
+    @SerializedName("payment_status")
+    private String paymentStatus;
+    
+    @SerializedName("payment_method")
+    private String paymentMethod;
+    
+    // Timestamp
+    @SerializedName("createdAt")
+    private Date createdAt;
 
     public Order(int id, String orderNumber, String date, String status, double totalAmount) {
         this.id = id;
@@ -90,5 +109,45 @@ public class Order implements Serializable {
 
     public void setTotalAmount(double totalAmount) {
         this.totalAmount = totalAmount;
+    }
+    
+    public String getCustomerName() {
+        return customerName;
+    }
+    
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+    
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+    
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
+    }
+    
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+    
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+    
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+    
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+    
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

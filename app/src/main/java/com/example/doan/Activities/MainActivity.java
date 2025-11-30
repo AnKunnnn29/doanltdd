@@ -1,6 +1,8 @@
 package com.example.doan.Activities;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -29,8 +31,18 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TextView userNameTextView = findViewById(R.id.user_name);
+        // Check if user is Manager, redirect to ManagerActivity
         SessionManager sessionManager = new SessionManager(this);
+        if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
+            Log.d(TAG, "Manager detected in MainActivity, redirecting to ManagerActivity");
+            Intent intent = new Intent(this, ManagerActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
+        TextView userNameTextView = findViewById(R.id.user_name);
         String fullName = sessionManager.getFullName();
 
         if(sessionManager.isLoggedIn() && fullName != null && !fullName.isEmpty()){

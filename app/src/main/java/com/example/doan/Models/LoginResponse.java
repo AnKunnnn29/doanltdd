@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class LoginResponse {
 
-    @SerializedName("userId")
+    @SerializedName("id")  // ✅ FIX VẤN ĐỀ 1: Backend trả về "id", không phải "userId"
     private int userId;
 
     @SerializedName("username")

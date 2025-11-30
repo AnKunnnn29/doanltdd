@@ -47,7 +47,7 @@ public class OrderFragment extends Fragment {
         ordersRecyclerView = view.findViewById(R.id.orders_recycler_view);
         ordersRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        orderAdapter = new OrderAdapter(orderList);
+        orderAdapter = new OrderAdapter(getContext(), orderList);
         ordersRecyclerView.setAdapter(orderAdapter);
 
         int userId = getLoggedInUserId();

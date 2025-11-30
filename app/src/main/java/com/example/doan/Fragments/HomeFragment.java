@@ -58,7 +58,7 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
         // Setup Category RecyclerView
         categoryRecyclerView = view.findViewById(R.id.category_recycler_view);
         categoryRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        categoryAdapter = new CategoryAdapter(categoryList, this);
+        categoryAdapter = new CategoryAdapter(getContext(), categoryList, this);
         categoryRecyclerView.setAdapter(categoryAdapter);
 
         loadCategories();

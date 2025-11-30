@@ -28,15 +28,20 @@ public class RetrofitClient {
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(logging)
                 .addInterceptor(authInterceptor)
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
                 .build();
+
+        // Create Gson with lenient parsing
+        com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                .setLenient()
+                .create();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
         apiService = retrofit.create(ApiService.class);
@@ -66,11 +71,23 @@ public class RetrofitClient {
 
         @Override
         public Response intercept(Chain chain) throws IOException {
-            Request.Builder requestBuilder = chain.request().newBuilder();
-            String token = sessionManager.getToken();
-            if (token != null && !token.isEmpty()) {
-                requestBuilder.addHeader("Authorization", "Bearer " + token);
+            Request originalRequest = chain.request();
+            Request.Builder requestBuilder = originalRequest.newBuilder();
+            
+            // Don't add token for login/register endpoints
+            String path = originalRequest.url().encodedPath();
+            boolean isAuthEndpoint = path.contains("/auth/login") || 
+                                    path.contains("/auth/register") ||
+                                    path.contains("/auth/register-with-otp") ||
+                                    path.contains("/auth/otp-verify");
+            
+            if (!isAuthEndpoint) {
+                String token = sessionManager.getToken();
+                if (token != null && !token.isEmpty()) {
+                    requestBuilder.addHeader("Authorization", "Bearer " + token);
+                }
             }
+            
             return chain.proceed(requestBuilder.build());
         }
     }

@@ -7,12 +7,11 @@ import com.example.doan.Models.Drink;
 import com.example.doan.Models.LoginRequest;
 import com.example.doan.Models.LoginResponse;
 import com.example.doan.Models.Order;
+import com.example.doan.Models.PageResponse;
 import com.example.doan.Models.Product;
 import com.example.doan.Models.RegisterRequest;
 import com.example.doan.Models.RegisterResponse;
 import com.example.doan.Models.Store;
-import com.example.doan.Models.UpdateProfileRequest;
-import com.example.doan.Models.UserProfileDto;
 import com.example.doan.Models.VerifyOtpRequest;
 
 import java.util.List;
@@ -20,8 +19,8 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Multipart;
@@ -50,13 +49,6 @@ public interface ApiService {
     @GET("auth/health")
     Call<ApiResponse<String>> healthCheck();
 
-    // ==================== USER PROFILE ====================
-    @GET("me")
-    Call<ApiResponse<UserProfileDto>> getProfile(@Header("Authorization") String authToken);
-
-    @PUT("me")
-    Call<ApiResponse<UserProfileDto>> updateProfile(@Header("Authorization") String authToken, @Body UpdateProfileRequest request);
-
     // ==================== CATEGORIES ====================
     @GET("categories")
     Call<ApiResponse<List<Category>>> getCategories();
@@ -67,6 +59,9 @@ public interface ApiService {
     // ==================== DRINKS ====================
     @GET("drinks")
     Call<ApiResponse<List<Drink>>> getDrinks();
+
+    @GET("drinks")
+    Call<ApiResponse<List<Drink>>> getAllDrinks();
 
     @GET("drinks/{id}")
     Call<ApiResponse<Drink>> getDrinkById(@Path("id") int id);
@@ -105,6 +100,45 @@ public interface ApiService {
 
     @POST("orders/{id}/confirm")
     Call<ApiResponse<String>> confirmOrder(@Path("id") int orderId);
+
+    // ==================== MANAGER APIs ====================
+    @GET("manager/summary")
+    Call<ApiResponse<com.example.doan.Models.DashboardSummary>> getDashboardSummary();
+
+    @GET("manager/orders")
+    Call<ApiResponse<PageResponse<Order>>> getManagerOrders(
+            @Query("status") String status,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    @PUT("manager/orders/{orderId}/status")
+    Call<ApiResponse<Order>> updateOrderStatus(
+            @Path("orderId") int orderId,
+            @Query("status") String status
+    );
+
+    // ==================== ADMIN APIs ====================
+    @POST("admin/drinks")
+    Call<ApiResponse<Drink>> createDrink(@Body Drink drink);
+
+    @PUT("admin/drinks/{id}")
+    Call<ApiResponse<Drink>> updateDrink(@Path("id") int id, @Body Drink drink);
+
+    @DELETE("admin/drinks/{id}")
+    Call<ApiResponse<Void>> deleteDrink(@Path("id") long id);
+
+    @GET("admin/categories")
+    Call<ApiResponse<List<Category>>> getAdminCategories();
+
+    @POST("admin/categories")
+    Call<ApiResponse<Category>> createCategory(@Body Category category);
+
+    @PUT("admin/categories/{id}")
+    Call<ApiResponse<Category>> updateCategory(@Path("id") int id, @Body Category category);
+
+    @DELETE("admin/categories/{id}")
+    Call<ApiResponse<Void>> deleteCategory(@Path("id") int id);
 
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
