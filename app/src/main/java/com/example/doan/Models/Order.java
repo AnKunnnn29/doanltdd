@@ -8,17 +8,26 @@ public class Order implements Serializable {
     @SerializedName("id")
     private int id;
 
+    // Bảng DB không có order_number, dùng ID làm mã đơn
     @SerializedName("order_number")
     private String orderNumber;
 
-    @SerializedName("order_date")
+    // Ánh xạ từ created_at trong DB
+    @SerializedName("created_at")
     private String date;
 
     @SerializedName("status")
     private String status;
 
-    @SerializedName("total_amount")
+    // Ánh xạ từ total_price trong DB
+    @SerializedName("total_price")
     private double totalAmount;
+    
+    @SerializedName("final_price")
+    private double finalPrice;
+    
+    @SerializedName("address")
+    private String address;
 
     public Order(int id, String orderNumber, String date, String status, double totalAmount) {
         this.id = id;
@@ -28,17 +37,18 @@ public class Order implements Serializable {
         this.totalAmount = totalAmount;
     }
 
-
     public Order() {
     }
-
-
 
     public int getId() {
         return id;
     }
 
     public String getOrderNumber() {
+        // Nếu server không trả về order_number, dùng ID thay thế
+        if (orderNumber == null || orderNumber.isEmpty()) {
+            return String.valueOf(id);
+        }
         return orderNumber;
     }
 
@@ -53,7 +63,14 @@ public class Order implements Serializable {
     public double getTotalAmount() {
         return totalAmount;
     }
-
+    
+    public double getFinalPrice() {
+        return finalPrice;
+    }
+    
+    public String getAddress() {
+        return address;
+    }
 
     public void setId(int id) {
         this.id = id;

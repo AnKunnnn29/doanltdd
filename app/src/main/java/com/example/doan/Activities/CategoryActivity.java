@@ -65,27 +65,51 @@ public class CategoryActivity extends AppCompatActivity {
                     List<Drink> newDrinks = response.body().getData();
                     if (newDrinks != null && !newDrinks.isEmpty()) {
                         List<Product> productList = new ArrayList<>();
+                        
+                        // Prepare Base URL for images
+                        String baseUrl = RetrofitClient.getBaseUrl(); 
+                        String rootUrl = baseUrl.replace("/api/", ""); 
+                        if (rootUrl.endsWith("/")) {
+                             rootUrl = rootUrl.substring(0, rootUrl.length() - 1);
+                        }
+
                         for (Drink drink : newDrinks) {
                             if (drink == null) continue;
 
-                            // Reverted to direct assignment as the getters return primitive types
                             int id = drink.getId();
                             String name = drink.getName() != null ? drink.getName() : "";
                             String description = drink.getDescription() != null ? drink.getDescription() : "";
                             double price = drink.getBasePrice();
                             String categoryName = drink.getCategoryName() != null ? drink.getCategoryName() : "";
-                            String imageUrl = drink.getImageUrl() != null ? drink.getImageUrl() : "";
-                            boolean isActive = drink.isActive();
+                            
+                            // Fix Image URL
+                            String imageUrl = drink.getImageUrl();
+                            if (imageUrl != null && !imageUrl.startsWith("http")) {
+                                if (!imageUrl.startsWith("/")) {
+                                    imageUrl = "/" + imageUrl;
+                                }
+                                imageUrl = rootUrl + imageUrl;
+                            }
+                            if (imageUrl == null) imageUrl = "";
 
-                            productList.add(new Product(id, name, description, price, categoryName, imageUrl, isActive));
+                            boolean isActive = drink.isActive();
+                            
+                            int pCategoryId = drink.getCategoryId();
+                            if (pCategoryId == 0) pCategoryId = categoryId;
+
+                            // Create Product with matching constructor
+                            Product product = new Product(id, name, description, price, categoryName, pCategoryId, imageUrl, isActive);
+                            product.setSizes(drink.getSizes());
+                            
+                            productList.add(product);
                         }
                         ProductAdapter productAdapter = new ProductAdapter(productList);
                         recyclerView.setAdapter(productAdapter);
                     } else {
-                        Toast.makeText(CategoryActivity.this, "No products found in this category.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CategoryActivity.this, "Không có sản phẩm nào trong danh mục này.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                     Toast.makeText(CategoryActivity.this, "Failed to load products for this category", Toast.LENGTH_SHORT).show();
+                     Toast.makeText(CategoryActivity.this, "Lỗi tải sản phẩm", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -93,7 +117,7 @@ public class CategoryActivity extends AppCompatActivity {
             public void onFailure(Call<ApiResponse<List<Drink>>> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 Log.e("CategoryActivity", "API call failed: " + t.getMessage());
-                Toast.makeText(CategoryActivity.this, "An error occurred: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(CategoryActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

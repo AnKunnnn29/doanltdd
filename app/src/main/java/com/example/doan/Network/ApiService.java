@@ -2,6 +2,7 @@ package com.example.doan.Network;
 
 import com.example.doan.Models.ApiResponse;
 import com.example.doan.Models.Category;
+import com.example.doan.Models.CreateOrderRequest;
 import com.example.doan.Models.Drink;
 import com.example.doan.Models.LoginRequest;
 import com.example.doan.Models.LoginResponse;
@@ -84,6 +85,15 @@ public interface ApiService {
 
     @GET("orders/{orderId}")
     Call<ApiResponse<Order>> getOrderById(@Path("orderId") int orderId);
+
+    @POST("orders")
+    Call<ApiResponse<Order>> createOrder(@Body CreateOrderRequest request);
+
+    @POST("orders/{id}/cancel")
+    Call<ApiResponse<String>> cancelOrder(@Path("id") int orderId);
+
+    @POST("orders/{id}/confirm")
+    Call<ApiResponse<String>> confirmOrder(@Path("id") int orderId);
 
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")

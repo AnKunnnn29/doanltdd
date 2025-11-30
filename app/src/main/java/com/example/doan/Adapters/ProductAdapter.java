@@ -1,14 +1,15 @@
 package com.example.doan.Adapters;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide; // Bắt buộc phải có
+import com.bumptech.glide.Glide;
+import com.example.doan.Activities.ProductDetailActivity;
 import com.example.doan.Models.Product;
 import com.example.doan.R;
 
@@ -46,6 +47,12 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                 .placeholder(R.drawable.ic_image_placeholder)
                 .error(R.drawable.ic_broken_image)
                 .into(holder.productImage);
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(holder.itemView.getContext(), ProductDetailActivity.class);
+            intent.putExtra("product", product);
+            holder.itemView.getContext().startActivity(intent);
+        });
     }
 
     @Override
