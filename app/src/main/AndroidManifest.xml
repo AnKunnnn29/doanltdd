@@ -53,6 +53,11 @@
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
 
+
+        <activity android:name=".Activities.OtpActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+
         <!-- Other Activities -->
         <activity android:name=".Activities.AddProductActivity" />
         <activity android:name=".Activities.AccountActivity" />

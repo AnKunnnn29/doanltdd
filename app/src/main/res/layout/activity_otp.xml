@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/gradient_background"
+    tools:context=".Activities.OtpActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
+
+        <!-- Logo và Title Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_tea_cup"
+                android:contentDescription="Tea Shop Logo"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Xác Thực Tài Khoản"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:fontFamily="sans-serif-medium"/>
+
+            <TextView
+                android:id="@+id/text_otp_instruction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mã OTP đã được gửi đến email của bạn."
+                android:textSize="14sp"
+                android:textColor="@color/white"
+                android:alpha="0.9"
+                android:layout_marginTop="4dp"
+                android:textAlignment="center"/>
+        </LinearLayout>
+
+        <!-- OTP Form Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="8dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="28dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nhập Mã OTP"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/tea_dark"
+                    android:layout_marginBottom="20dp"/>
+
+                <!-- OTP Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    app:boxBackgroundMode="filled"
+                    app:boxBackgroundColor="#F5F5F5"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:startIconDrawable="@android:drawable/ic_dialog_info"
+                    app:startIconTint="@color/tea_secondary"
+                    android:hint="Mã OTP gồm 6 chữ số">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_otp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLength="6"
+                        android:textSize="16sp"
+                        android:padding="14dp"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Verify Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_verify_otp"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:text="XÁC THỰC"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@drawable/button_gradient"
+                    app:cornerRadius="32dp"
+                    android:elevation="4dp"
+                    app:backgroundTint="@null"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Resend Link -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chưa nhận được mã? "
+                android:textColor="@color/white"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/text_resend_otp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gửi lại"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
