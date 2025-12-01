@@ -86,6 +86,30 @@
         <activity android:name=".Activities.SettingsActivity" />
         <activity android:name=".Activities.UserProfileActivity" />
         
+        <!-- Manager Activity -->
+        <activity
+            android:name=".Activities.ManagerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <!-- Category Activity -->
+        <activity
+            android:name=".Activities.CategoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <!-- Add/Edit Drink Activity -->
+        <activity
+            android:name=".Activities.AddEditDrinkActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <!-- Add/Edit Category Activity -->
+        <activity
+            android:name=".Activities.AddEditCategoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
         <!-- Removed Firebase Messaging Service -->
 
     </application>
