@@ -143,6 +143,7 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
                                 drink.isActive()
                             );
                             product.setSizes(drink.getSizes());
+                            product.setToppings(drink.getToppings());
                             
                             allProducts.add(product);
                         }

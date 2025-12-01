@@ -82,6 +82,29 @@ public interface ApiService {
     @GET("stores/search")
     Call<ApiResponse<List<Store>>> searchStores(@Query("keyword") String keyword);
 
+    // ==================== CART ====================
+    @POST("cart/add")
+    Call<ApiResponse<com.example.doan.Models.Cart>> addToCart(
+            @Query("userId") long userId,
+            @Body com.example.doan.Models.AddToCartRequest request);
+
+    @GET("cart/{userId}")
+    Call<ApiResponse<com.example.doan.Models.Cart>> getCart(@Path("userId") long userId);
+
+    @PUT("cart/items/{cartItemId}")
+    Call<ApiResponse<com.example.doan.Models.Cart>> updateCartItem(
+            @Path("cartItemId") long cartItemId,
+            @Query("userId") long userId,
+            @Query("quantity") int quantity);
+
+    @DELETE("cart/items/{cartItemId}")
+    Call<ApiResponse<Void>> removeCartItem(
+            @Path("cartItemId") long cartItemId,
+            @Query("userId") long userId);
+
+    @DELETE("cart/{userId}/clear")
+    Call<ApiResponse<Void>> clearCart(@Path("userId") long userId);
+
     // ==================== ORDERS ====================
     @GET("orders/user/{userId}")
     Call<ApiResponse<List<Order>>> getUserOrders(@Path("userId") int userId);

@@ -1,41 +1,51 @@
 package com.example.doan.Models;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 
 public class OrderItemRequest {
-    @SerializedName("product_id")
-    private int productId;
+    @SerializedName("drinkId")
+    private Long drinkId;
 
-    @SerializedName("size")
-    private String size;
+    @SerializedName("sizeName")
+    private String sizeName;
 
     @SerializedName("quantity")
     private int quantity;
 
-    @SerializedName("price")
-    private double price;
+    @SerializedName("note")
+    private String note;
+    
+    @SerializedName("toppingIds")
+    private List<Long> toppingIds;
 
-    public OrderItemRequest(int productId, String size, int quantity, double price) {
-        this.productId = productId;
-        this.size = size;
+    public OrderItemRequest(Long drinkId, String sizeName, int quantity, String note, List<Long> toppingIds) {
+        this.drinkId = drinkId;
+        this.sizeName = sizeName;
         this.quantity = quantity;
-        this.price = price;
+        this.note = note;
+        this.toppingIds = toppingIds;
+    }
+    
+    // Constructor without toppings
+    public OrderItemRequest(Long drinkId, String sizeName, int quantity, String note) {
+        this(drinkId, sizeName, quantity, note, null);
     }
 
-    public int getProductId() {
-        return productId;
+    public Long getDrinkId() {
+        return drinkId;
     }
 
-    public void setProductId(int productId) {
-        this.productId = productId;
+    public void setDrinkId(Long drinkId) {
+        this.drinkId = drinkId;
     }
 
-    public String getSize() {
-        return size;
+    public String getSizeName() {
+        return sizeName;
     }
 
-    public void setSize(String size) {
-        this.size = size;
+    public void setSizeName(String sizeName) {
+        this.sizeName = sizeName;
     }
 
     public int getQuantity() {
@@ -46,11 +56,19 @@ public class OrderItemRequest {
         this.quantity = quantity;
     }
 
-    public double getPrice() {
-        return price;
+    public String getNote() {
+        return note;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public void setNote(String note) {
+        this.note = note;
+    }
+    
+    public List<Long> getToppingIds() {
+        return toppingIds;
+    }
+
+    public void setToppingIds(List<Long> toppingIds) {
+        this.toppingIds = toppingIds;
     }
 }

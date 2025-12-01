@@ -100,6 +100,8 @@ public class ManageOrdersFragment extends Fragment {
     private void loadOrders() {
         progressBar.setVisibility(View.VISIBLE);
         emptyState.setVisibility(View.GONE);
+        
+        Log.d(TAG, "Loading orders with status: " + currentStatus);
 
         RetrofitClient.getInstance(requireContext()).getApiService()
                 .getManagerOrders(currentStatus, 0, 100)
@@ -108,23 +110,44 @@ public class ManageOrdersFragment extends Fragment {
                     public void onResponse(@NonNull Call<ApiResponse<com.example.doan.Models.PageResponse<Order>>> call,
                                            @NonNull Response<ApiResponse<com.example.doan.Models.PageResponse<Order>>> response) {
                         progressBar.setVisibility(View.GONE);
+                        
+                        Log.d(TAG, "Response code: " + response.code());
+                        Log.d(TAG, "Response successful: " + response.isSuccessful());
 
                         if (response.isSuccessful() && response.body() != null) {
                             ApiResponse<com.example.doan.Models.PageResponse<Order>> apiResponse = response.body();
+                            Log.d(TAG, "ApiResponse success: " + apiResponse.isSuccess());
+                            Log.d(TAG, "ApiResponse data null: " + (apiResponse.getData() == null));
+                            
                             if (apiResponse.isSuccess() && apiResponse.getData() != null) {
                                 com.example.doan.Models.PageResponse<Order> pageResponse = apiResponse.getData();
                                 orderList = pageResponse.getContent();
+                                
+                                Log.d(TAG, "Orders loaded: " + (orderList != null ? orderList.size() : 0));
+                                
                                 adapter.updateOrders(orderList);
 
-                                if (orderList.isEmpty()) {
+                                if (orderList == null || orderList.isEmpty()) {
                                     emptyState.setVisibility(View.VISIBLE);
+                                    Log.d(TAG, "No orders found");
+                                } else {
+                                    Log.d(TAG, "Displaying " + orderList.size() + " orders");
                                 }
                             } else {
-                                Toast.makeText(getContext(), "Không thể tải đơn hàng", Toast.LENGTH_SHORT).show();
+                                String msg = apiResponse.getMessage() != null ? apiResponse.getMessage() : "Không thể tải đơn hàng";
+                                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "API Error: " + msg);
                             }
                         } else {
                             Toast.makeText(getContext(), "Lỗi Server: " + response.code(), Toast.LENGTH_SHORT).show();
                             Log.e(TAG, "Error code: " + response.code());
+                            try {
+                                if (response.errorBody() != null) {
+                                    Log.e(TAG, "Error body: " + response.errorBody().string());
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error reading error body", e);
+                            }
                         }
                     }
 
@@ -132,8 +155,14 @@ public class ManageOrdersFragment extends Fragment {
                     public void onFailure(@NonNull Call<ApiResponse<com.example.doan.Models.PageResponse<Order>>> call, @NonNull Throwable t) {
                         progressBar.setVisibility(View.GONE);
                         emptyState.setVisibility(View.VISIBLE);
-                        Toast.makeText(getContext(), "Không thể kết nối Server", Toast.LENGTH_SHORT).show();
-                        Log.e(TAG, "Connection error: " + t.getMessage());
+                        
+                        String errorMsg = "Không thể kết nối Server";
+                        if (t != null) {
+                            errorMsg += "\n" + t.getClass().getSimpleName() + ": " + t.getMessage();
+                            Log.e(TAG, "Connection error: " + t.getMessage(), t);
+                        }
+                        
+                        Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
     }

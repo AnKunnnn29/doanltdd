@@ -50,7 +50,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(holder.itemView.getContext(), ProductDetailActivity.class);
-            intent.putExtra("product", product);
+            // Serialize Product to JSON string
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+            String productJson = gson.toJson(product);
+            android.util.Log.d("ProductAdapter", "Sending product JSON: " + productJson);
+            intent.putExtra("product", productJson);
             holder.itemView.getContext().startActivity(intent);
         });
     }

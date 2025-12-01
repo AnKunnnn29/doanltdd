@@ -15,10 +15,10 @@ public class Drink implements Serializable {
     @SerializedName("description")
     private String description;
 
-    @SerializedName("imageUrl")
+    @SerializedName(value = "imageUrl", alternate = {"image_url"})
     private String imageUrl;
 
-    @SerializedName("basePrice")
+    @SerializedName(value = "basePrice", alternate = {"price"})
     private double basePrice;
 
     @SerializedName("isActive")

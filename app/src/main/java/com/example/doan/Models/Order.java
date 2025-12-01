@@ -2,7 +2,7 @@ package com.example.doan.Models;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
-import java.util.Date;
+import java.util.List;
 
 public class Order implements Serializable {
 
@@ -46,7 +46,10 @@ public class Order implements Serializable {
     
     // Timestamp
     @SerializedName("createdAt")
-    private Date createdAt;
+    private String createdAt;
+    
+    @SerializedName("updatedAt")
+    private String updatedAt;
 
     public Order(int id, String orderNumber, String date, String status, double totalAmount) {
         this.id = id;
@@ -143,11 +146,19 @@ public class Order implements Serializable {
         this.paymentMethod = paymentMethod;
     }
     
-    public Date getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

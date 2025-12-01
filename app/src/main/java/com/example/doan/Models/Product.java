@@ -32,8 +32,11 @@ public class Product implements Serializable {
 
     @SerializedName("sizes")
     private List<DrinkSize> sizes;
+    
+    @SerializedName("toppings")
+    private List<DrinkTopping> toppings;
 
-    public Product(int id, String name, String description, double price, String category, int categoryId, String imageUrl, boolean isAvailable, List<DrinkSize> sizes) {
+    public Product(int id, String name, String description, double price, String category, int categoryId, String imageUrl, boolean isAvailable, List<DrinkSize> sizes, List<DrinkTopping> toppings) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -43,6 +46,11 @@ public class Product implements Serializable {
         this.imageUrl = imageUrl;
         this.isAvailable = isAvailable;
         this.sizes = sizes;
+        this.toppings = toppings;
+    }
+    
+    public Product(int id, String name, String description, double price, String category, int categoryId, String imageUrl, boolean isAvailable, List<DrinkSize> sizes) {
+        this(id, name, description, price, category, categoryId, imageUrl, isAvailable, sizes, new ArrayList<>());
     }
     
     // Constructor cũ (để tương thích nếu cần, nhưng nên cập nhật)
@@ -53,14 +61,21 @@ public class Product implements Serializable {
     public Product() { }
 
     public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
     public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
     public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
     public int getCategoryId() { return categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
     public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public boolean isAvailable() { return isAvailable; }
+    public void setAvailable(boolean available) { this.isAvailable = available; }
     
     public List<DrinkSize> getSizes() {
         return sizes;
@@ -68,6 +83,14 @@ public class Product implements Serializable {
 
     public void setSizes(List<DrinkSize> sizes) {
         this.sizes = sizes;
+    }
+    
+    public List<DrinkTopping> getToppings() {
+        return toppings;
+    }
+
+    public void setToppings(List<DrinkTopping> toppings) {
+        this.toppings = toppings;
     }
 
     @Override

@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,14 +19,19 @@ import com.example.doan.Fragments.HomeFragment;
 import com.example.doan.Fragments.OrderFragment;
 import com.example.doan.R;
 import com.example.doan.Fragments.StoreFragment;
+import com.example.doan.Utils.CartManager;
 import com.example.doan.Utils.SessionManager;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
 
     private final String TAG = "MainActivity";
     private int selectedItemId = R.id.nav_home;
+    private FloatingActionButton fabCart;
+    private TextView tvCartBadge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +58,15 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             userNameTextView.setText("Hi, Guest");
         }
 
+        // Setup Cart FAB
+        fabCart = findViewById(R.id.fab_cart);
+        tvCartBadge = findViewById(R.id.tv_cart_badge);
+        
+        fabCart.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CartActivity.class);
+            startActivity(intent);
+        });
+
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnItemSelectedListener(this);
 
@@ -61,6 +77,22 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         } else {
             // Lấy lại ID đang chọn khi Activity được khôi phục (xoay màn hình, v.v.)
             selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_home);
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateCartBadge();
+    }
+    
+    private void updateCartBadge() {
+        int itemCount = CartManager.getInstance().getItemCount();
+        if (itemCount > 0) {
+            tvCartBadge.setVisibility(View.VISIBLE);
+            tvCartBadge.setText(String.valueOf(itemCount));
+        } else {
+            tvCartBadge.setVisibility(View.GONE);
         }
     }
 

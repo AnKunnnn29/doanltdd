@@ -59,8 +59,23 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
 
         // Time
         if (order.getCreatedAt() != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM", Locale.getDefault());
-            holder.tvTime.setText(sdf.format(order.getCreatedAt()));
+            try {
+                // Parse ISO datetime string: "2025-12-01T14:48:42.365422"
+                String dateTimeStr = order.getCreatedAt();
+                if (dateTimeStr.contains("T")) {
+                    String[] parts = dateTimeStr.split("T");
+                    String datePart = parts[0]; // 2025-12-01
+                    String timePart = parts[1].substring(0, 5); // 14:48
+                    
+                    // Format: HH:mm dd/MM
+                    String[] dateParts = datePart.split("-");
+                    holder.tvTime.setText(timePart + " " + dateParts[2] + "/" + dateParts[1]);
+                } else {
+                    holder.tvTime.setText(dateTimeStr);
+                }
+            } catch (Exception e) {
+                holder.tvTime.setText(order.getCreatedAt());
+            }
         }
 
         // Total amount
