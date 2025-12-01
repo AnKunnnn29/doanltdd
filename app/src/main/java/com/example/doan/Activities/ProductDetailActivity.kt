@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.DataCache
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
@@ -184,10 +185,18 @@ class ProductDetailActivity : AppCompatActivity() {
     }
 
     private fun fetchBranches() {
+        if (DataCache.branches != null) {
+            setupBranchSpinner(DataCache.branches!!)
+            return
+        }
+
         RetrofitClient.getInstance(this).apiService.getBranches().enqueue(object : Callback<ApiResponse<List<Branch>>> {
             override fun onResponse(call: Call<ApiResponse<List<Branch>>>, response: Response<ApiResponse<List<Branch>>>) {
                 if (response.isSuccessful && response.body()?.success == true) {
-                    response.body()?.data?.let { setupBranchSpinner(it) }
+                    response.body()?.data?.let {
+                        DataCache.branches = it
+                        setupBranchSpinner(it)
+                    }
                 } else {
                     spinnerBranchLayout.visibility = View.GONE
                 }

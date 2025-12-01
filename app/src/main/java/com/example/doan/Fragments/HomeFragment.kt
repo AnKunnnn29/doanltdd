@@ -22,12 +22,11 @@ import com.example.doan.Models.Drink
 import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.DataCache
 import me.relex.circleindicator.CircleIndicator3
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.Timer
-import java.util.TimerTask
 
 class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
@@ -39,8 +38,6 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private lateinit var bannerIndicator: CircleIndicator3
 
     private val currentProductList = mutableListOf<Product>()
-    private val allProducts = mutableListOf<Product>()
-    private val categoryList = mutableListOf<Category>()
     
     private var selectedCategoryId = -1
 
@@ -68,21 +65,17 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         // Setup Category RecyclerView
         categoryRecyclerView = view.findViewById(R.id.category_recycler_view)
         categoryRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        categoryAdapter = CategoryAdapter(categoryList, this)
+        categoryAdapter = CategoryAdapter(DataCache.categories ?: listOf(), this)
         categoryRecyclerView.adapter = categoryAdapter
 
-        loadCategories()
+        // Load data
+        loadData()
 
         return view
     }
 
     private fun setupBannerSlider() {
-        val bannerImages = listOf(
-            R.drawable.banners,
-            R.drawable.banners2,
-            R.drawable.banners3
-        )
-
+        val bannerImages = listOf(R.drawable.banners, R.drawable.banners2, R.drawable.banners3)
         val adapter = BannerAdapter(bannerImages)
         bannerViewPager.adapter = adapter
         bannerIndicator.setViewPager(bannerViewPager)
@@ -116,36 +109,35 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         autoSlideRunnable?.let { autoSlideHandler.removeCallbacks(it) }
     }
 
+    private fun loadData() {
+        if (DataCache.categories != null && DataCache.products != null) {
+            // Data is cached, just display it
+            categoryAdapter.updateCategories(DataCache.categories!!)
+            filterProductsByCategory(selectedCategoryId)
+        } else {
+            // Data not cached, fetch from network
+            loadCategories()
+        }
+    }
+
     private fun loadCategories() {
         RetrofitClient.getInstance(requireContext()).apiService.getCategories()
             .enqueue(object : Callback<ApiResponse<List<Category>>> {
-                override fun onResponse(
-                    call: Call<ApiResponse<List<Category>>>,
-                    response: Response<ApiResponse<List<Category>>>
-                ) {
-                    if (response.isSuccessful && response.body() != null) {
-                        val apiResponse = response.body()!!
-                        if (apiResponse.success && apiResponse.data != null) {
-                            categoryList.clear()
-                            
-                            val allCategory = Category().apply {
-                                id = -1
-                                name = "Tất cả"
-                            }
-                            categoryList.add(allCategory)
-                            
-                            categoryList.addAll(apiResponse.data!!)
-                            categoryAdapter.notifyDataSetChanged()
-                            
-                            loadAllProducts()
-                        }
+                override fun onResponse(call: Call<ApiResponse<List<Category>>>, response: Response<ApiResponse<List<Category>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val categories = response.body()?.data ?: listOf()
+                        val allCategory = Category(id = -1, name = "Tất cả")
+                        val fullCategoryList = mutableListOf(allCategory).apply { addAll(categories) }
+                        DataCache.categories = fullCategoryList
+                        categoryAdapter.updateCategories(fullCategoryList)
+                        loadAllProducts()
                     } else {
-                        Log.e("HomeFragment", "Lỗi tải danh mục: ${response.code()}")
+                        Log.e("HomeFragment", "Error loading categories: ${response.code()}")
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<List<Category>>>, t: Throwable) {
-                    Log.e("HomeFragment", "Lỗi kết nối danh mục: ${t.message}")
+                    Log.e("HomeFragment", "Failed to connect for categories", t)
                 }
             })
     }
@@ -153,74 +145,57 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private fun loadAllProducts() {
         RetrofitClient.getInstance(requireContext()).apiService.getDrinks()
             .enqueue(object : Callback<ApiResponse<List<Drink>>> {
-                override fun onResponse(
-                    call: Call<ApiResponse<List<Drink>>>,
-                    response: Response<ApiResponse<List<Drink>>>
-                ) {
-                    if (response.isSuccessful && response.body() != null) {
-                        val apiResponse = response.body()!!
-                        if (apiResponse.success && apiResponse.data != null) {
-                            allProducts.clear()
-                            
-                            val baseUrl = RetrofitClient.getBaseUrl()
-                            var rootUrl = baseUrl.replace("/api/", "")
-                            if (rootUrl.endsWith("/")) rootUrl = rootUrl.substring(0, rootUrl.length - 1)
+                override fun onResponse(call: Call<ApiResponse<List<Drink>>>, response: Response<ApiResponse<List<Drink>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val drinks = response.body()?.data ?: listOf()
+                        val baseUrl = RetrofitClient.getBaseUrl()
+                        val rootUrl = baseUrl.replace("/api/", "").removeSuffix("/")
 
-                            apiResponse.data!!.forEach { drink ->
-                                var imageUrl = drink.imageUrl
-                                if (imageUrl != null && !imageUrl.startsWith("http")) {
-                                    if (!imageUrl.startsWith("/")) imageUrl = "/$imageUrl"
-                                    imageUrl = rootUrl + imageUrl
-                                }
-
-                                val pCategoryId = drink.categoryId
-                                
-                                Log.d("HomeFragment", "Sản phẩm: ${drink.name} - Category ID: $pCategoryId")
-
-                                var categoryDisplayName = categoryList.find { it.id == pCategoryId }?.name ?: ""
-                                if (categoryDisplayName.isEmpty()) categoryDisplayName = drink.categoryName ?: ""
-
-                                val product = Product(
-                                    id = drink.id,
-                                    name = drink.name,
-                                    description = drink.description ?: "",
-                                    price = drink.basePrice,
-                                    category = categoryDisplayName,
-                                    categoryId = pCategoryId,
-                                    imageUrl = imageUrl,
-                                    isAvailable = drink.isActive
-                                ).apply {
-                                    sizes = drink.sizes
-                                    toppings = drink.toppings
-                                }
-                                
-                                allProducts.add(product)
+                        val products = drinks.map { drink ->
+                            var imageUrl = drink.imageUrl
+                            if (imageUrl != null && !imageUrl.startsWith("http")) {
+                                if (!imageUrl.startsWith("/")) imageUrl = "/$imageUrl"
+                                imageUrl = rootUrl + imageUrl
                             }
-
-                            updateCategoryImages()
-                            filterProductsByCategory(selectedCategoryId)
+                            Product(
+                                id = drink.id,
+                                name = drink.name,
+                                description = drink.description ?: "",
+                                price = drink.basePrice,
+                                category = drink.categoryName ?: "",
+                                categoryId = drink.categoryId,
+                                imageUrl = imageUrl,
+                                isAvailable = drink.isActive
+                            ).apply {
+                                sizes = drink.sizes
+                                toppings = drink.toppings
+                            }
                         }
+                        DataCache.products = products
+                        updateCategoryImages()
+                        filterProductsByCategory(selectedCategoryId)
+                    } else {
+                        Log.e("HomeFragment", "Error loading products: ${response.code()}")
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<List<Drink>>>, t: Throwable) {
-                    Log.e("HomeFragment", "Lỗi kết nối sản phẩm: ${t.message}")
+                    Log.e("HomeFragment", "Failed to connect for products", t)
                     Toast.makeText(context, "Không thể tải thực đơn.", Toast.LENGTH_SHORT).show()
                 }
             })
     }
 
     private fun updateCategoryImages() {
-        if (allProducts.isEmpty()) return
+        val products = DataCache.products ?: return
+        val categories = DataCache.categories ?: return
+        if (products.isEmpty()) return
 
-        val defaultImage = allProducts[0].imageUrl
+        val defaultImage = products.first().imageUrl
 
-        categoryList.forEach { cat ->
-            if (cat.id == -1) {
-                cat.image = defaultImage
-            } else {
-                val product = allProducts.find { it.categoryId == cat.id }
-                cat.image = product?.imageUrl ?: defaultImage
+        categories.forEach { cat ->
+            if (cat.image == null) { // Only update if not already set
+                cat.image = if (cat.id == -1) defaultImage else products.find { it.categoryId == cat.id }?.imageUrl ?: defaultImage
             }
         }
         categoryAdapter.notifyDataSetChanged()
@@ -233,19 +208,12 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
     private fun filterProductsByCategory(categoryId: Int) {
         currentProductList.clear()
+        val allProducts = DataCache.products ?: listOf()
         
         if (categoryId == -1) {
             currentProductList.addAll(allProducts)
         } else {
             currentProductList.addAll(allProducts.filter { it.categoryId == categoryId })
-        }
-        
-        if (categoryId != -1) {
-            if (currentProductList.isEmpty()) {
-                Toast.makeText(context, "Không tìm thấy sản phẩm nào cho danh mục ID: $categoryId", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "Tìm thấy ${currentProductList.size} sản phẩm", Toast.LENGTH_SHORT).show()
-            }
         }
         
         currentProductList.sortBy { it.name?.lowercase() }
