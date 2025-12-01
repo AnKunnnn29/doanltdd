@@ -4,17 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/wine_neutral_light"
     tools:context=".Activities.ManagerActivity">
-
-    <!-- Header -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/manager_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/primary"
+        app:cardBackgroundColor="@color/wine_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -23,18 +21,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="16dp"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="16dp"
             android:gravity="center_vertical">
 
-            <!-- Logo/Icon -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="☕"
-                android:textSize="32sp"
-                android:layout_marginEnd="12dp" />
-
-            <!-- Text Info -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -44,51 +34,49 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="UTE Tea Manager"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
+                    android:text="Houjicha Manager"
+                    android:textColor="@color/wine_light_surface"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/manager_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="4dp"
                     android:text="Hi, Manager"
-                    android:textColor="@color/white"
+                    android:textColor="@color/wine_light_surface"
                     android:textSize="14sp"
                     android:alpha="0.9" />
             </LinearLayout>
 
-            <!-- Notification Icon (Optional) -->
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:src="@android:drawable/ic_popup_reminder"
                 android:contentDescription="Notifications"
-                app:tint="@color/white" />
+                app:tint="@color/wine_light_surface" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Content Container -->
     <FrameLayout
         android:id="@+id/manager_content_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/wine_light_surface"
         app:layout_constraintBottom_toTopOf="@+id/manager_bottom_navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/manager_header" />
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/manager_bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@color/wine_light_surface"
         android:elevation="8dp"
-        app:itemIconTint="@android:color/darker_gray"
-        app:itemTextColor="@android:color/darker_gray"
+        app:itemIconTint="@color/bottom_nav_selector"
+        app:itemTextColor="@color/bottom_nav_selector"
         app:itemActiveIndicatorStyle="@style/App.Widget.BottomNavigationView.ActiveIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -56,4 +56,7 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // CircleIndicator for ViewPager2
+    implementation("me.relex:circleindicator:2.1.6")
 }

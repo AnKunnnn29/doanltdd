@@ -1,284 +1,276 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/wine_primary">
 
-    <LinearLayout
+    <!-- Back Button -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
-        <!-- Back Button -->
-        <FrameLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_product_detail"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            
+            android:layout_height="?attr/actionBarSize">
+
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_margin="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Back"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
-                android:contentDescription="Back" />
-        </FrameLayout>
+                app:tint="@color/wine_light_surface" />
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- Product Image -->
-        <ImageView
-            android:id="@+id/ivProductImage"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_image_placeholder"
-            android:contentDescription="Product Image" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_white_top_rounded"
-            android:orientation="vertical"
-            android:padding="20dp"
-            android:layout_marginTop="-20dp">
+            android:orientation="vertical">
 
-            <!-- Product Name -->
-            <TextView
-                android:id="@+id/tvProductName"
+            <!-- Product Image -->
+            <ImageView
+                android:id="@+id/ivProductImage"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Product Name"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/black" />
+                android:layout_height="300dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image_placeholder"
+                android:contentDescription="Product Image" />
 
-            <!-- Product Price -->
-            <TextView
-                android:id="@+id/tvProductPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="50,000 VNĐ"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#FF5722" />
-                
-            <!-- Category -->
+            <!-- Details Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
-                
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Danh mục: "
-                    android:textStyle="bold"
-                    android:textColor="#666666"/>
-                    
+                android:background="@color/white"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:layout_marginTop="-24dp">
+
+                <!-- Product Name & Category -->
                 <TextView
                     android:id="@+id/detail_product_category"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Trà sữa"
-                    android:textColor="#666666"/>
-            </LinearLayout>
-
-            <!-- Description Label -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Mô tả"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/black" />
-
-            <!-- Description -->
-            <TextView
-                android:id="@+id/tvProductDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Mô tả sản phẩm..."
-                android:textSize="14sp"
-                android:textColor="#666666" />
-
-            <!-- Size Selection -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Chọn size"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/black" />
-
-            <Spinner
-                android:id="@+id/spinnerSize"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/edit_text_background" />
-
-            <!-- Topping Selection -->
-            <TextView
-                android:id="@+id/tv_topping_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Chọn topping (tùy chọn)"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/black" />
-
-            <LinearLayout
-                android:id="@+id/layoutToppings"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical">
-                <!-- Toppings will be added dynamically -->
-            </LinearLayout>
-
-            <!-- Branch Selection -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Chọn chi nhánh"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/black" />
-
-            <Spinner
-                android:id="@+id/spinnerBranch"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/edit_text_background" />
-
-            <!-- Quantity -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="@color/wine_neutral_dark"
+                    tools:text="Trà sữa" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:id="@+id/tvProductName"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Số lượng"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textColor="@color/wine_dark_background"
                     android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:textColor="@color/black" />
+                    tools:text="Trà Sữa Trân Châu" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDecrease"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:text="-"
-                    android:padding="0dp"
-                    android:textSize="20sp"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    app:cornerRadius="20dp" />
-
+                <!-- Price -->
                 <TextView
-                    android:id="@+id/tvQuantity"
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="1"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnIncrease"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:text="+"
-                    android:padding="0dp"
-                    android:textSize="20sp"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    app:cornerRadius="20dp" />
-
-            </LinearLayout>
-
-            <!-- Total Amount -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:background="#F0F0F0"
-                android:padding="16dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Tổng cộng:"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black" />
-
-                <TextView
-                    android:id="@+id/tvTotalPrice"
+                    android:id="@+id/tvProductPrice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="50,000 VNĐ"
-                    android:textSize="20sp"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textColor="@color/wine_primary"
                     android:textStyle="bold"
-                    android:textColor="#FF5722" />
+                    tools:text="50,000 VNĐ" />
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Description -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mô tả"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    android:textColor="@color/wine_dark_background" />
+
+                <TextView
+                    android:id="@+id/tvProductDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/wine_neutral_dark"
+                    tools:text="Một mô tả chi tiết về sản phẩm, hương vị, và các thành phần đặc biệt..." />
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Size Selection -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/spinner_size_layout" 
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Chọn size">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+                
+                 <!-- Topping Selection -->
+                <TextView
+                    android:id="@+id/tv_topping_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chọn topping"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    android:textColor="@color/wine_dark_background" />
+
+                <LinearLayout
+                    android:id="@+id/layoutToppings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+
+                <!-- Branch Selection -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/spinner_branch_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Chọn chi nhánh">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerBranch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Quantity -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Số lượng"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textStyle="bold"
+                        android:textColor="@color/wine_dark_background" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDecrease"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:text="-" />
+
+                    <TextView
+                        android:id="@+id/tvQuantity"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="1"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnIncrease"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:text="+" />
+                </LinearLayout>
 
             </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-            <!-- Action Buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
+    <!-- Bottom Action Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/wine_light_surface"
+        android:padding="16dp"
+        android:elevation="8dp"
+        android:orientation="vertical">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical" >
+            
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="24dp">
+                android:text="Tổng cộng:"
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                
+            <TextView
+                android:id="@+id/tvTotalPrice"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                tools:text="55.000đ"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="@color/wine_primary"
+                android:textStyle="bold"/>
+        </LinearLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddToCart"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="60dp"
-                    android:layout_weight="1"
-                    android:text="THÊM VÀO GIỎ"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:strokeColor="@color/design_default_color_primary"
-                    app:strokeWidth="2dp"
-                    android:layout_marginEnd="8dp"
-                    app:cornerRadius="12dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnConfirmOrder"
-                    android:layout_width="0dp"
-                    android:layout_height="60dp"
-                    android:layout_weight="1"
-                    android:text="MUA NGAY"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="8dp"
-                    app:cornerRadius="12dp" />
-            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddToCart"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Thêm vào giỏ"/>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmOrder"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Mua ngay"/>
         </LinearLayout>
 
     </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

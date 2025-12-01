@@ -5,5 +5,6 @@ data class AddToCartRequest(
     var sizeId: Long,
     var quantity: Int,
     var toppingIds: List<Long>? = null,
-    var note: String? = null
+    var note: String? = null,
+    var branchId: Long
 )

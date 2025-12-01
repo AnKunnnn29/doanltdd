@@ -4,19 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
-
-    <!-- Title -->
+    android:padding="24dp">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="✓ Lọc Theo Trạng Thái"
-        android:textColor="@color/black"
-        android:textSize="18sp"
+        android:text="✓ LỌC THEO TRẠNG THÁI"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="24dp" />
 
-    <!-- Status Options -->
     <RadioGroup
         android:id="@+id/radio_group_status"
         android:layout_width="match_parent"
@@ -27,29 +24,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Tất cả"
+            android:textColor="@color/wine_dark_background"
             android:checked="true"
-            android:padding="12dp" />
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radio_active"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="✓ Đang bán"
-            android:padding="12dp" />
+            android:text="Đang bán"
+            android:textColor="@color/wine_dark_background"
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radio_inactive"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="✕ Ngừng bán"
-            android:padding="12dp" />
+            android:text="Ngừng bán"
+            android:textColor="@color/wine_dark_background"
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
     </RadioGroup>
 
-    <!-- Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:orientation="horizontal"
         android:gravity="end">
 
@@ -57,16 +59,20 @@
             android:id="@+id/btn_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hủy"
+            android:text="HỦY"
+            android:textColor="@color/wine_dark_background"
             style="@style/Widget.Material3.Button.TextButton" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_apply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Áp dụng"
-            app:backgroundTint="@color/primary" />
+            android:layout_marginStart="12dp"
+            android:text="ÁP DỤNG"
+            android:textStyle="bold"
+            android:textColor="@color/wine_light_surface"
+            app:backgroundTint="@color/wine_primary"
+            app:cornerRadius="24dp" />
     </LinearLayout>
 
 </LinearLayout>

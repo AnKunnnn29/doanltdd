@@ -37,29 +37,21 @@ class OrderAdapter(
         val order = orderList[position]
 
         // Order ID
-        holder.tvOrderId.text = "#${order.id}"
+        holder.tvOrderId.text = "Đơn hàng #${order.id}"
 
-        // Customer name or phone
-        val customerInfo = order.customerName 
-            ?: order.customerPhone 
-            ?: "Khách lẻ"
-        holder.tvCustomer.text = customerInfo
-
-        // Time
+        // Date
         order.createdAt?.let { dateTimeStr ->
             try {
                 if (dateTimeStr.contains("T")) {
                     val parts = dateTimeStr.split("T")
                     val datePart = parts[0] // 2025-12-01
-                    val timePart = parts[1].substring(0, 5) // 14:48
-                    
                     val dateParts = datePart.split("-")
-                    holder.tvTime.text = "$timePart ${dateParts[2]}/${dateParts[1]}"
+                    holder.tvOrderDate.text = "${dateParts[2]}/${dateParts[1]}/${dateParts[0]}"
                 } else {
-                    holder.tvTime.text = dateTimeStr
+                    holder.tvOrderDate.text = dateTimeStr
                 }
             } catch (e: Exception) {
-                holder.tvTime.text = dateTimeStr
+                holder.tvOrderDate.text = dateTimeStr
             }
         }
 
@@ -70,8 +62,7 @@ class OrderAdapter(
         // Status chip
         val status = order.status ?: ""
         holder.chipStatus.text = getStatusText(status)
-        
-        // Set chip style based on status
+
         val (bgColor, textColor) = when (status) {
             "PENDING" -> Pair(R.color.status_pending_bg, R.color.status_pending)
             "MAKING" -> Pair(R.color.status_making_bg, R.color.status_making)
@@ -80,17 +71,9 @@ class OrderAdapter(
             "CANCELED" -> Pair(R.color.status_canceled_bg, R.color.status_canceled)
             else -> Pair(R.color.surface_variant, R.color.text_secondary)
         }
-        
+
         holder.chipStatus.chipBackgroundColor = ColorStateList.valueOf(context.getColor(bgColor))
         holder.chipStatus.setTextColor(context.getColor(textColor))
-
-        // Payment status
-        order.paymentStatus?.let {
-            holder.tvPaymentStatus.text = it
-            holder.tvPaymentStatus.visibility = View.VISIBLE
-        } ?: run {
-            holder.tvPaymentStatus.visibility = View.GONE
-        }
 
         // Click listener
         holder.itemView.setOnClickListener {
@@ -118,10 +101,8 @@ class OrderAdapter(
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvOrderId: TextView = itemView.findViewById(R.id.tv_order_id)
-        val tvCustomer: TextView = itemView.findViewById(R.id.tv_customer)
-        val tvTime: TextView = itemView.findViewById(R.id.tv_time)
+        val tvOrderDate: TextView = itemView.findViewById(R.id.tv_order_date)
         val tvTotal: TextView = itemView.findViewById(R.id.tv_total)
-        val tvPaymentStatus: TextView = itemView.findViewById(R.id.tv_payment_status)
         val chipStatus: Chip = itemView.findViewById(R.id.chip_status)
     }
 }

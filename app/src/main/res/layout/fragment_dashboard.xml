@@ -1,136 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/wine_neutral_light"
     android:fillViewport="true">
+    <!-- Nền Xám Nhẹ/Ngà (#F5F5F5) -->
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="24dp">
 
         <!-- Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📊 Dashboard"
-            android:textColor="@color/text_primary"
+            android:text="📊 BẢNG ĐIỀU KHIỂN (DASHBOARD)"
+            android:textColor="@color/wine_dark_background"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="24dp" />
 
         <!-- KPI Cards Row 1 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="24dp">
 
-            <!-- Total Revenue Card -->
+            <!-- Total Revenue Card (Primary - Wine Red) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:cardCornerRadius="16dp"
+                android:layout_marginEnd="12dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/primary">
+                app:cardBackgroundColor="@color/wine_primary">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"
+                    android:padding="20dp"
                     android:gravity="center">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="💰"
-                        android:textSize="32sp" />
+                        android:textSize="36sp" />
 
                     <TextView
                         android:id="@+id/tv_total_revenue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="12dp"
                         android:text="0 đ"
-                        android:textColor="@color/white"
-                        android:textSize="20sp"
+                        android:textColor="@color/wine_light_surface"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Doanh thu"
-                        android:textColor="@color/white"
+                        android:text="DOANH THU"
+                        android:textColor="@color/wine_light_surface"
                         android:textSize="12sp"
                         android:alpha="0.9" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Total Orders Card -->
+            <!-- Total Orders Card (Accent - Gold) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardCornerRadius="16dp"
+                android:layout_marginStart="12dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/secondary">
+                app:cardBackgroundColor="@color/wine_accent_gold">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"
+                    android:padding="20dp"
                     android:gravity="center">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="📋"
-                        android:textSize="32sp" />
+                        android:textSize="36sp" />
 
                     <TextView
                         android:id="@+id/tv_total_orders"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="12dp"
                         android:text="0"
-                        android:textColor="@color/white"
-                        android:textSize="20sp"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Tổng đơn"
-                        android:textColor="@color/white"
+                        android:text="TỔNG ĐƠN"
+                        android:textColor="@color/wine_dark_background"
                         android:textSize="12sp"
                         android:alpha="0.9" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Pending Orders Card -->
+        <!-- Pending Orders Card (Accent on White) -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/wine_light_surface">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="16dp"
+                android:padding="20dp"
                 android:gravity="center_vertical">
 
                 <TextView
@@ -150,7 +153,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Đơn chờ xử lý"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/wine_neutral_dark"
                         android:textSize="14sp" />
 
                     <TextView
@@ -159,8 +162,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="0 đơn"
-                        android:textColor="@color/text_primary"
-                        android:textSize="20sp"
+                        android:textColor="@color/wine_primary"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -170,11 +173,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🔥 Món bán chạy"
-            android:textColor="@color/text_primary"
+            android:text="MÓN BÁN CHẠY"
+            android:textColor="@color/wine_dark_background"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="16dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_top_selling"
@@ -188,6 +191,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:indeterminateTint="@color/wine_primary"
             android:layout_marginTop="32dp"
             android:visibility="gone" />
 

@@ -50,7 +50,7 @@ interface ApiService {
     @GET("drinks/search")
     fun searchDrinks(@Query("keyword") keyword: String): Call<ApiResponse<List<Drink>>>
 
-    // ==================== STORES ====================
+    // ==================== STORES & BRANCHES ====================
     @GET("stores")
     fun getStores(): Call<ApiResponse<List<Store>>>
 
@@ -59,6 +59,9 @@ interface ApiService {
 
     @GET("stores/search")
     fun searchStores(@Query("keyword") keyword: String): Call<ApiResponse<List<Store>>>
+
+    @GET("branches")
+    fun getBranches(): Call<ApiResponse<List<Branch>>>
 
     // ==================== CART ====================
     @POST("cart/add")

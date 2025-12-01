@@ -13,6 +13,7 @@ import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
@@ -21,6 +22,7 @@ import java.util.Locale
 
 class ProductDetailActivity : AppCompatActivity() {
 
+    // Views
     private lateinit var ivProductImage: ImageView
     private lateinit var tvProductName: TextView
     private lateinit var tvProductPrice: TextView
@@ -31,16 +33,25 @@ class ProductDetailActivity : AppCompatActivity() {
     private lateinit var btnIncrease: MaterialButton
     private lateinit var btnAddToCart: MaterialButton
     private lateinit var btnConfirmOrder: MaterialButton
-    private lateinit var spinnerSize: Spinner
-    private lateinit var spinnerBranch: Spinner
+    private lateinit var spinnerSize: AutoCompleteTextView
     private lateinit var layoutToppings: LinearLayout
     private lateinit var btnBack: ImageButton
+    private lateinit var spinnerBranch: AutoCompleteTextView
+    private lateinit var spinnerSizeInputLayout: TextInputLayout
+    private lateinit var tvToppingLabel: View
+    private lateinit var tvCategory: TextView
+    private lateinit var spinnerBranchLayout: TextInputLayout
 
+    // Data
     private var product: Drink? = null
     private var quantity = 1
     private var selectedSize: DrinkSize? = null
     private val selectedToppings = mutableSetOf<DrinkTopping>()
-    private var storeList = mutableListOf<Store>()
+    private var selectedBranchId: Long? = null
+
+    companion object {
+        private const val TAG = "ProductDetailActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,18 +59,12 @@ class ProductDetailActivity : AppCompatActivity() {
 
         initViews()
         getProductDetails()
-        loadStores()
         setupListeners()
+        fetchBranches()
     }
 
     private fun getLoggedInUserId(): Int {
-        val sessionManager = SessionManager(this)
-        if (sessionManager.isLoggedIn()) {
-            return sessionManager.getUserId()
-        }
-        
-        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        return sharedPreferences.getInt("userId", -1)
+        return SessionManager(this).getUserId()
     }
 
     private fun initViews() {
@@ -74,86 +79,46 @@ class ProductDetailActivity : AppCompatActivity() {
         btnAddToCart = findViewById(R.id.btnAddToCart)
         btnConfirmOrder = findViewById(R.id.btnConfirmOrder)
         spinnerSize = findViewById(R.id.spinnerSize)
-        spinnerBranch = findViewById(R.id.spinnerBranch)
         layoutToppings = findViewById(R.id.layoutToppings)
         btnBack = findViewById(R.id.btnBack)
+        tvToppingLabel = findViewById(R.id.tv_topping_label)
+        tvCategory = findViewById(R.id.detail_product_category)
+        spinnerBranch = findViewById(R.id.spinnerBranch)
+        spinnerBranchLayout = findViewById(R.id.spinner_branch_layout)
+        spinnerSizeInputLayout = findViewById(R.id.spinner_size_layout)
 
         btnBack.setOnClickListener { finish() }
     }
 
     private fun getProductDetails() {
         intent?.getStringExtra("product")?.let { productJson ->
-            Log.d(TAG, "Product JSON: $productJson")
             try {
                 product = Gson().fromJson(productJson, Drink::class.java)
-                product?.let {
-                    Log.d(TAG, "Product parsed successfully: ${it.name}")
-                    displayProductDetails()
-                } ?: run {
-                    Log.e(TAG, "Product is null after parsing")
-                    Toast.makeText(this, "Không thể tải chi tiết sản phẩm", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
+                product?.let { displayProductDetails() } ?: throw IllegalStateException("Product is null after parsing")
             } catch (e: Exception) {
                 Log.e(TAG, "Error parsing product: ${e.message}")
-                Toast.makeText(this, "Lỗi tải sản phẩm: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Lỗi tải sản phẩm.", Toast.LENGTH_SHORT).show()
                 finish()
             }
         } ?: run {
-            Log.e(TAG, "No product extra in intent")
-            Toast.makeText(this, "Không có thông tin sản phẩm", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Không có thông tin sản phẩm.", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
     private fun displayProductDetails() {
-        try {
-            product?.let { prod ->
-                tvProductName.text = prod.name ?: "Tên sản phẩm"
-                tvProductDescription.text = prod.description ?: "Không có mô tả"
-                tvProductPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", prod.basePrice)
+        product?.let { prod ->
+            tvProductName.text = prod.name
+            tvProductDescription.text = prod.description
+            tvProductPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", prod.basePrice)
+            tvCategory.text = prod.categoryName ?: "Khác"
 
-                prod.imageUrl?.takeIf { it.isNotEmpty() }?.let { imageUrl ->
-                    Glide.with(this)
-                        .load(imageUrl)
-                        .placeholder(R.drawable.ic_image_placeholder)
-                        .error(R.drawable.ic_image_placeholder)
-                        .into(ivProductImage)
-                }
+            prod.imageUrl?.let { Glide.with(this).load(it).placeholder(R.drawable.ic_image_placeholder).into(ivProductImage) }
 
-                setupSizeSpinner()
-                setupToppingCheckboxes()
-                updateTotalPrice()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error displaying product details: ${e.message}")
-            Toast.makeText(this, "Lỗi hiển thị sản phẩm: ${e.message}", Toast.LENGTH_SHORT).show()
-            finish()
+            setupSizeSpinner()
+            setupToppingCheckboxes()
+            updateTotalPrice()
         }
-    }
-
-    private fun loadStores() {
-        RetrofitClient.getInstance(this).apiService.getStores()
-            .enqueue(object : Callback<ApiResponse<List<Store>>> {
-                override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        storeList = response.body()?.data?.toMutableList() ?: mutableListOf()
-                        if (storeList.isNotEmpty()) {
-                            val storeNames = storeList.map { it.storeName }
-                            val storeAdapter = ArrayAdapter(this@ProductDetailActivity, android.R.layout.simple_spinner_item, storeNames)
-                            storeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                            spinnerBranch.adapter = storeAdapter
-                        }
-                    } else {
-                        Toast.makeText(this@ProductDetailActivity, "Không thể tải danh sách cửa hàng", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
-                    Log.e(TAG, "Lỗi tải danh sách cửa hàng: ${t.message}")
-                    Toast.makeText(this@ProductDetailActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
-                }
-            })
     }
 
     private fun setupListeners() {
@@ -171,199 +136,162 @@ class ProductDetailActivity : AppCompatActivity() {
             updateTotalPrice()
         }
 
-        btnConfirmOrder.setOnClickListener { placeOrder() }
-        btnAddToCart.setOnClickListener { addToCart() }
+        btnAddToCart.setOnClickListener { addToCart(redirectToCart = false) }
+        btnConfirmOrder.setOnClickListener { addToCart(redirectToCart = true) }
     }
 
     private fun setupSizeSpinner() {
         product?.sizes?.takeIf { it.isNotEmpty() }?.let { sizes ->
+            spinnerSizeInputLayout.visibility = View.VISIBLE
             val sizeOptions = sizes.map { size ->
-                val option = size.sizeName
-                if (size.extraPrice > 0) {
-                    "$option (+${String.format(Locale.getDefault(), "%,.0f VNĐ", size.extraPrice)})"
-                } else {
-                    option
-                }
+                if (size.extraPrice > 0) "${size.sizeName} (+${String.format(Locale.getDefault(), "%,.0f", size.extraPrice)}đ)" else size.sizeName
             }
-            
-            val sizeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sizeOptions)
-            sizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerSize.adapter = sizeAdapter
-            
+            val sizeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, sizeOptions)
+            spinnerSize.setAdapter(sizeAdapter)
+
+            spinnerSize.setText(sizeAdapter.getItem(0), false)
             selectedSize = sizes[0]
-            
-            spinnerSize.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    selectedSize = sizes[position]
-                    updateTotalPrice()
-                }
-                
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+            spinnerSize.setOnItemClickListener { _, _, position, _ ->
+                selectedSize = sizes[position]
+                updateTotalPrice()
             }
         } ?: run {
-            spinnerSize.visibility = View.GONE
+            spinnerSizeInputLayout.visibility = View.GONE
             selectedSize = null
         }
     }
-    
+
     private fun setupToppingCheckboxes() {
         product?.toppings?.takeIf { it.isNotEmpty() }?.let { toppings ->
+            tvToppingLabel.visibility = View.VISIBLE
+            layoutToppings.visibility = View.VISIBLE
             layoutToppings.removeAllViews()
-            
             toppings.filter { it.isActive }.forEach { topping ->
                 val checkBox = CheckBox(this).apply {
-                    text = "${topping.toppingName} (+${String.format(Locale.getDefault(), "%,.0f VNĐ", topping.price)})"
-                    textSize = 14f
-                    setPadding(8, 8, 8, 8)
-                    
+                    text = "${topping.toppingName} (+${String.format(Locale.getDefault(), "%,.0f", topping.price)}đ)"
                     setOnCheckedChangeListener { _, isChecked ->
-                        if (isChecked) {
-                            selectedToppings.add(topping)
-                        } else {
-                            selectedToppings.remove(topping)
-                        }
+                        if (isChecked) selectedToppings.add(topping) else selectedToppings.remove(topping)
                         updateTotalPrice()
                     }
                 }
-                
                 layoutToppings.addView(checkBox)
             }
         } ?: run {
+            tvToppingLabel.visibility = View.GONE
             layoutToppings.visibility = View.GONE
         }
     }
-    
+
+    private fun fetchBranches() {
+        RetrofitClient.getInstance(this).apiService.getBranches().enqueue(object : Callback<ApiResponse<List<Branch>>> {
+            override fun onResponse(call: Call<ApiResponse<List<Branch>>>, response: Response<ApiResponse<List<Branch>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    response.body()?.data?.let { setupBranchSpinner(it) }
+                } else {
+                    spinnerBranchLayout.visibility = View.GONE
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<List<Branch>>>, t: Throwable) {
+                spinnerBranchLayout.visibility = View.GONE
+                Log.e(TAG, "Error fetching branches", t)
+            }
+        })
+    }
+
+    private fun setupBranchSpinner(branches: List<Branch>) {
+        if (branches.isNotEmpty()) {
+            spinnerBranchLayout.visibility = View.VISIBLE
+            val branchOptions = branches.map { it.branchName ?: "N/A" }
+            val branchAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, branchOptions)
+            spinnerBranch.setAdapter(branchAdapter)
+
+            spinnerBranch.setText(branchAdapter.getItem(0), false)
+            selectedBranchId = branches[0].id?.toLong()
+
+            spinnerBranch.setOnItemClickListener { _, _, position, _ ->
+                selectedBranchId = branches[position].id?.toLong()
+            }
+        } else {
+            spinnerBranchLayout.visibility = View.GONE
+        }
+    }
+
     private fun updateTotalPrice() {
         product?.let { prod ->
-            val basePrice = prod.basePrice
             val sizeExtra = selectedSize?.extraPrice ?: 0.0
             val toppingTotal = selectedToppings.sumOf { it.price }
-            
-            val itemPrice = basePrice + sizeExtra + toppingTotal
-            val total = itemPrice * quantity
-            
+            val total = (prod.basePrice + sizeExtra + toppingTotal) * quantity
             tvTotalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
         }
     }
 
-    private fun addToCart() {
+    private fun addToCart(redirectToCart: Boolean = false) {
         val userId = getLoggedInUserId()
         if (userId == -1) {
-            Toast.makeText(this, "Vui lòng đăng nhập để thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
             return
         }
-        
-        val toppingIds = selectedToppings.map { it.id.toLong() }
-        val note = if (selectedToppings.isNotEmpty()) {
-            "Topping: ${selectedToppings.joinToString(", ") { it.toppingName ?: "" }}"
-        } else ""
-        
-        val sizeId = selectedSize?.id?.toLong()
-        
+        if (selectedBranchId == null) {
+            Toast.makeText(this, "Vui lòng chọn chi nhánh", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val request = AddToCartRequest(
-            product?.id?.toLong() ?: 0L,
-            sizeId ?: 0L,
-            quantity,
-            toppingIds.takeIf { it.isNotEmpty() },
-            note
-        )
-        
-        btnAddToCart.isEnabled = false
-        btnAddToCart.text = "Đang thêm..."
-        
-        RetrofitClient.getInstance(this).apiService.addToCart(userId.toLong(), request)
-            .enqueue(object : Callback<ApiResponse<Cart>> {
-                override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
-                    btnAddToCart.isEnabled = true
-                    btnAddToCart.text = "THÊM VÀO GIỎ"
-                    
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        AlertDialog.Builder(this@ProductDetailActivity)
-                            .setTitle("Thêm vào giỏ hàng thành công!")
-                            .setMessage("Bạn có muốn xem giỏ hàng ngay không?\n\n⚠️ Lưu ý: Giỏ hàng sẽ tự động xóa sau 5 phút nếu không đặt hàng.")
-                            .setPositiveButton("Xem giỏ hàng") { _, _ ->
-                                startActivity(Intent(this@ProductDetailActivity, CartActivity::class.java))
-                            }
-                            .setNegativeButton("Tiếp tục mua") { dialog, _ -> dialog.dismiss() }
-                            .show()
-                    } else {
-                        val message = response.body()?.message ?: "Lỗi thêm vào giỏ hàng"
-                        Toast.makeText(this@ProductDetailActivity, message, Toast.LENGTH_SHORT).show()
-                    }
-                }
-                
-                override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
-                    btnAddToCart.isEnabled = true
-                    btnAddToCart.text = "THÊM VÀO GIỎ"
-                    Toast.makeText(this@ProductDetailActivity, "Không thể kết nối đến máy chủ", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-
-    private fun placeOrder() {
-        if (storeList.isEmpty()) {
-            Toast.makeText(this, "Đang tải danh sách cửa hàng, vui lòng đợi...", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val selectedStoreIndex = spinnerBranch.selectedItemPosition
-        if (selectedStoreIndex == -1) {
-            Toast.makeText(this, "Vui lòng chọn cửa hàng", Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        val storeId = storeList[selectedStoreIndex].id.toLong()
-        
-        val userId = getLoggedInUserId()
-        if (userId == -1) {
-            Toast.makeText(this, "Vui lòng đăng nhập để đặt hàng", Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        val toppingIds = selectedToppings.map { it.id.toLong() }
-        val note = if (selectedToppings.isNotEmpty()) {
-            "Topping: ${selectedToppings.joinToString(", ") { it.toppingName ?: "" }}"
-        } else ""
-        
-        val sizeName = selectedSize?.sizeName ?: "M"
-        
-        val item = OrderItemRequest(
-            product?.id?.toLong() ?: 0L,
-            sizeName,
-            quantity,
-            note,
-            toppingIds.takeIf { it.isNotEmpty() }
+            drinkId = product?.id?.toLong() ?: 0L,
+            sizeId = selectedSize?.id?.toLong() ?: 0L,
+            quantity = quantity,
+            toppingIds = selectedToppings.map { it.id.toLong() }.takeIf { it.isNotEmpty() },
+            note = null, // Note is currently not supported in this UI
+            branchId = selectedBranchId!!
         )
 
-        val orderRequest = CreateOrderRequest(storeId, "PICKUP", "Tại cửa hàng", "COD", null, null, listOf(item))
+        setLoading(true, redirectToCart)
 
-        btnConfirmOrder.isEnabled = false
-        btnConfirmOrder.text = "Đang xử lý..."
-
-        RetrofitClient.getInstance(this).apiService.createOrder(orderRequest)
-            .enqueue(object : Callback<ApiResponse<Order>> {
-                override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
-                    btnConfirmOrder.isEnabled = true
-                    btnConfirmOrder.text = "MUA NGAY"
-
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(this@ProductDetailActivity, "Đặt hàng thành công!", Toast.LENGTH_LONG).show()
+        RetrofitClient.getInstance(this).apiService.addToCart(userId.toLong(), request).enqueue(object : Callback<ApiResponse<Cart>> {
+            override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
+                setLoading(false, redirectToCart)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    if (redirectToCart) {
+                        startActivity(Intent(this@ProductDetailActivity, CartActivity::class.java))
                         finish()
                     } else {
-                        val message = response.body()?.message ?: "Lỗi Server: ${response.code()}"
-                        Toast.makeText(this@ProductDetailActivity, "Đặt hàng thất bại: $message", Toast.LENGTH_LONG).show()
+                        showSuccessDialog()
                     }
+                } else {
+                    Toast.makeText(this@ProductDetailActivity, response.body()?.message ?: "Lỗi không xác định", Toast.LENGTH_SHORT).show()
                 }
+            }
 
-                override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
-                    btnConfirmOrder.isEnabled = true
-                    btnConfirmOrder.text = "MUA NGAY"
-                    Toast.makeText(this@ProductDetailActivity, "Không thể kết nối đến máy chủ", Toast.LENGTH_SHORT).show()
-                }
-            })
+            override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
+                setLoading(false, redirectToCart)
+                Toast.makeText(this@ProductDetailActivity, "Không thể kết nối đến máy chủ", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
-    companion object {
-        private const val TAG = "ProductDetailActivity"
+    private fun setLoading(isLoading: Boolean, isConfirmAction: Boolean) {
+        btnAddToCart.isEnabled = !isLoading
+        btnConfirmOrder.isEnabled = !isLoading
+        if (isLoading) {
+            if (isConfirmAction) {
+                btnConfirmOrder.text = "Đang xử lý..."
+            } else {
+                btnAddToCart.text = "Đang thêm..."
+            }
+        } else {
+            btnAddToCart.text = "Thêm vào giỏ"
+            btnConfirmOrder.text = "Mua ngay"
+        }
+    }
+
+    private fun showSuccessDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Thêm vào giỏ hàng thành công!")
+            .setMessage("Bạn có muốn xem giỏ hàng ngay không?\n\n⚠️ Giỏ hàng sẽ tự động xóa sau 5 phút.")
+            .setPositiveButton("Xem giỏ hàng") { _, _ -> startActivity(Intent(this, CartActivity::class.java)) }
+            .setNegativeButton("Tiếp tục mua") { d, _ -> d.dismiss() }
+            .show()
     }
 }

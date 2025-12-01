@@ -1,6 +1,8 @@
 package com.example.doan.Fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +12,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
+import com.example.doan.Adapters.BannerAdapter
 import com.example.doan.Adapters.CategoryAdapter
 import com.example.doan.Adapters.ProductAdapter
 import com.example.doan.Models.ApiResponse
@@ -18,9 +22,12 @@ import com.example.doan.Models.Drink
 import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import me.relex.circleindicator.CircleIndicator3
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Timer
+import java.util.TimerTask
 
 class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
@@ -28,6 +35,8 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var productAdapter: ProductAdapter
     private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var bannerViewPager: ViewPager2
+    private lateinit var bannerIndicator: CircleIndicator3
 
     private val currentProductList = mutableListOf<Product>()
     private val allProducts = mutableListOf<Product>()
@@ -35,12 +44,20 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     
     private var selectedCategoryId = -1
 
+    private val autoSlideHandler = Handler(Looper.getMainLooper())
+    private var autoSlideRunnable: Runnable? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
+
+        // Setup Banner
+        bannerViewPager = view.findViewById(R.id.banner_view_pager)
+        bannerIndicator = view.findViewById(R.id.banner_indicator)
+        setupBannerSlider()
 
         // Setup Product RecyclerView
         productRecyclerView = view.findViewById(R.id.product_recycler_view)
@@ -57,6 +74,46 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         loadCategories()
 
         return view
+    }
+
+    private fun setupBannerSlider() {
+        val bannerImages = listOf(
+            R.drawable.banners,
+            R.drawable.banners2,
+            R.drawable.banners3
+        )
+
+        val adapter = BannerAdapter(bannerImages)
+        bannerViewPager.adapter = adapter
+        bannerIndicator.setViewPager(bannerViewPager)
+
+        // Auto-slide logic
+        autoSlideRunnable = Runnable {
+            var currentItem = bannerViewPager.currentItem
+            currentItem++
+            if (currentItem >= bannerImages.size) {
+                currentItem = 0
+            }
+            bannerViewPager.setCurrentItem(currentItem, true)
+        }
+
+        bannerViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                autoSlideHandler.removeCallbacks(autoSlideRunnable!!)
+                autoSlideHandler.postDelayed(autoSlideRunnable!!, 3000)
+            }
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        autoSlideRunnable?.let { autoSlideHandler.postDelayed(it, 3000) }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        autoSlideRunnable?.let { autoSlideHandler.removeCallbacks(it) }
     }
 
     private fun loadCategories() {

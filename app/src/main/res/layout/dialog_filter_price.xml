@@ -4,17 +4,18 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp">
+    <!-- Tăng padding để tạo cảm giác thoáng đãng -->
 
     <!-- Title -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="💰 Lọc Theo Giá"
-        android:textColor="@color/black"
-        android:textSize="18sp"
+        android:text="LỌC THEO GIÁ"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="24dp" />
 
     <!-- Price Range Options -->
     <RadioGroup
@@ -22,57 +23,68 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Customizing Radio Buttons to match Primary Color -->
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radio_all_prices"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Tất cả"
+            android:textColor="@color/wine_dark_background"
             android:checked="true"
-            android:padding="12dp" />
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radio_under_30k"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Dưới 30.000đ"
-            android:padding="12dp" />
+            android:textColor="@color/wine_dark_background"
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radio_30k_50k"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="30.000đ - 50.000đ"
-            android:padding="12dp" />
+            android:textColor="@color/wine_dark_background"
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radio_50k_70k"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="50.000đ - 70.000đ"
-            android:padding="12dp" />
+            android:textColor="@color/wine_dark_background"
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radio_above_70k"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Trên 70.000đ"
-            android:padding="12dp" />
+            android:textColor="@color/wine_dark_background"
+            android:paddingVertical="12dp"
+            app:buttonTint="@color/wine_primary" />
     </RadioGroup>
 
     <!-- Custom Range -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:text="Hoặc tùy chỉnh:"
-        android:textColor="@color/black"
-        android:textSize="14sp"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:orientation="horizontal">
 
         <com.google.android.material.textfield.TextInputLayout
@@ -81,12 +93,19 @@
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:hint="Từ (đ)"
+            app:boxStrokeColor="@color/wine_primary"
+            app:hintTextColor="@color/wine_primary"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edit_price_from"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/wine_dark_background"
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -96,12 +115,19 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:hint="Đến (đ)"
+            app:boxStrokeColor="@color/wine_primary"
+            app:hintTextColor="@color/wine_primary"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edit_price_to"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/wine_dark_background"
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
@@ -110,24 +136,30 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:orientation="horizontal"
         android:gravity="end">
 
+        <!-- Cancel Button - Text Button style -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hủy"
+            android:text="HỦY"
+            android:textColor="@color/wine_dark_background"
             style="@style/Widget.Material3.Button.TextButton" />
 
+        <!-- Apply Button - Primary CTA style -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_apply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Áp dụng"
-            app:backgroundTint="@color/primary" />
+            android:layout_marginStart="12dp"
+            android:text="ÁP DỤNG"
+            android:textStyle="bold"
+            android:textColor="@color/wine_light_surface"
+            app:backgroundTint="@color/wine_primary"
+            app:cornerRadius="24dp" />
     </LinearLayout>
 
 </LinearLayout>

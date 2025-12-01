@@ -4,13 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
-
+    android:padding="24dp">
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:hint="Nhập URL ảnh"
+        app:hintTextColor="@color/wine_primary"
+        app:boxStrokeColor="@color/wine_primary"
         app:startIconDrawable="@android:drawable/ic_menu_gallery"
+        app:startIconTint="@color/wine_primary"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -18,6 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textUri"
+            android:textColor="@color/wine_dark_background"
             android:maxLines="3" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -25,9 +33,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="12dp"
         android:text="Ví dụ: https://example.com/image.jpg"
         android:textSize="12sp"
-        android:textColor="@android:color/darker_gray" />
-
+        android:textColor="@color/wine_neutral_dark" />
 </LinearLayout>

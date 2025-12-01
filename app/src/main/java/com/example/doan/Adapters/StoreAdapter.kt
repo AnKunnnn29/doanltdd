@@ -5,11 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Models.Store
 import com.example.doan.R
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 
 class StoreAdapter(
@@ -40,8 +38,6 @@ class StoreAdapter(
         private val tvStorePhone: TextView = itemView.findViewById(R.id.tv_store_phone)
         private val tvStoreHours: TextView = itemView.findViewById(R.id.tv_store_hours)
         private val chipStoreStatus: Chip = itemView.findViewById(R.id.chip_store_status)
-        private val btnEditStore: MaterialButton = itemView.findViewById(R.id.btn_edit_store)
-        private val btnDeleteStore: MaterialButton = itemView.findViewById(R.id.btn_delete_store)
 
         fun bind(store: Store) {
             tvStoreName.text = store.name
@@ -54,16 +50,6 @@ class StoreAdapter(
             // Status
             chipStoreStatus.text = "Hoạt động"
             chipStoreStatus.setChipBackgroundColorResource(R.color.success)
-
-            // Edit button
-            btnEditStore.setOnClickListener {
-                Toast.makeText(context, "Sửa: ${store.name}", Toast.LENGTH_SHORT).show()
-            }
-
-            // Delete button
-            btnDeleteStore.setOnClickListener {
-                Toast.makeText(context, "Xóa: ${store.name}", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 }

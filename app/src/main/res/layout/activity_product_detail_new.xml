@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
-
+    android:background="@color/wine_neutral_light">
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -16,202 +15,187 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Product Image with Back Button -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="300dp">
+                android:layout_height="320dp"> <ImageView
+                android:id="@+id/detail_product_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image_placeholder"
+                android:contentDescription="Product Image" />
 
-                <ImageView
-                    android:id="@+id/detail_product_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_image_placeholder"
-                    android:contentDescription="Product Image" />
-
-                <!-- Back Button Overlay -->
-                <ImageButton
-                    android:id="@+id/btn_back"
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_margin="16dp"
-                    android:background="@android:color/white"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:contentDescription="Back"
-                    android:elevation="4dp" />
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/wine_light_surface">
+                    <ImageButton
+                        android:id="@+id/btn_back"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="@color/wine_dark_background"
+                        android:contentDescription="Back" />
+                </com.google.android.material.card.MaterialCardView>
+
             </FrameLayout>
 
-            <!-- Content Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-20dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="4dp"
+                android:layout_marginTop="-30dp" app:cardCornerRadius="28dp" app:cardElevation="4dp"
                 android:layout_marginBottom="80dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp"> <TextView
+                    android:id="@+id/detail_product_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Trà Sữa Hạnh Nhân"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/wine_dark_background"
+                    tools:text="Trà Sữa Hạnh Nhân Cao Cấp" />
 
-                    <!-- Product Name -->
-                    <TextView
-                        android:id="@+id/detail_product_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Caramel Coffee Latte"
-                        android:textSize="24sp"
-                        android:textStyle="bold"
-                        android:textColor="#212121"
-                        tools:text="Caramel Coffee Latte" />
-
-                    <!-- Product Price -->
                     <TextView
                         android:id="@+id/detail_product_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="52,000 VNĐ"
-                        android:textSize="20sp"
+                        android:textSize="22sp"
                         android:textStyle="bold"
-                        android:textColor="#FF5722"
+                        android:textColor="@color/wine_primary"
                         tools:text="52,000 VNĐ" />
 
-                    <!-- Category -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginTop="8dp">
+                        android:layout_marginTop="12dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Danh mục: "
                             android:textStyle="bold"
-                            android:textColor="#757575"
+                            android:textColor="@color/wine_neutral_dark"
                             android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/detail_product_category"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="UTE Coffee Series"
-                            android:textColor="#757575"
+                            android:text="Trà Cao Cấp"
+                            android:textColor="@color/wine_neutral_dark"
                             android:textSize="14sp"
-                            tools:text="UTE Coffee Series" />
+                            tools:text="Trà Cao Cấp" />
                     </LinearLayout>
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="#E0E0E0" />
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@color/wine_neutral_light" />
 
-                    <!-- Description Label -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Mô tả"
                         android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="#212121" />
+                        android:textSize="18sp"
+                        android:textColor="@color/wine_dark_background" />
 
-                    <!-- Description -->
                     <TextView
                         android:id="@+id/detail_product_description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Cà phê sữa caramel, lớp caramel rưới trên bọt sữa, ngọt nhưng không gắt."
-                        android:textSize="14sp"
-                        android:textColor="#757575"
+                        android:text="Cà phê sữa caramel, lớp caramel rưới trên bọt sữa, ngọt nhưng không gắt, mang lại trải nghiệm tinh tế."
+                        android:textSize="16sp"
+                        android:textColor="@color/wine_neutral_dark"
                         android:lineSpacingExtra="4dp"
                         tools:text="Cà phê sữa caramel..." />
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="#E0E0E0" />
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@color/wine_neutral_light" />
 
-                    <!-- Size Selection -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Chọn size"
                         android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="#212121" />
+                        android:textSize="18sp"
+                        android:textColor="@color/wine_dark_background" />
 
                     <Spinner
                         android:id="@+id/spinner_size"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/edit_text_background"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/rounded_spinner_background"
                         android:padding="12dp" />
 
-                    <!-- Topping Selection -->
                     <TextView
                         android:id="@+id/tv_topping_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="24dp"
                         android:text="Chọn topping (tùy chọn)"
                         android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="#212121" />
+                        android:textSize="18sp"
+                        android:textColor="@color/wine_dark_background" />
 
                     <LinearLayout
                         android:id="@+id/layout_toppings"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="12dp"
                         android:orientation="vertical">
-                        <!-- Toppings will be added dynamically -->
                     </LinearLayout>
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="#E0E0E0" />
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@color/wine_neutral_light" />
 
-                    <!-- Branch Selection -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Chọn chi nhánh"
+                        android:text="Chi nhánh phục vụ"
                         android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="#212121" />
+                        android:textSize="18sp"
+                        android:textColor="@color/wine_dark_background" />
 
                     <Spinner
                         android:id="@+id/spinner_branch"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/edit_text_background"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/rounded_spinner_background"
                         android:padding="12dp" />
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="#E0E0E0" />
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@color/wine_neutral_light" />
 
-                    <!-- Quantity Selection -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -224,57 +208,61 @@
                             android:layout_weight="1"
                             android:text="Số lượng"
                             android:textStyle="bold"
-                            android:textSize="16sp"
-                            android:textColor="#212121" />
+                            android:textSize="18sp"
+                            android:textColor="@color/wine_dark_background" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_decrease_qty"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:text="-"
-                            android:textSize="20sp"
+                            android:textSize="22sp"
+                            android:textColor="@color/wine_primary"
+                            app:strokeColor="@color/wine_primary"
+                            app:strokeWidth="1dp"
                             android:padding="0dp"
                             android:insetLeft="0dp"
                             android:insetTop="0dp"
                             android:insetRight="0dp"
                             android:insetBottom="0dp"
-                            app:cornerRadius="20dp" />
+                            app:cornerRadius="24dp" />
 
                         <TextView
                             android:id="@+id/tv_quantity"
-                            android:layout_width="50dp"
+                            android:layout_width="60dp"
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="1"
-                            android:textSize="18sp"
+                            android:textSize="20sp"
                             android:textStyle="bold"
-                            android:textColor="#212121"
+                            android:textColor="@color/wine_dark_background"
                             tools:text="1" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_increase_qty"
                             style="@style/Widget.MaterialComponents.Button"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:text="+"
-                            android:textSize="20sp"
+                            android:textSize="22sp"
+                            android:textColor="@color/wine_light_surface"
+                            android:backgroundTint="@color/wine_primary"
                             android:padding="0dp"
                             android:insetLeft="0dp"
                             android:insetTop="0dp"
                             android:insetRight="0dp"
                             android:insetBottom="0dp"
-                            app:cornerRadius="20dp" />
+                            app:cornerRadius="24dp" />
 
                     </LinearLayout>
 
-                    <!-- Total Price Card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="24dp"
-                        app:cardBackgroundColor="#FFF3E0"
-                        app:cardCornerRadius="12dp"
+                        android:layout_marginTop="32dp"
+                        app:cardBackgroundColor="@color/wine_neutral_light"
+                        app:cardCornerRadius="16dp"
                         app:cardElevation="0dp">
 
                         <LinearLayout
@@ -291,17 +279,16 @@
                                 android:text="Tổng cộng:"
                                 android:textSize="18sp"
                                 android:textStyle="bold"
-                                android:textColor="#212121" />
+                                android:textColor="@color/wine_dark_background" />
 
                             <TextView
                                 android:id="@+id/tv_total_price"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="52,000 VNĐ"
-                                android:textSize="22sp"
+                                android:textSize="24sp"
                                 android:textStyle="bold"
-                                android:textColor="#FF5722"
-                                tools:text="52,000 VNĐ" />
+                                android:textColor="@color/wine_primary" />
 
                         </LinearLayout>
 
@@ -315,14 +302,13 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Action Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:background="@android:color/white"
+        android:background="@color/wine_light_surface"
         android:elevation="8dp">
 
         <com.google.android.material.button.MaterialButton
@@ -332,13 +318,15 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="THÊM VÀO GIỎ"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
-            app:strokeColor="@color/design_default_color_primary"
+            android:textColor="@color/wine_primary"
+            app:strokeColor="@color/wine_primary"
             app:strokeWidth="2dp"
-            android:layout_marginEnd="8dp"
-            app:cornerRadius="12dp"
-            app:icon="@android:drawable/ic_input_add"
+            android:layout_marginEnd="12dp"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_add"
+            app:iconTint="@color/wine_primary"
             app:iconGravity="textStart" />
 
         <com.google.android.material.button.MaterialButton
@@ -347,11 +335,14 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="MUA NGAY"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginStart="8dp"
-            app:cornerRadius="12dp"
-            app:icon="@android:drawable/ic_menu_send"
+            android:textColor="@color/wine_light_surface"
+            android:backgroundTint="@color/wine_primary"
+            android:layout_marginStart="12dp"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_shopping_cart"
+            app:iconTint="@color/wine_light_surface"
             app:iconGravity="textStart" />
 
     </LinearLayout>

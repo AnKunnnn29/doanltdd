@@ -13,14 +13,14 @@ import androidx.fragment.app.Fragment
 import com.example.doan.Activities.LoginActivity
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
+import com.google.android.material.button.MaterialButton
 
 class AccountFragment : Fragment() {
 
     private lateinit var profileOption: LinearLayout
     private lateinit var settingsOption: LinearLayout
-    private lateinit var logoutOption: LinearLayout
+    private lateinit var logoutButton: MaterialButton
     private lateinit var profileNameText: TextView
-    private var logoutText: TextView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,16 +31,12 @@ class AccountFragment : Fragment() {
 
         profileOption = view.findViewById(R.id.profile_option)
         settingsOption = view.findViewById(R.id.settings_option)
-        logoutOption = view.findViewById(R.id.logout_option)
+        logoutButton = view.findViewById(R.id.logout_button)
         profileNameText = view.findViewById(R.id.profile_name)
-
-        if (logoutOption.childCount > 2 && logoutOption.getChildAt(2) is TextView) {
-            logoutText = logoutOption.getChildAt(2) as TextView
-        }
 
         profileOption.setOnClickListener { handleProfileClick() }
         settingsOption.setOnClickListener { handleSettingsClick() }
-        logoutOption.setOnClickListener { handleLogoutClick() }
+        logoutButton.setOnClickListener { handleLogoutClick() }
 
         return view
     }
@@ -51,20 +47,20 @@ class AccountFragment : Fragment() {
     }
 
     private fun isUserLoggedIn(): Boolean {
-        val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+        val sessionManager = SessionManager(requireContext())
+        return sessionManager.isLoggedIn()
     }
 
     private fun updateUI() {
         if (isUserLoggedIn()) {
-            val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val userName = prefs.getString(KEY_USER_NAME, "Người dùng")
+            val sessionManager = SessionManager(requireContext())
+            val userName = sessionManager.getUsername() // Assuming you have this method
 
             profileNameText.text = "Xin chào, $userName"
-            logoutText?.text = "Đăng xuất"
+            logoutButton.text = "Đăng xuất"
         } else {
             profileNameText.text = "Đăng nhập / Đăng ký"
-            logoutText?.text = "Đăng nhập"
+            logoutButton.text = "Đăng nhập"
         }
     }
 
@@ -89,30 +85,10 @@ class AccountFragment : Fragment() {
     }
 
     private fun performLogout() {
-        handleLogoutSuccess()
-    }
-
-    private fun handleLogoutSuccess() {
-        // Xóa session bằng SessionManager
         val sessionManager = SessionManager(requireContext())
         sessionManager.logout()
-        
-        // Xóa SharedPreferences cũ
-        val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().apply {
-            clear()
-            putBoolean(KEY_IS_LOGGED_IN, false)
-            apply()
-        }
 
         Toast.makeText(context, "Đã đăng xuất thành công!", Toast.LENGTH_LONG).show()
         updateUI()
-    }
-
-    companion object {
-        private const val PREFS_NAME = "UserPrefs"
-        private const val KEY_USER_ID = "userId"
-        private const val KEY_USER_NAME = "userName"
-        private const val KEY_IS_LOGGED_IN = "isLoggedIn"
     }
 }

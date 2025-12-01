@@ -3,17 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/wine_light_surface">
+    <!-- Nền Trắng Tinh (Surface) -->
 
     <!-- Header -->
     <TextView
         android:id="@+id/header_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="Quản lý Đơn Hàng"
-        android:textColor="@color/black"
-        android:textSize="20sp"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        android:text="Quản Lý Đơn Hàng"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,41 +36,45 @@
             android:id="@+id/tab_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/white"
-            app:tabTextColor="@android:color/darker_gray"
-            app:tabSelectedTextColor="@color/primary"
-            app:tabIndicatorColor="@color/primary"
+            android:background="@color/wine_light_surface"
+            app:tabTextColor="@color/wine_neutral_dark"
+            app:tabSelectedTextColor="@color/wine_primary"
+            app:tabIndicatorColor="@color/wine_primary"
+            app:tabIndicatorHeight="3dp"
+            app:tabIndicatorFullWidth="false"
+            app:tabPaddingStart="16dp"
+            app:tabPaddingEnd="16dp"
             app:tabMode="scrollable">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tất cả" />
+                android:text="TẤT CẢ" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Chờ xử lý" />
+                android:text="CHỜ XỬ LÝ" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đang làm" />
+                android:text="ĐANG LÀM" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đang giao" />
+                android:text="ĐANG GIAO" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hoàn thành" />
+                android:text="HOÀN THÀNH" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đã hủy" />
+                android:text="ĐÃ HỦY" />
         </com.google.android.material.tabs.TabLayout>
     </HorizontalScrollView>
 
@@ -76,7 +83,9 @@
         android:id="@+id/rv_orders"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:padding="8dp"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/scroll_tabs"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -89,6 +98,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:indeterminateTint="@color/wine_primary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -118,8 +128,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Chưa có đơn hàng nào"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:textColor="@color/wine_dark_background"
+            android:textSize="18sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

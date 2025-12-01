@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/wine_neutral_light">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,115 +16,65 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header Row -->
-        <LinearLayout
+        <!-- Header: Order ID and Status -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_height="wrap_content">
 
-            <!-- Order ID -->
             <TextView
                 android:id="@+id/tv_order_id"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="#123"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/wine_dark_background"
+                android:textStyle="bold"
+                tools:text="Đơn hàng #12345" />
 
-            <!-- Status Chip -->
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_status"
+                style="@style/Widget.Material3.Chip.Assist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Chờ xử lý"
-                android:textSize="12sp"
-                app:chipMinHeight="28dp"
-                app:chipCornerRadius="8dp"
-                style="@style/Widget.Material3.Chip.Assist" />
-        </LinearLayout>
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                tools:text="Hoàn thành" />
+        </RelativeLayout>
 
-        <!-- Customer Info -->
-        <LinearLayout
+        <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="👤"
-                android:textSize="14sp"
-                android:layout_marginEnd="4dp" />
-
-            <TextView
-                android:id="@+id/tv_customer"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Khách hàng"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🕐"
-                android:textSize="14sp"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="4dp" />
-
-            <TextView
-                android:id="@+id/tv_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="10:30"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
-        </LinearLayout>
-
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
             android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp"
-            android:background="@color/divider" />
+            android:layout_marginBottom="12dp" />
 
-        <!-- Bottom Row -->
-        <LinearLayout
+        <!-- Details: Date and Total -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_height="wrap_content">
 
-            <!-- Payment Status -->
             <TextView
-                android:id="@+id/tv_payment_status"
-                android:layout_width="0dp"
+                android:id="@+id/tv_order_date"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="💳 PAID"
-                android:textColor="@color/success"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/wine_neutral_dark"
+                tools:text="26/10/2023" />
 
-            <!-- Total Amount -->
             <TextView
                 android:id="@+id/tv_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0 đ"
-                android:textColor="@color/primary_dark"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/wine_primary"
+                android:textStyle="bold"
+                tools:text="150.000đ" />
+
+        </RelativeLayout>
 
     </LinearLayout>
 

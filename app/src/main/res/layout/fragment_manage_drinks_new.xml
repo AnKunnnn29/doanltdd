@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
-
-    <!-- App Bar with Collapsing Toolbar -->
+    android:background="@color/wine_neutral_light">
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
@@ -17,40 +16,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:contentScrim="@color/white">
-
-            <!-- Header Card -->
+            app:contentScrim="@color/wine_primary">
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="16dp"
+                android:layout_margin="24dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/primary">
-
+                app:cardBackgroundColor="@color/wine_primary">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
-                    <!-- Title -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="☕ Quản Lý Món Nước"
-                        android:textColor="@color/white"
+                        android:text="☕ QUẢN LÝ MÓN NƯỚC"
+                        android:textColor="@color/wine_light_surface"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
-                    <!-- Stats Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="24dp"
                         android:orientation="horizontal">
 
-                        <!-- Total Drinks -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -63,7 +56,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="@color/white"
+                                android:textColor="@color/wine_light_surface"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
 
@@ -71,12 +64,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Tổng món"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
+                                android:textColor="@color/wine_light_surface"
+                                android:textSize="14sp"
                                 android:alpha="0.9" />
                         </LinearLayout>
 
-                        <!-- Active Drinks -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -89,7 +81,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="@color/white"
+                                android:textColor="@color/wine_light_surface"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
 
@@ -97,12 +89,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Đang bán"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
+                                android:textColor="@color/wine_light_surface"
+                                android:textSize="14sp"
                                 android:alpha="0.9" />
                         </LinearLayout>
 
-                        <!-- Categories -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -115,7 +106,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="@color/white"
+                                android:textColor="@color/wine_light_surface"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
 
@@ -123,8 +114,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Danh mục"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
+                                android:textColor="@color/wine_light_surface"
+                                android:textSize="14sp"
                                 android:alpha="0.9" />
                         </LinearLayout>
                     </LinearLayout>
@@ -135,7 +126,6 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -145,33 +135,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="24dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="80dp">
 
-            <!-- Search & Filter Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/wine_light_surface">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
-                    <!-- Search Bar -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/search_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="🔍 Tìm kiếm món..."
+                        android:hint="Tìm kiếm món..."
                         app:boxBackgroundMode="filled"
-                        app:boxCornerRadiusTopStart="8dp"
-                        app:boxCornerRadiusTopEnd="8dp"
-                        app:boxCornerRadiusBottomStart="8dp"
-                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxBackgroundColor="@color/wine_neutral_light"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxStrokeColor="@color/wine_primary"
+                        app:hintTextColor="@color/wine_primary"
                         app:endIconMode="clear_text"
                         style="@style/Widget.Material3.TextInputLayout.FilledBox">
 
@@ -180,18 +173,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="text"
+                            android:textColor="@color/wine_dark_background"
                             android:maxLines="1" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Filter Chips -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="20dp"
                         android:layout_marginBottom="8dp"
-                        android:text="Bộ lọc"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
+                        android:text="BỘ LỌC"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <com.google.android.material.chip.ChipGroup
@@ -199,60 +192,55 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:singleSelection="false"
-                        app:chipSpacingHorizontal="8dp">
+                        app:chipSpacingHorizontal="12dp">
 
-                        <!-- Category Filter -->
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chip_filter_category"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📁 Danh mục"
+                            android:text="Danh mục"
                             app:chipIcon="@android:drawable/arrow_down_float"
-                            app:chipIconTint="@color/primary"
+                            app:chipIconTint="@color/wine_primary"
                             style="@style/Widget.Material3.Chip.Filter" />
 
-                        <!-- Price Filter -->
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chip_filter_price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="💰 Giá"
+                            android:text="Giá"
                             app:chipIcon="@android:drawable/arrow_down_float"
-                            app:chipIconTint="@color/primary"
+                            app:chipIconTint="@color/wine_primary"
                             style="@style/Widget.Material3.Chip.Filter" />
 
-                        <!-- Status Filter -->
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chip_filter_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="✓ Trạng thái"
+                            android:text="Trạng thái"
                             app:chipIcon="@android:drawable/arrow_down_float"
-                            app:chipIconTint="@color/primary"
+                            app:chipIconTint="@color/wine_primary"
                             style="@style/Widget.Material3.Chip.Filter" />
 
-                        <!-- Clear Filter -->
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chip_clear_filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="✕ Xóa lọc"
+                            android:text="✕ XÓA LỌC"
                             android:visibility="gone"
-                            app:chipBackgroundColor="@color/primary"
-                            app:chipIconTint="@color/white"
-                            android:textColor="@color/white"
+                            app:chipBackgroundColor="@color/wine_primary"
+                            app:chipIconTint="@color/wine_light_surface"
+                            android:textColor="@color/wine_light_surface"
                             style="@style/Widget.Material3.Chip.Assist" />
                     </com.google.android.material.chip.ChipGroup>
 
-                    <!-- Sort Options -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="20dp"
                         android:layout_marginBottom="8dp"
-                        android:text="Sắp xếp"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
+                        android:text="SẮP XẾP"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <com.google.android.material.chip.ChipGroup
@@ -260,13 +248,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:singleSelection="true"
-                        app:chipSpacingHorizontal="8dp">
+                        app:chipSpacingHorizontal="12dp">
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chip_sort_name_asc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="A → Z"
+                            android:text="Tên (A → Z)"
                             android:checked="true"
                             style="@style/Widget.Material3.Chip.Filter" />
 
@@ -274,7 +262,7 @@
                             android:id="@+id/chip_sort_name_desc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Z → A"
+                            android:text="Tên (Z → A)"
                             style="@style/Widget.Material3.Chip.Filter" />
 
                         <com.google.android.material.chip.Chip
@@ -301,11 +289,10 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Results Info -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="12dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -315,21 +302,22 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Hiển thị 0 món"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="14sp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_view_mode"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Grid"
+                    android:layout_height="40dp"
+                    android:text="GRID"
                     android:textSize="12sp"
+                    android:textColor="@color/wine_primary"
                     app:icon="@android:drawable/ic_menu_view"
+                    app:iconTint="@color/wine_primary"
                     app:iconSize="16dp"
                     style="@style/Widget.Material3.Button.TextButton" />
             </LinearLayout>
 
-            <!-- Drinks List -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_drinks"
                 android:layout_width="match_parent"
@@ -337,7 +325,6 @@
                 android:nestedScrollingEnabled="false"
                 android:clipToPadding="false" />
 
-            <!-- Empty State -->
             <LinearLayout
                 android:id="@+id/empty_state"
                 android:layout_width="match_parent"
@@ -358,7 +345,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="Không tìm thấy món nào"
-                    android:textColor="@color/black"
+                    android:textColor="@color/wine_dark_background"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -367,21 +354,20 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Thử thay đổi bộ lọc hoặc tìm kiếm"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="14sp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:indeterminateTint="@color/wine_primary"
         android:visibility="gone" />
 
-    <!-- FAB Add Button -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fab_add_drink"
         android:layout_width="wrap_content"
@@ -389,8 +375,9 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:text="Thêm món"
+        android:textColor="@color/wine_light_surface"
         app:icon="@android:drawable/ic_input_add"
-        app:iconTint="@color/white"
-        app:backgroundTint="@color/primary" />
+        app:iconTint="@color/wine_light_surface"
+        app:backgroundTint="@color/wine_primary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

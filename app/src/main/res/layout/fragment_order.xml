@@ -4,21 +4,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@android:color/transparent"
+    android:padding="16dp"
     tools:context=".Fragments.OrderFragment">
 
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="My Orders"
-        android:textSize="24sp"
+        android:text="Lịch Sử Đơn Hàng"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:textColor="@color/wine_dark_background"
         android:textStyle="bold"
-        android:textColor="@color/black"
-        android:padding="16dp"/>
+        android:layout_marginBottom="16dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/orders_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/list_item_order"/>
+        tools:listitem="@layout/item_order"/>
+
+    <TextView
+        android:id="@+id/tv_no_orders"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Bạn chưa có đơn hàng nào."
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="@color/wine_neutral_dark"
+        android:visibility="gone"
+        android:layout_marginTop="100dp"/>
 
 </LinearLayout>

@@ -3,34 +3,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/wine_neutral_light"
     android:fillViewport="true">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="24dp">
 
-        <!-- Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="⚙️ Cài Đặt"
-            android:textColor="@color/text_primary"
+            android:text="⚙CÀI ĐẶT"
+            android:textColor="@color/wine_dark_background"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="24dp" />
 
-        <!-- Profile Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="24dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/primary">
-
+            app:cardBackgroundColor="@color/wine_primary">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -38,16 +34,21 @@
                 android:padding="20dp"
                 android:gravity="center_vertical">
 
-                <!-- Avatar -->
-                <TextView
+                <androidx.cardview.widget.CardView
                     android:layout_width="64dp"
                     android:layout_height="64dp"
-                    android:text="👤"
-                    android:textSize="48sp"
-                    android:gravity="center"
-                    android:layout_marginEnd="16dp" />
+                    app:cardCornerRadius="32dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/wine_light_surface"
+                    android:layout_marginEnd="16dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="👤"
+                        android:textSize="40sp"
+                        android:gravity="center" />
+                </androidx.cardview.widget.CardView>
 
-                <!-- Info -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -59,7 +60,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Manager Name"
-                        android:textColor="@color/white"
+                        android:textColor="@color/wine_light_surface"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
@@ -69,7 +70,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="0123456789"
-                        android:textColor="@color/white"
+                        android:textColor="@color/wine_light_surface"
                         android:textSize="14sp"
                         android:alpha="0.9" />
 
@@ -79,27 +80,25 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="MANAGER"
-                        android:textColor="@color/primary"
-                        app:chipBackgroundColor="@color/white"
+                        android:textColor="@color/wine_primary"
+                        app:chipBackgroundColor="@color/wine_light_surface"
                         app:chipMinHeight="28dp"
-                        app:chipCornerRadius="8dp"
+                        app:chipCornerRadius="16dp"
                         style="@style/Widget.Material3.Chip.Assist" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Settings Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Quản lý"
-            android:textColor="@color/text_secondary"
+            android:text="QUẢN LÝ THÔNG TIN"
+            android:textColor="@color/wine_neutral_dark"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
             android:layout_marginStart="4dp" />
 
-        <!-- Profile Settings Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_profile"
             android:layout_width="match_parent"
@@ -107,6 +106,7 @@
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/wine_light_surface"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground">
@@ -135,7 +135,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Thông tin cá nhân"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/wine_dark_background"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -144,7 +144,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="Chỉnh sửa profile"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/wine_neutral_dark"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -152,12 +152,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="›"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="24sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Store Management Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_store"
             android:layout_width="match_parent"
@@ -165,6 +164,7 @@
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/wine_light_surface"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground">
@@ -193,7 +193,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Quản lý cửa hàng"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/wine_dark_background"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -202,7 +202,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="Thông tin chi nhánh"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/wine_neutral_dark"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -210,12 +210,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="›"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="24sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Users Management Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_users"
             android:layout_width="match_parent"
@@ -223,6 +222,7 @@
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/wine_light_surface"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground">
@@ -251,7 +251,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Quản lý người dùng"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/wine_dark_background"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -260,7 +260,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="Danh sách khách hàng"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/wine_neutral_dark"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -268,24 +268,22 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="›"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="24sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Logout Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Tài khoản"
-            android:textColor="@color/text_secondary"
+            android:text="TÀI KHOẢN"
+            android:textColor="@color/wine_neutral_dark"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
             android:layout_marginStart="4dp" />
 
-        <!-- Logout Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_logout"
             android:layout_width="match_parent"
@@ -294,6 +292,7 @@
             app:cardElevation="2dp"
             app:strokeWidth="1dp"
             app:strokeColor="@color/error"
+            app:cardBackgroundColor="@color/wine_light_surface"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground">
@@ -330,13 +329,12 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- App Version -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="UTE Tea Manager v1.0"
-            android:textColor="@color/text_secondary"
+            android:text="HOUJICHA Manager v1.0"
+            android:textColor="@color/wine_neutral_dark"
             android:textSize="12sp"
             android:gravity="center" />
 

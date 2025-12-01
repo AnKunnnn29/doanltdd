@@ -5,153 +5,156 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5"
-    tools:context=".Fragments.AccountFragment">
+    android:background="@color/wine_primary"
+    tools:context=".Activities.AccountActivity">
 
-    <!-- Profile Header -->
-    <RelativeLayout
+    <!-- Header -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#931923"
-        android:padding="16dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="32dp">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/profile_image"
             android:layout_width="96dp"
             android:layout_height="96dp"
-            android:layout_centerInParent="true"
-            android:src="@drawable/img"/>
+            android:padding="4dp"
+            android:src="@drawable/img"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+            app:strokeColor="@color/wine_accent_gold"
+            app:strokeWidth="2dp" />
 
         <TextView
             android:id="@+id/profile_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/profile_image"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="8dp"
-            android:text="Your Name"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="16dp"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="@color/wine_light_surface"
+            android:textStyle="bold"
+            tools:text="Thành An" />
 
-    </RelativeLayout>
+        <TextView
+            android:id="@+id/profile_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="@color/wine_light_surface"
+            android:alpha="0.8"
+            tools:text="thanhan@example.com" />
 
-    <!-- Menu Options -->
+    </LinearLayout>
+
+    <!-- Menu Options Card -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:backgroundTint="@color/wine_light_surface">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="16dp">
 
             <!-- Profile Option -->
-            <LinearLayout
+            <RelativeLayout
                 android:id="@+id/profile_option"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:gravity="center_vertical">
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
+                    android:id="@+id/icon_profile"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
                     android:src="@android:drawable/ic_menu_edit"
-                    app:tint="@color/black"/>
+                    app:tint="@color/wine_dark_background" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_toEndOf="@id/icon_profile"
+                    android:layout_centerVertical="true"
                     android:layout_marginStart="16dp"
-                    android:text="Profile"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"/>
+                    android:text="Chỉnh sửa hồ sơ"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@android:drawable/ic_media_play"/>
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_arrow_forward" />
 
-            </LinearLayout>
+            </RelativeLayout>
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0"/>
+                android:layout_height="wrap_content" />
 
             <!-- Settings Option -->
-            <LinearLayout
+            <RelativeLayout
                 android:id="@+id/settings_option"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:gravity="center_vertical">
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <ImageView
+                    android:id="@+id/icon_settings"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
                     android:src="@android:drawable/ic_menu_manage"
-                    app:tint="@color/black"/>
+                    app:tint="@color/wine_dark_background" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_toEndOf="@id/icon_settings"
+                    android:layout_centerVertical="true"
                     android:layout_marginStart="16dp"
-                    android:text="Settings"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"/>
+                    android:text="Cài đặt"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@android:drawable/ic_media_play"/>
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_arrow_forward" />
 
-            </LinearLayout>
+            </RelativeLayout>
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0"/>
+                android:layout_height="wrap_content" />
 
-            <!-- Logout Option -->
-            <LinearLayout
-                android:id="@+id/logout_option"
-                android:layout_width="match_parent"
+            <!-- Logout Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/logout_button"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_lock_power_off"
-                    app:tint="@color/black"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="16dp"
-                    android:text="Logout"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"/>
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_media_play"/>
-
-            </LinearLayout>
+                android:layout_marginTop="24dp"
+                android:layout_gravity="center_horizontal"
+                android:text="Đăng xuất"
+                android:textColor="@color/error"
+                app:icon="@android:drawable/ic_lock_power_off"
+                app:iconTint="@color/error" />
 
         </LinearLayout>
 

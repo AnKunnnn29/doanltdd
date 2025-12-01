@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background"
+    android:background="@color/wine_primary"
     android:fillViewport="true"
     tools:context=".Activities.LoginActivity">
 
@@ -15,163 +15,139 @@
         android:gravity="center"
         android:padding="24dp">
 
-        <!-- Phần Header: Logo và Tên App -->
+        <!-- Header: Logo and App Name -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
             android:layout_marginTop="40dp"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="40dp">
 
             <ImageView
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:contentDescription="Tea Shop Logo"
+                android:contentDescription="App Logo"
                 android:src="@drawable/ic_tea_cup"
                 android:layout_marginBottom="16dp"
-                app:tint="@color/white"/>
+                app:tint="@color/wine_accent_gold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Houjicha"
-                android:textSize="32sp"
+                android:textSize="36sp"
                 android:textStyle="bold"
-                android:textColor="@color/white"
-                android:fontFamily="sans-serif-medium"/>
+                android:textColor="@color/wine_light_surface"
+                android:fontFamily="sans-serif-medium" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chào mừng bạn trở lại!"
-                android:textColor="@color/white"
+                android:textColor="@color/wine_light_surface"
                 android:alpha="0.9"
-                android:textSize="16sp"
-                android:layout_marginTop="8dp"/>
+                android:textSize="18sp"
+                android:layout_marginTop="8dp" />
         </LinearLayout>
 
-        <!-- CardView chứa Form Đăng nhập -->
-        <androidx.cardview.widget.CardView
+        <!-- Login Form Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="24dp"
             app:cardElevation="8dp"
-            app:cardBackgroundColor="@color/white"
-            android:layout_marginBottom="24dp">
+            app:cardBackgroundColor="@color/wine_light_surface"
+            android:layout_marginBottom="32dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="28dp">
+                android:padding="32dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Đăng Nhập"
-                    android:textSize="28sp"
+                    android:textSize="32sp"
                     android:textStyle="bold"
-                    android:textColor="#3E2723" 
-                    android:layout_marginBottom="24dp"/>
+                    android:textColor="@color/wine_dark_background"
+                    android:layout_marginBottom="28dp" />
 
                 <!-- Username Input -->
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:boxBackgroundMode="filled"
-                    app:boxBackgroundColor="#F5F5F5"
-                    app:boxStrokeWidth="0dp"
-                    app:boxStrokeWidthFocused="0dp"
-                    app:boxCornerRadiusTopStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusBottomEnd="8dp"
+                    android:layout_marginBottom="18dp"
                     app:startIconDrawable="@android:drawable/ic_dialog_email"
-                    app:startIconTint="#D76D2F"
                     android:hint="Tên đăng nhập">
-                    
+
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/input_login_username"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="text"
-                        android:textSize="16sp"
-                        android:padding="16dp"
-                        android:textColor="#3E2723"/>
+                        android:inputType="text" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Password Input -->
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="32dp"
-                    app:boxBackgroundMode="filled"
-                    app:boxBackgroundColor="#F5F5F5"
-                    app:boxStrokeWidth="0dp"
-                    app:boxStrokeWidthFocused="0dp"
-                    app:boxCornerRadiusTopStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:startIconDrawable="@android:drawable/ic_lock_lock"
-                    app:startIconTint="#D76D2F"
                     app:passwordToggleEnabled="true"
-                    app:passwordToggleTint="#D76D2F"
+                    app:startIconDrawable="@android:drawable/ic_lock_lock"
                     android:hint="Mật khẩu">
-                    
+
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/input_login_password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textPassword"
-                        android:textSize="16sp"
-                        android:padding="16dp"
-                        android:textColor="#3E2723"/>
+                        android:inputType="textPassword" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Login Button -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_login"
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
+                    android:layout_height="64dp"
                     android:text="ĐĂNG NHẬP"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/button_gradient"
-                    app:cornerRadius="30dp"
-                    android:elevation="4dp"
-                    app:backgroundTint="@null"/>
+                    android:textColor="@color/wine_light_surface"
+                    android:backgroundTint="@color/wine_primary"
+                    app:cornerRadius="32dp" />
 
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <!-- Footer: Đăng ký -->
+        <!-- Sign-up Link -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:paddingBottom="24dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chưa có tài khoản? "
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:alpha="0.8"/>
+                android:textColor="@color/wine_light_surface"
+                android:textSize="16sp"
+                android:alpha="0.8" />
 
             <TextView
                 android:id="@+id/text_register_link"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Đăng ký ngay"
-                android:textColor="@color/white"
+                android:textColor="@color/wine_accent_gold"
                 android:textStyle="bold"
-                android:textSize="14sp"
-                android:layout_marginLeft="4dp"/>
+                android:textSize="16sp"
+                android:layout_marginStart="4dp" />
         </LinearLayout>
 
     </LinearLayout>

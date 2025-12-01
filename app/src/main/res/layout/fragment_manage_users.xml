@@ -3,15 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
-
-    <!-- Header -->
+    android:background="@color/wine_neutral_light">
     <LinearLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp"
         android:gravity="center_vertical"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -19,49 +18,57 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="👥 Quản lý Người dùng"
-            android:textColor="@color/text_primary"
-            android:textSize="24sp"
+            android:text="QUẢN LÝ NGƯỜI DÙNG"
+            android:textColor="@color/wine_dark_background"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_filter_role"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lọc"
+            android:text="LỌC"
             android:textSize="14sp"
+            android:textColor="@color/wine_dark_background"
             app:icon="@android:drawable/ic_menu_sort_by_size"
-            app:cornerRadius="8dp"
+            app:iconTint="@color/wine_dark_background"
+            app:cornerRadius="24dp"
+            app:strokeColor="@color/wine_neutral_dark"
             style="@style/Widget.Material3.Button.OutlinedButton" />
     </LinearLayout>
 
-    <!-- Search Bar -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/search_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="12dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
         app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/wine_light_surface"
         app:layout_constraintTop_toBottomOf="@id/header_layout">
 
         <EditText
             android:id="@+id/et_search_user"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
             android:hint="🔍 Tìm kiếm người dùng..."
+            android:textColorHint="@color/wine_neutral_dark"
+            android:textColor="@color/wine_dark_background"
             android:background="@android:color/transparent"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Stats Cards -->
     <LinearLayout
         android:id="@+id/stats_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp"
         android:weightSum="3"
         app:layout_constraintTop_toBottomOf="@id/search_card">
 
@@ -70,14 +77,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp">
-
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/wine_light_surface">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp"
+                android:padding="16dp"
                 android:gravity="center">
 
                 <TextView
@@ -85,15 +92,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0"
-                    android:textColor="@color/primary"
-                    android:textSize="24sp"
+                    android:textColor="@color/wine_primary"
+                    android:textSize="26sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tổng"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -103,14 +110,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/wine_light_surface">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp"
+                android:padding="16dp"
                 android:gravity="center">
 
                 <TextView
@@ -119,14 +127,14 @@
                     android:layout_height="wrap_content"
                     android:text="0"
                     android:textColor="@color/success"
-                    android:textSize="24sp"
+                    android:textSize="26sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Quản lý"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -135,14 +143,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/wine_light_surface">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp"
+                android:padding="16dp"
                 android:gravity="center">
 
                 <TextView
@@ -151,20 +160,19 @@
                     android:layout_height="wrap_content"
                     android:text="0"
                     android:textColor="@color/warning"
-                    android:textSize="24sp"
+                    android:textSize="26sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Khách"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/wine_neutral_dark"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
-    <!-- Users List -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
@@ -176,11 +184,11 @@
             android:id="@+id/rv_users"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="16dp"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="16dp"
             android:clipToPadding="false" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Empty State -->
     <LinearLayout
         android:id="@+id/empty_state"
         android:layout_width="wrap_content"
@@ -204,16 +212,16 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Chưa có người dùng nào"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/wine_neutral_dark"
             android:textSize="16sp" />
     </LinearLayout>
 
-    <!-- Loading -->
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:indeterminateTint="@color/wine_primary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

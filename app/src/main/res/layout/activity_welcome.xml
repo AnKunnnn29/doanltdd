@@ -31,7 +31,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Houjicha"
+                android:text="UTE Tea Shop"
                 android:textSize="48sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
@@ -41,7 +41,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trà rang đậm vị"
+                android:text="Hương vị trà tuyệt vời\nMang đến niềm vui mỗi ngày"
                 android:textSize="18sp"
                 android:textColor="@color/white"
                 android:alpha="0.9"

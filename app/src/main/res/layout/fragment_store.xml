@@ -4,21 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@android:color/transparent"
+    android:padding="16dp"
     tools:context=".Fragments.StoreFragment">
 
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Our Stores"
-        android:textSize="24sp"
+        android:text="Hệ Thống Cửa Hàng"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:textColor="@color/wine_dark_background"
         android:textStyle="bold"
-        android:textColor="@color/black"
-        android:padding="16dp"/>
+        android:layout_marginBottom="16dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/stores_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/list_item_store"/>
+        tools:listitem="@layout/item_store"/>
 
 </LinearLayout>

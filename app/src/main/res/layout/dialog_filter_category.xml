@@ -4,30 +4,25 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
-
-    <!-- Title -->
+    android:padding="24dp">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📁 Chọn Danh Mục"
-        android:textColor="@color/black"
-        android:textSize="18sp"
+        android:text="📁 CHỌN DANH MỤC"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <!-- Category List -->
+        android:layout_marginBottom="24dp" />
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_categories"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxHeight="300dp" />
 
-    <!-- Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:orientation="horizontal"
         android:gravity="end">
 
@@ -35,16 +30,20 @@
             android:id="@+id/btn_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hủy"
+            android:text="HỦY"
+            android:textColor="@color/wine_dark_background"
             style="@style/Widget.Material3.Button.TextButton" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_apply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Áp dụng"
-            app:backgroundTint="@color/primary" />
+            android:layout_marginStart="12dp"
+            android:text="ÁP DỤNG"
+            android:textStyle="bold"
+            android:textColor="@color/wine_light_surface"
+            app:backgroundTint="@color/wine_primary"
+            app:cornerRadius="24dp" />
     </LinearLayout>
 
 </LinearLayout>
