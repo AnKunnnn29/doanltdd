@@ -2,12 +2,18 @@ package com.example.doan.Models;
 
 public class User {
     private int id;
+    private String username;
     private String fullName;
     private String phone;
     private String email;
+    private String address;
     private String role;
-    private String createdAt;
+    private String memberTier;
+    private int points;
     private boolean active;
+    private boolean isBlocked;
+    private String createdAt;
+    private String updatedAt;
 
     public User() {
     }
@@ -19,6 +25,7 @@ public class User {
         this.email = email;
         this.role = role;
         this.active = true;
+        this.isBlocked = false;
     }
 
     public int getId() {
@@ -75,5 +82,53 @@ public class User {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getMemberTier() {
+        return memberTier;
+    }
+
+    public void setMemberTier(String memberTier) {
+        this.memberTier = memberTier;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    public boolean isBlocked() {
+        return isBlocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -118,6 +118,30 @@ public interface ApiService {
             @Query("status") String status
     );
 
+    // ==================== MANAGER USER MANAGEMENT ====================
+    @GET("manager/users")
+    Call<ApiResponse<PageResponse<com.example.doan.Models.User>>> getManagerUsers(
+            @Query("role") String role,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    @GET("manager/users/{userId}")
+    Call<ApiResponse<com.example.doan.Models.User>> getUserById(@Path("userId") int userId);
+
+    @PUT("manager/users/{userId}/block")
+    Call<ApiResponse<com.example.doan.Models.User>> toggleUserBlock(
+            @Path("userId") int userId,
+            @Query("blocked") boolean blocked
+    );
+
+    @GET("manager/users/search")
+    Call<ApiResponse<PageResponse<com.example.doan.Models.User>>> searchUsers(
+            @Query("keyword") String keyword,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
     // ==================== ADMIN APIs ====================
     @POST("admin/drinks")
     Call<ApiResponse<Drink>> createDrink(@Body Drink drink);

@@ -1,10 +1,6 @@
 package com.example.doan.Fragments;
 
-import android.content.Intent;
-import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,15 +9,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SearchView;
-import androidx.cursoradapter.widget.CursorAdapter;
-import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.doan.Activities.ProductDetailActivity;
 import com.example.doan.Adapters.CategoryAdapter;
 import com.example.doan.Models.ApiResponse;
 import com.example.doan.Models.Category;
@@ -44,8 +36,6 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
     private RecyclerView categoryRecyclerView;
     private ProductAdapter productAdapter;
     private CategoryAdapter categoryAdapter;
-    private SearchView searchView;
-    private SimpleCursorAdapter searchSuggestionsAdapter;
 
     private final List<Product> currentProductList = new ArrayList<>();
     private final List<Product> allProducts = new ArrayList<>(); 
@@ -58,61 +48,9 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Setup SearchView & Suggestions
-        searchView = view.findViewById(R.id.search_view);
-        setupSearchSuggestions();
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                filterProductsByName(query);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                // Filter recyclerview list
-                filterProductsByName(newText);
-                
-                // Update suggestions dropdown
-                updateSearchSuggestions(newText);
-                return true;
-            }
-        });
-        
-        // Handle suggestion click
-        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
-            @Override
-            public boolean onSuggestionSelect(int position) {
-                return true;
-            }
-
-            @Override
-            public boolean onSuggestionClick(int position) {
-                Cursor cursor = (Cursor) searchSuggestionsAdapter.getItem(position);
-                int nameColumnIndex = cursor.getColumnIndex("productName");
-                // int idColumnIndex = cursor.getColumnIndex(BaseColumns._ID); // Use this if you mapped product ID to _ID correctly
-                
-                if (nameColumnIndex != -1) {
-                    String suggestion = cursor.getString(nameColumnIndex);
-                    searchView.setQuery(suggestion, true); // Submit query
-                    
-                    // Find product object to open detail directly
-                    for(Product p : allProducts) {
-                        if(p.getName().equals(suggestion)) {
-                            Intent intent = new Intent(getContext(), ProductDetailActivity.class);
-                            intent.putExtra("product", p);
-                            startActivity(intent);
-                            break;
-                        }
-                    }
-                }
-                return true;
-            }
-        });
-
         // Setup Product RecyclerView
         productRecyclerView = view.findViewById(R.id.product_recycler_view);
+        // Sử dụng GridLayoutManager với 2 cột
         productRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         productAdapter = new ProductAdapter(currentProductList);
         productRecyclerView.setAdapter(productAdapter);
@@ -126,52 +64,6 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
         loadCategories();
 
         return view;
-    }
-
-    private void setupSearchSuggestions() {
-        final String[] from = new String[] {"productName"};
-        final int[] to = new int[] {android.R.id.text1};
-        
-        searchSuggestionsAdapter = new SimpleCursorAdapter(getContext(),
-                android.R.layout.simple_list_item_1,
-                null,
-                from,
-                to,
-                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
-        
-        searchView.setSuggestionsAdapter(searchSuggestionsAdapter);
-    }
-
-    private void updateSearchSuggestions(String query) {
-        final MatrixCursor cursor = new MatrixCursor(new String[]{ BaseColumns._ID, "productName" });
-        
-        if (!query.isEmpty()) {
-            for (int i = 0; i < allProducts.size(); i++) {
-                Product product = allProducts.get(i);
-                if (product.getName().toLowerCase().contains(query.toLowerCase())) {
-                    cursor.addRow(new Object[] {i, product.getName()});
-                }
-            }
-        }
-        searchSuggestionsAdapter.changeCursor(cursor);
-    }
-
-    private void filterProductsByName(String query) {
-        currentProductList.clear();
-        if (query.isEmpty()) {
-            filterProductsByCategory(selectedCategoryId);
-            return;
-        }
-
-        String lowerQuery = query.toLowerCase();
-        for (Product product : allProducts) {
-            if (product.getName().toLowerCase().contains(lowerQuery)) {
-                if (selectedCategoryId == -1 || product.getCategoryId() == selectedCategoryId) {
-                    currentProductList.add(product);
-                }
-            }
-        }
-        productAdapter.notifyDataSetChanged();
     }
 
     private void loadCategories() {
@@ -227,6 +119,9 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
 
                             int pCategoryId = drink.getCategoryId();
                             
+                            // Log để kiểm tra ID từ Server trả về
+                            Log.d("HomeFragment", "Sản phẩm: " + drink.getName() + " - Category ID: " + pCategoryId);
+
                             String categoryDisplayName = "";
                             for(Category c : categoryList) {
                                 if(c.getId() == pCategoryId) {
@@ -292,8 +187,6 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
     @Override
     public void onCategoryClick(Category category) {
         selectedCategoryId = category.getId();
-        searchView.setQuery("", false); 
-        searchView.clearFocus();
         filterProductsByCategory(selectedCategoryId);
     }
 
@@ -307,6 +200,15 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
                 if (product.getCategoryId() == categoryId) {
                     currentProductList.add(product);
                 }
+            }
+        }
+        
+        // DEBUG: Hiển thị số lượng tìm thấy để kiểm tra
+        if (categoryId != -1) {
+            if (currentProductList.isEmpty()) {
+                Toast.makeText(getContext(), "Không tìm thấy sản phẩm nào cho danh mục ID: " + categoryId, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Tìm thấy " + currentProductList.size() + " sản phẩm", Toast.LENGTH_SHORT).show();
             }
         }
         

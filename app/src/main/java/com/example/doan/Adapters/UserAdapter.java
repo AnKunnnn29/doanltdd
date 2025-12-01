@@ -19,12 +19,24 @@ import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
+    private static final String TAG = "UserAdapter";
+    
     private Context context;
     private List<User> users;
+    private OnUserActionListener listener;
+
+    public interface OnUserActionListener {
+        void onViewUser(User user);
+        void onToggleUserStatus(User user);
+    }
 
     public UserAdapter(Context context, List<User> users) {
         this.context = context;
         this.users = users;
+    }
+
+    public void setOnUserActionListener(OnUserActionListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -67,12 +79,21 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         }
 
         public void bind(User user) {
-            tvUserName.setText(user.getFullName());
-            tvUserPhone.setText("📞 " + user.getPhone());
+            tvUserName.setText(user.getFullName() != null ? user.getFullName() : user.getUsername());
+            tvUserPhone.setText("📞 " + (user.getPhone() != null ? user.getPhone() : "N/A"));
             tvUserEmail.setText("📧 " + (user.getEmail() != null ? user.getEmail() : "N/A"));
             
-            // Mock created date - replace with actual data
-            tvUserCreated.setText("🕒 Tham gia: 01/01/2024");
+            // Format created date
+            if (user.getCreatedAt() != null && !user.getCreatedAt().isEmpty()) {
+                try {
+                    String date = user.getCreatedAt().substring(0, 10);
+                    tvUserCreated.setText("🕒 Tham gia: " + date);
+                } catch (Exception e) {
+                    tvUserCreated.setText("🕒 Tham gia: N/A");
+                }
+            } else {
+                tvUserCreated.setText("🕒 Tham gia: N/A");
+            }
 
             // Role chip
             chipUserRole.setText(user.getRole());
@@ -82,14 +103,29 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                 chipUserRole.setChipBackgroundColorResource(R.color.primary);
             }
 
+            // Status button text
+            if (user.isBlocked()) {
+                btnToggleStatus.setText("Mở khóa");
+                btnToggleStatus.setIconResource(R.drawable.ic_lock_open);
+                itemView.setAlpha(0.6f);
+            } else {
+                btnToggleStatus.setText("Khóa");
+                btnToggleStatus.setIconResource(R.drawable.ic_lock);
+                itemView.setAlpha(1.0f);
+            }
+
             // View button
             btnViewUser.setOnClickListener(v -> {
-                Toast.makeText(context, "Chi tiết: " + user.getFullName(), Toast.LENGTH_SHORT).show();
+                if (listener != null) {
+                    listener.onViewUser(user);
+                }
             });
 
             // Toggle status button
             btnToggleStatus.setOnClickListener(v -> {
-                Toast.makeText(context, "Khóa/Mở khóa: " + user.getFullName(), Toast.LENGTH_SHORT).show();
+                if (listener != null) {
+                    listener.onToggleUserStatus(user);
+                }
             });
         }
     }
