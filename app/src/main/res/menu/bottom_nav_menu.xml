@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="Home" />
+    <item
+        android:id="@+id/nav_order"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="Order" />
+    <item
+        android:id="@+id/nav_qr"
+        android:icon="@android:drawable/ic_menu_camera"
+        android:title="QR Code" />
+    <item
+        android:id="@+id/nav_store"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Store" />
+    <item
+        android:id="@+id/nav_account"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:title="Account" />
+</menu>
