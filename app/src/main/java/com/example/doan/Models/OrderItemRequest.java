@@ -5,15 +5,19 @@ import com.google.gson.annotations.SerializedName;
 public class OrderItemRequest {
     @SerializedName("product_id")
     private int productId;
-    
+
+    @SerializedName("size")
+    private String size;
+
     @SerializedName("quantity")
     private int quantity;
-    
+
     @SerializedName("price")
     private double price;
 
-    public OrderItemRequest(int productId, int quantity, double price) {
+    public OrderItemRequest(int productId, String size, int quantity, double price) {
         this.productId = productId;
+        this.size = size;
         this.quantity = quantity;
         this.price = price;
     }
@@ -24,6 +28,14 @@ public class OrderItemRequest {
 
     public void setProductId(int productId) {
         this.productId = productId;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
     }
 
     public int getQuantity() {

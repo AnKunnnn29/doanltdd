@@ -106,15 +106,17 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             orderItems.add(new OrderItemRequest(
                     item.getProduct().getId(),
                     item.getSizeName(),
-                    item.getQuantity()
+                    item.getQuantity(),
+                    item.getUnitPrice()
             ));
         }
 
         // Giả sử storeId là 1 (Mặc định) hoặc cần logic chọn Store trước khi Checkout
         // Để đơn giản, ta lấy storeId = 1 tạm thời, hoặc cần thêm UI chọn Store trong CartActivity
         int storeId = 1; 
+        double totalPrice = CartManager.getInstance().getTotalPrice();
 
-        CreateOrderRequest request = new CreateOrderRequest(storeId, orderItems);
+        CreateOrderRequest request = new CreateOrderRequest(userId, storeId, totalPrice, orderItems);
 
         btnCheckout.setEnabled(false);
         btnCheckout.setText("Đang xử lý...");

@@ -194,8 +194,9 @@ public class ProductDetailActivity extends AppCompatActivity {
             selectedSize = product.getSizes().get(0).getSizeName();
         }
         
-        OrderItemRequest item = new OrderItemRequest(product.getId(), selectedSize, quantity);
-        CreateOrderRequest orderRequest = new CreateOrderRequest(storeId, Collections.singletonList(item));
+        OrderItemRequest item = new OrderItemRequest(product.getId(), selectedSize, quantity, product.getPrice());
+        double totalPrice = quantity * product.getPrice();
+        CreateOrderRequest orderRequest = new CreateOrderRequest(userId, storeId, totalPrice, Collections.singletonList(item));
 
         btnConfirmOrder.setEnabled(false);
         btnConfirmOrder.setText("Đang xử lý...");
