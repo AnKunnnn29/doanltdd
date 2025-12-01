@@ -10,13 +10,29 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- Back Button -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:contentDescription="Back" />
+        </FrameLayout>
+
         <!-- Product Image -->
         <ImageView
-            android:id="@+id/detail_product_image"
+            android:id="@+id/ivProductImage"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_image_placeholder" />
+            android:src="@drawable/ic_image_placeholder"
+            android:contentDescription="Product Image" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -26,9 +42,9 @@
             android:padding="20dp"
             android:layout_marginTop="-20dp">
 
-            <!-- Product Name & Price -->
+            <!-- Product Name -->
             <TextView
-                android:id="@+id/detail_product_name"
+                android:id="@+id/tvProductName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Product Name"
@@ -36,8 +52,9 @@
                 android:textStyle="bold"
                 android:textColor="@color/black" />
 
+            <!-- Product Price -->
             <TextView
-                android:id="@+id/detail_product_price"
+                android:id="@+id/tvProductPrice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -46,7 +63,7 @@
                 android:textStyle="bold"
                 android:textColor="#FF5722" />
                 
-            <!-- Category Name -->
+            <!-- Category -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -68,6 +85,7 @@
                     android:textColor="#666666"/>
             </LinearLayout>
 
+            <!-- Description Label -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -77,14 +95,52 @@
                 android:textSize="16sp"
                 android:textColor="@color/black" />
 
+            <!-- Description -->
             <TextView
-                android:id="@+id/detail_product_description"
+                android:id="@+id/tvProductDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Mô tả sản phẩm..."
                 android:textSize="14sp"
                 android:textColor="#666666" />
+
+            <!-- Size Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Chọn size"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <Spinner
+                android:id="@+id/spinnerSize"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/edit_text_background" />
+
+            <!-- Topping Selection -->
+            <TextView
+                android:id="@+id/tv_topping_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Chọn topping (tùy chọn)"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <LinearLayout
+                android:id="@+id/layoutToppings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+                <!-- Toppings will be added dynamically -->
+            </LinearLayout>
 
             <!-- Branch Selection -->
             <TextView
@@ -97,7 +153,7 @@
                 android:textColor="@color/black" />
 
             <Spinner
-                android:id="@+id/spinner_branch"
+                android:id="@+id/spinnerBranch"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
@@ -121,7 +177,7 @@
                     android:textColor="@color/black" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_decrease_qty"
+                    android:id="@+id/btnDecrease"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:text="-"
@@ -134,7 +190,7 @@
                     app:cornerRadius="20dp" />
 
                 <TextView
-                    android:id="@+id/tv_quantity"
+                    android:id="@+id/tvQuantity"
                     android:layout_width="40dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -144,7 +200,7 @@
                     android:textColor="@color/black" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_increase_qty"
+                    android:id="@+id/btnIncrease"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:text="+"
@@ -177,7 +233,7 @@
                     android:textColor="@color/black" />
 
                 <TextView
-                    android:id="@+id/tv_total_price"
+                    android:id="@+id/tvTotalPrice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="50,000 VNĐ"
@@ -196,7 +252,7 @@
                 android:layout_marginBottom="24dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_add_to_cart"
+                    android:id="@+id/btnAddToCart"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
@@ -210,7 +266,7 @@
                     app:cornerRadius="12dp" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_confirm_order"
+                    android:id="@+id/btnConfirmOrder"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
                     android:layout_weight="1"

@@ -54,6 +54,38 @@
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu" />
 
+    <!-- Floating Action Button for Cart -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_cart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="80dp"
+        android:contentDescription="@string/cart"
+        android:src="@android:drawable/ic_menu_add"
+        app:backgroundTint="#FF6347"
+        app:tint="@android:color/white"
+        app:layout_anchor="@id/bottom_navigation"
+        app:layout_anchorGravity="top|end" />
+
+    <!-- Cart Badge -->
+    <TextView
+        android:id="@+id/tv_cart_badge"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:background="@android:color/holo_red_dark"
+        android:gravity="center"
+        android:text="0"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_anchor="@id/fab_cart"
+        app:layout_anchorGravity="top|end" />
+
     <RelativeLayout
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"

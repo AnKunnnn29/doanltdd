@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Product Image with Back Button -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="300dp">
+
+                <ImageView
+                    android:id="@+id/detail_product_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_image_placeholder"
+                    android:contentDescription="Product Image" />
+
+                <!-- Back Button Overlay -->
+                <ImageButton
+                    android:id="@+id/btn_back"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="16dp"
+                    android:background="@android:color/white"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:contentDescription="Back"
+                    android:elevation="4dp" />
+            </FrameLayout>
+
+            <!-- Content Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                android:layout_marginBottom="80dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Product Name -->
+                    <TextView
+                        android:id="@+id/detail_product_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Caramel Coffee Latte"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        tools:text="Caramel Coffee Latte" />
+
+                    <!-- Product Price -->
+                    <TextView
+                        android:id="@+id/detail_product_price"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="52,000 VNĐ"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="#FF5722"
+                        tools:text="52,000 VNĐ" />
+
+                    <!-- Category -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Danh mục: "
+                            android:textStyle="bold"
+                            android:textColor="#757575"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/detail_product_category"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="UTE Coffee Series"
+                            android:textColor="#757575"
+                            android:textSize="14sp"
+                            tools:text="UTE Coffee Series" />
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="#E0E0E0" />
+
+                    <!-- Description Label -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mô tả"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="#212121" />
+
+                    <!-- Description -->
+                    <TextView
+                        android:id="@+id/detail_product_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Cà phê sữa caramel, lớp caramel rưới trên bọt sữa, ngọt nhưng không gắt."
+                        android:textSize="14sp"
+                        android:textColor="#757575"
+                        android:lineSpacingExtra="4dp"
+                        tools:text="Cà phê sữa caramel..." />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="#E0E0E0" />
+
+                    <!-- Size Selection -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chọn size"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="#212121" />
+
+                    <Spinner
+                        android:id="@+id/spinner_size"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/edit_text_background"
+                        android:padding="12dp" />
+
+                    <!-- Topping Selection -->
+                    <TextView
+                        android:id="@+id/tv_topping_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="Chọn topping (tùy chọn)"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="#212121" />
+
+                    <LinearLayout
+                        android:id="@+id/layout_toppings"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical">
+                        <!-- Toppings will be added dynamically -->
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="#E0E0E0" />
+
+                    <!-- Branch Selection -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chọn chi nhánh"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="#212121" />
+
+                    <Spinner
+                        android:id="@+id/spinner_branch"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/edit_text_background"
+                        android:padding="12dp" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="#E0E0E0" />
+
+                    <!-- Quantity Selection -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Số lượng"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:textColor="#212121" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_decrease_qty"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="-"
+                            android:textSize="20sp"
+                            android:padding="0dp"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            app:cornerRadius="20dp" />
+
+                        <TextView
+                            android:id="@+id/tv_quantity"
+                            android:layout_width="50dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="1"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="#212121"
+                            tools:text="1" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_increase_qty"
+                            style="@style/Widget.MaterialComponents.Button"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="+"
+                            android:textSize="20sp"
+                            android:padding="0dp"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            app:cornerRadius="20dp" />
+
+                    </LinearLayout>
+
+                    <!-- Total Price Card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        app:cardBackgroundColor="#FFF3E0"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="16dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Tổng cộng:"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="#212121" />
+
+                            <TextView
+                                android:id="@+id/tv_total_price"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="52,000 VNĐ"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#FF5722"
+                                tools:text="52,000 VNĐ" />
+
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        android:elevation="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_to_cart"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="THÊM VÀO GIỎ"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:strokeColor="@color/design_default_color_primary"
+            app:strokeWidth="2dp"
+            android:layout_marginEnd="8dp"
+            app:cornerRadius="12dp"
+            app:icon="@android:drawable/ic_input_add"
+            app:iconGravity="textStart" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_confirm_order"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="MUA NGAY"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp"
+            app:cornerRadius="12dp"
+            app:icon="@android:drawable/ic_menu_send"
+            app:iconGravity="textStart" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
