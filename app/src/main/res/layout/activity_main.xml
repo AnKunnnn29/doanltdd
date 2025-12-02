@@ -96,6 +96,7 @@
         app:srcCompat="@drawable/ic_shopping_cart"
         app:backgroundTint="@color/wine_accent_gold"
         app:tint="@color/wine_dark_background"
+        app:layout_dodgeInsetEdges="bottom"
         app:elevation="8dp"/>
 
     <TextView
