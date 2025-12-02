@@ -21,7 +21,7 @@ class AuthInterceptor(private val context: Context) : Interceptor {
         Log.d(TAG, "Token: ${if (token != null) "exists" else "null"}")
         
         // Chỉ thêm token nếu có và không rỗng
-        return if (!token.isNullOrEmpty()) {
+        val response = if (!token.isNullOrEmpty()) {
             val newRequest = originalRequest.newBuilder()
                 .header("Authorization", "Bearer $token")
                 .build()
@@ -32,6 +32,21 @@ class AuthInterceptor(private val context: Context) : Interceptor {
             Log.d(TAG, "No token, sending request without Authorization header")
             chain.proceed(originalRequest)
         }
+        
+        // Xử lý token hết hạn (401 Unauthorized)
+        if (response.code == 401 && !token.isNullOrEmpty()) {
+            Log.w(TAG, "Token expired or invalid (401). Clearing session...")
+            
+            // Xóa session
+            prefs.edit().clear().apply()
+            
+            // TODO: Chuyển về màn hình login
+            // Cần implement broadcast hoặc event bus để thông báo cho Activity
+            // Hiện tại chỉ log warning
+            Log.w(TAG, "User needs to login again")
+        }
+        
+        return response
     }
     
     companion object {

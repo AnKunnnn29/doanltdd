@@ -59,13 +59,20 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_store, container, false)
+        return try {
+            val view = inflater.inflate(R.layout.fragment_store, container, false)
 
-        initViews(view)
-        setupMap()
-        setupListeners()
-        
-        return view
+            initViews(view)
+            setupMap()
+            setupListeners()
+            
+            view
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onCreateView: ${e.message}")
+            e.printStackTrace()
+            Toast.makeText(context, "Lỗi tải trang cửa hàng", Toast.LENGTH_SHORT).show()
+            inflater.inflate(R.layout.fragment_store, container, false)
+        }
     }
 
     private fun initViews(view: View) {
@@ -141,22 +148,43 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
 
     private fun loadBranches() {
         progressBar.visibility = View.VISIBLE
-        RetrofitClient.getInstance(requireContext()).apiService.getBranches().enqueue(object : Callback<ApiResponse<List<Branch>>> {
-            override fun onResponse(call: Call<ApiResponse<List<Branch>>>, response: Response<ApiResponse<List<Branch>>>) {
+        // Use getStores() instead of getBranches() since backend doesn't have branches endpoint
+        RetrofitClient.getInstance(requireContext()).apiService.getStores().enqueue(object : Callback<ApiResponse<List<com.example.doan.Models.Store>>> {
+            override fun onResponse(call: Call<ApiResponse<List<com.example.doan.Models.Store>>>, response: Response<ApiResponse<List<com.example.doan.Models.Store>>>) {
                 progressBar.visibility = View.GONE
                 if (response.isSuccessful && response.body()?.success == true) {
-                    branches = response.body()?.data ?: emptyList()
+                    val stores = response.body()?.data ?: emptyList()
+                    
+                    Log.d(TAG, "Loaded ${stores.size} stores from API")
+                    stores.forEachIndexed { index, store ->
+                        Log.d(TAG, "Store $index: ${store.storeName} at ${store.address}")
+                    }
+                    
+                    // Convert Store to Branch for compatibility
+                    branches = stores.map { store ->
+                        Branch(
+                            id = store.id,
+                            branchName = store.storeName,
+                            address = store.address
+                        )
+                    }
                     DataCache.branches = branches // Cache for other screens
-                    displayBranchesOnMap()
+                    
+                    if (branches.isEmpty()) {
+                        Toast.makeText(context, "Không có cửa hàng nào", Toast.LENGTH_SHORT).show()
+                    } else {
+                        displayBranchesOnMap()
+                    }
                 } else {
-                    Toast.makeText(context, "Không thể tải danh sách chi nhánh", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "API response not successful: ${response.code()}")
+                    Toast.makeText(context, "Không thể tải danh sách cửa hàng", Toast.LENGTH_SHORT).show()
                 }
             }
 
-            override fun onFailure(call: Call<ApiResponse<List<Branch>>>, t: Throwable) {
+            override fun onFailure(call: Call<ApiResponse<List<com.example.doan.Models.Store>>>, t: Throwable) {
                 progressBar.visibility = View.GONE
-                Log.e(TAG, "Error fetching branches", t)
-                Toast.makeText(context, "Lỗi kết nối server", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "Error fetching stores", t)
+                Toast.makeText(context, "Lỗi kết nối server: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -178,23 +206,10 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             var hasBranches = false
 
             for (branch in branches) {
-                // Assuming Branch model has lat/lng or address string to be geocoded
-                // For now, let's assume we need to geocode the address if lat/lng are missing
-                // Or better, add mock lat/lng if missing for demo
-                
-                // Ideally your Branch model should have lat/lng. If not, we might need to geocode.
-                // Let's assume a simple geocoding or existing coordinates.
-                // Since the model is not fully visible to me, I'll try to parse coordinates from address or use dummy data if needed.
-                // For this implementation, I will try to use geocoding if lat/lng are 0/null, but best practice is to have them from API.
-                
-                // Placeholder logic for coordinates:
-                // In a real app, Branch object should have latitude and longitude fields.
-                // I will assume they might not exist and simulate geocoding based on address string if valid.
-                
-                // Simulating coordinates if API doesn't provide them (You should update your backend to send lat/lng)
-                // For demo purposes, let's geocode the address if possible.
-                
+                // Branch is converted from Store which has latitude/longitude
+                // Try to get coordinates from geocoding the address
                 val branchLocation = getLatLngFromAddress(branch.address ?: "")
+                
                 if (branchLocation != null) {
                     val marker = googleMap.addMarker(
                         MarkerOptions()
@@ -206,16 +221,25 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                     marker?.tag = branch
                     boundsBuilder.include(branchLocation)
                     hasBranches = true
+                    
+                    Log.d(TAG, "Added marker for ${branch.branchName} at $branchLocation")
+                } else {
+                    Log.w(TAG, "Could not geocode address for ${branch.branchName}: ${branch.address}")
                 }
             }
             
-            if (hasBranches && userLocation == null) {
+            if (hasBranches) {
                 try {
                     val bounds = boundsBuilder.build()
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
                 } catch (e: Exception) {
-                    // Handle bounds exception
+                    Log.e(TAG, "Error animating camera: ${e.message}")
                 }
+            } else {
+                // No branches could be geocoded, show default location (HCMC)
+                val hcmc = LatLng(10.7769, 106.7009)
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(hcmc, 12f))
+                Toast.makeText(context, "Không thể hiển thị vị trí cửa hàng trên bản đồ", Toast.LENGTH_SHORT).show()
             }
         }
     }

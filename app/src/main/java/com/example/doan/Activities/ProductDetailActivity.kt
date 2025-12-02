@@ -38,19 +38,15 @@ class ProductDetailActivity : AppCompatActivity() {
     private lateinit var spinnerSize: AutoCompleteTextView
     private lateinit var layoutToppings: LinearLayout
     private lateinit var btnBack: ImageButton
-    private lateinit var spinnerBranch: AutoCompleteTextView
     private lateinit var spinnerSizeInputLayout: TextInputLayout
     private lateinit var tvToppingLabel: View
     private lateinit var tvCategory: TextView
-    private lateinit var spinnerBranchLayout: TextInputLayout
 
     // Data
     private var product: Drink? = null
     private var quantity = 1
     private var selectedSize: DrinkSize? = null
     private val selectedToppings = mutableSetOf<DrinkTopping>()
-    private var selectedBranchId: Long? = null
-    private var defaultBranchId: Long = -1
 
     companion object {
         private const val TAG = "ProductDetailActivity"
@@ -59,15 +55,10 @@ class ProductDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_product_detail)
-        
-        // Get default branch if set
-        val prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        defaultBranchId = prefs.getLong("DEFAULT_BRANCH_ID", -1)
 
         initViews()
         getProductDetails()
         setupListeners()
-        fetchBranches()
     }
 
     private fun getLoggedInUserId(): Int {
@@ -90,8 +81,6 @@ class ProductDetailActivity : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         tvToppingLabel = findViewById(R.id.tv_topping_label)
         tvCategory = findViewById(R.id.detail_product_category)
-        spinnerBranch = findViewById(R.id.spinnerBranch)
-        spinnerBranchLayout = findViewById(R.id.spinner_branch_layout)
         spinnerSizeInputLayout = findViewById(R.id.spinner_size_layout)
 
         btnBack.setOnClickListener { finish() }
@@ -190,56 +179,8 @@ class ProductDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchBranches() {
-        if (DataCache.branches != null) {
-            setupBranchSpinner(DataCache.branches!!)
-            return
-        }
-
-        RetrofitClient.getInstance(this).apiService.getBranches().enqueue(object : Callback<ApiResponse<List<Branch>>> {
-            override fun onResponse(call: Call<ApiResponse<List<Branch>>>, response: Response<ApiResponse<List<Branch>>>) {
-                if (response.isSuccessful && response.body()?.success == true) {
-                    response.body()?.data?.let {
-                        DataCache.branches = it
-                        setupBranchSpinner(it)
-                    }
-                } else {
-                    spinnerBranchLayout.visibility = View.GONE
-                }
-            }
-
-            override fun onFailure(call: Call<ApiResponse<List<Branch>>>, t: Throwable) {
-                spinnerBranchLayout.visibility = View.GONE
-                Log.e(TAG, "Error fetching branches", t)
-            }
-        })
-    }
-
-    private fun setupBranchSpinner(branches: List<Branch>) {
-        if (branches.isNotEmpty()) {
-            spinnerBranchLayout.visibility = View.VISIBLE
-            val branchOptions = branches.map { it.branchName ?: "N/A" }
-            val branchAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, branchOptions)
-            spinnerBranch.setAdapter(branchAdapter)
-
-            var defaultIndex = 0
-            if (defaultBranchId != -1L) {
-                val index = branches.indexOfFirst { it.id?.toLong() == defaultBranchId }
-                if (index != -1) {
-                    defaultIndex = index
-                }
-            }
-
-            spinnerBranch.setText(branchAdapter.getItem(defaultIndex), false)
-            selectedBranchId = branches[defaultIndex].id?.toLong()
-
-            spinnerBranch.setOnItemClickListener { _, _, position, _ ->
-                selectedBranchId = branches[position].id?.toLong()
-            }
-        } else {
-            spinnerBranchLayout.visibility = View.GONE
-        }
-    }
+    // Branch selection removed - will be done at checkout in CartActivity
+    // Backend doesn't support branchId in AddToCartRequest
 
     private fun updateTotalPrice() {
         product?.let { prod ->
@@ -256,18 +197,13 @@ class ProductDetailActivity : AppCompatActivity() {
             Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
             return
         }
-        if (selectedBranchId == null) {
-            Toast.makeText(this, "Vui lòng chọn chi nhánh", Toast.LENGTH_SHORT).show()
-            return
-        }
 
         val request = AddToCartRequest(
             drinkId = product?.id?.toLong() ?: 0L,
             sizeId = selectedSize?.id?.toLong() ?: 0L,
             quantity = quantity,
             toppingIds = selectedToppings.map { it.id.toLong() }.takeIf { it.isNotEmpty() },
-            note = null, // Note is currently not supported in this UI
-            branchId = selectedBranchId!!
+            note = null // Note is currently not supported in this UI
         )
 
         setLoading(true, redirectToCart)
@@ -310,11 +246,18 @@ class ProductDetailActivity : AppCompatActivity() {
     }
 
     private fun showSuccessDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Thêm vào giỏ hàng thành công!")
-            .setMessage("Bạn có muốn xem giỏ hàng ngay không?\n\n Giỏ hàng sẽ tự động xóa sau 5 phút.")
-            .setPositiveButton("Xem giỏ hàng") { _, _ -> startActivity(Intent(this, CartActivity::class.java)) }
-            .setNegativeButton("Tiếp tục mua") { d, _ -> d.dismiss() }
-            .show()
+        try {
+            AlertDialog.Builder(this)
+                .setTitle("Thêm vào giỏ hàng thành công!")
+                .setMessage("Bạn có muốn xem giỏ hàng ngay không?")
+                .setPositiveButton("Xem giỏ hàng") { _, _ -> 
+                    startActivity(Intent(this, CartActivity::class.java))
+                }
+                .setNegativeButton("Tiếp tục mua") { d, _ -> d.dismiss() }
+                .show()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing dialog: ${e.message}")
+            Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+        }
     }
 }

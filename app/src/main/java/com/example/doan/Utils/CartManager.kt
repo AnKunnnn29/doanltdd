@@ -8,6 +8,20 @@ import com.example.doan.Models.Product
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
+/**
+ * ⚠️ WARNING: DEPRECATED - Có xung đột với Cart API từ server
+ * 
+ * Class này quản lý giỏ hàng LOCAL (SharedPreferences) nhưng app cũng sử dụng
+ * Cart API từ server, gây ra mất đồng bộ dữ liệu nghiêm trọng.
+ * 
+ * KHUYẾN NGHỊ:
+ * - Loại bỏ CartManager này hoàn toàn
+ * - Chỉ sử dụng Cart API từ server (CartActivity đang dùng)
+ * - Hoặc đồng bộ 2 chiều giữa local và server
+ * 
+ * HIỆN TẠI: Class này vẫn được giữ lại để tương thích với code cũ,
+ * nhưng NÊN TRÁNH sử dụng trong code mới.
+ */
 class CartManager private constructor() {
     
     private var cartItems: MutableList<CartItem> = mutableListOf()

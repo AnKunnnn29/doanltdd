@@ -177,6 +177,9 @@ class CartActivity : AppCompatActivity() {
     }
 
     private fun showPaymentMethodDialog() {
+        // TODO: Thêm bước chọn cửa hàng trước khi chọn phương thức thanh toán
+        // Hiện tại đang hardcode storeId = 1 trong processOrder()
+        
         val paymentMethods = arrayOf("💵 Thanh toán khi nhận hàng (COD)", "💳 Thanh toán VNPay")
         
         AlertDialog.Builder(this)
@@ -193,19 +196,33 @@ class CartActivity : AppCompatActivity() {
         stopCountdown()
 
         val userId = getLoggedInUserId()
-        if (userId == -1 || currentCart?.items.isNullOrEmpty()) return
+        if (userId == -1 || currentCart?.items.isNullOrEmpty()) {
+            Toast.makeText(this, "Giỏ hàng trống hoặc chưa đăng nhập", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Validate cart items
+        val invalidItems = currentCart?.items?.filter { 
+            it.drinkId == null || it.drinkId == 0L || it.quantity == null || it.quantity!! <= 0 
+        }
+        if (!invalidItems.isNullOrEmpty()) {
+            Toast.makeText(this, "Có sản phẩm không hợp lệ trong giỏ hàng", Toast.LENGTH_SHORT).show()
+            loadCartFromServer() // Reload to fix
+            return
+        }
 
         val orderItems = currentCart?.items?.map { item ->
             val toppingIds = item.toppings?.map { it.id.toLong() }
             OrderItemRequest(
-                item.drinkId ?: 0L,
+                item.drinkId!!,
                 item.sizeName ?: "M",
-                item.quantity ?: 1,
+                item.quantity!!,
                 item.note,
                 toppingIds
             )
         } ?: emptyList()
 
+        // TODO: Cho phép user chọn cửa hàng thay vì hardcode storeId = 1
         val request = CreateOrderRequest(1L, "PICKUP", "Tại cửa hàng", paymentMethod, null, null, orderItems)
 
         btnCheckout.isEnabled = false

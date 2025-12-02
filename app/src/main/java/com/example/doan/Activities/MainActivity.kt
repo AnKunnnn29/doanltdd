@@ -13,8 +13,8 @@ import com.example.doan.Fragments.AccountFragment
 import com.example.doan.Fragments.HomeFragment
 import com.example.doan.Fragments.OrderFragment
 import com.example.doan.Fragments.StoreFragment
+import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
-import com.example.doan.Utils.CartManager
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -97,14 +97,42 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
     
     private fun updateCartBadge() {
-        val itemCount = CartManager.getInstance().getItemCount()
-        val badge = bottomNavigationView.getOrCreateBadge(R.id.nav_cart)
-        if (itemCount > 0) {
-            badge.isVisible = true
-            badge.number = itemCount
-        } else {
-            badge.isVisible = false
+        // Get cart count from server instead of local CartManager
+        val userId = SessionManager(this).getUserId()
+        if (userId == -1) {
+            // Not logged in, hide badge
+            bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
+            return
         }
+        
+        RetrofitClient.getInstance(this).apiService.getCart(userId.toLong())
+            .enqueue(object : retrofit2.Callback<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>> {
+                override fun onResponse(
+                    call: retrofit2.Call<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>,
+                    response: retrofit2.Response<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val itemCount = response.body()?.data?.items?.size ?: 0
+                        val badge = bottomNavigationView.getOrCreateBadge(R.id.nav_cart)
+                        if (itemCount > 0) {
+                            badge.isVisible = true
+                            badge.number = itemCount
+                        } else {
+                            badge.isVisible = false
+                        }
+                    } else {
+                        bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
+                    }
+                }
+
+                override fun onFailure(
+                    call: retrofit2.Call<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>,
+                    t: Throwable
+                ) {
+                    Log.e(TAG, "Error loading cart badge: ${t.message}")
+                    bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
+                }
+            })
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
