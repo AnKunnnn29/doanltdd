@@ -28,7 +28,7 @@
                 android:contentDescription="Logo"
                 android:layout_marginBottom="16dp"
                 android:src="@drawable/ic_lock"
-                app:tint="@color/wine_accent_gold"/> <TextView
+                app:tint="@color/white"/> <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="XÁC THỰC OTP"

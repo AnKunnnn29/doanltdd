@@ -18,7 +18,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📊 BẢNG ĐIỀU KHIỂN (DASHBOARD)"
+            android:text="BẢNG ĐIỀU KHIỂN "
             android:textColor="@color/wine_dark_background"
             android:textSize="24sp"
             android:textStyle="bold"

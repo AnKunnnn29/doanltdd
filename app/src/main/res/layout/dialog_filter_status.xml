@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="✓ LỌC THEO TRẠNG THÁI"
+        android:text="LỌC THEO TRẠNG THÁI"
         android:textColor="@color/wine_dark_background"
         android:textSize="20sp"
         android:textStyle="bold"

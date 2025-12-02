@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
-
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/wine_light_surface"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,9 +19,10 @@
         <ImageView
             android:id="@+id/store_image"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="160dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/banners" />
+            android:src="@drawable/banners"
+            android:contentDescription="Store Banner Image" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -31,14 +36,30 @@
                 android:layout_height="wrap_content"
                 android:text="Store Name"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/wine_dark_background"
+                tools:text="Chi Nhánh Quận 1 - Nguyễn Huệ" />
 
             <TextView
                 android:id="@+id/store_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:text="123 Main Street, Anytown USA"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textColor="@color/wine_neutral_dark"
+                tools:text="123 Đường Nguyễn Trãi, Phường Bến Thành" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="8dp">
+
 
         </LinearLayout>
 
