@@ -10,7 +10,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.doan.Activities.AccountActivity
 import com.example.doan.Activities.LoginActivity
+import com.example.doan.Activities.UserProfileActivity
+import com.example.doan.Activities.SettingsActivity
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
@@ -54,7 +57,7 @@ class AccountFragment : Fragment() {
     private fun updateUI() {
         if (isUserLoggedIn()) {
             val sessionManager = SessionManager(requireContext())
-            val userName = sessionManager.getUsername() // Assuming you have this method
+            val userName = sessionManager.getUsername()
 
             profileNameText.text = "Xin chào, $userName"
             logoutButton.text = "Đăng xuất"
@@ -66,14 +69,16 @@ class AccountFragment : Fragment() {
 
     private fun handleProfileClick() {
         if (isUserLoggedIn()) {
-            Toast.makeText(context, "Chuyển đến Hồ sơ (Profile)", Toast.LENGTH_SHORT).show()
+             // When clicking "Profile" inside the Account fragment (which uses activity_account.xml layout)
+             // we navigate to UserProfileActivity to edit/view detailed profile.
+             startActivity(Intent(context, UserProfileActivity::class.java))
         } else {
             startActivity(Intent(context, LoginActivity::class.java))
         }
     }
 
     private fun handleSettingsClick() {
-        Toast.makeText(context, "Chuyển đến Cài đặt (Settings)", Toast.LENGTH_SHORT).show()
+        startActivity(Intent(context, SettingsActivity::class.java))
     }
 
     private fun handleLogoutClick() {

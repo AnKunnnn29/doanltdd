@@ -20,6 +20,48 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/wine_primary"
             app:title="" >
+            
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+        
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:background="@color/wine_primary"
+                    android:orientation="vertical">
+        
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        android:textColor="@color/wine_light_surface" />
+        
+                    <TextView
+                        android:id="@+id/user_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textColor="@color/wine_light_surface"
+                        android:textStyle="bold"
+                        tools:text="Thành An" />
+        
+                </LinearLayout>
+        
+                <ImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="16dp"
+                    android:contentDescription="User Profile"
+                    android:src="@drawable/ic_profile"
+                    app:tint="@color/wine_light_surface" />
+        
+            </RelativeLayout>
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -43,80 +85,41 @@
         android:background="@color/white"
         app:menu="@menu/bottom_nav_menu" />
 
+    <!-- Draggable Cart FAB -->
+    <FrameLayout
+        android:id="@+id/fab_cart_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="80dp"
+        android:layout_marginEnd="16dp">
+
+        <TextView
+            android:id="@+id/tv_cart_badge"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:background="@drawable/badge_background"
+            android:backgroundTint="@color/wine_light_surface"
+            android:elevation="10dp"
+            android:gravity="center"
+            android:text="0"
+            android:textColor="@color/wine_primary"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:layout_gravity="top|end"/>
+    </FrameLayout>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_cart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
         android:contentDescription="@string/cart"
-        app:srcCompat="@drawable/ic_shopping_cart"
         app:backgroundTint="@color/wine_accent_gold"
-        app:tint="@color/wine_dark_background"
-        app:layout_dodgeInsetEdges="bottom"
-        app:elevation="8dp"/>
-
-    <TextView
-        android:id="@+id/tv_cart_badge"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="60dp"
-        android:background="@drawable/badge_background"
-        android:backgroundTint="@color/wine_light_surface"
-        android:elevation="6dp"
-        android:gravity="center"
-        android:text="0"
-        android:textColor="@color/wine_primary"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_anchor="@id/fab_cart"
-        app:layout_anchorGravity="top|end" />
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/wine_primary"
-        app:layout_anchor="@+id/app_bar"
-        app:layout_anchorGravity="bottom|center">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:background="@color/wine_primary"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
-                android:textColor="@color/wine_light_surface" />
-
-            <TextView
-                android:id="@+id/user_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textColor="@color/wine_light_surface"
-                android:textStyle="bold"
-                tools:text="Thành An" />
-
-        </LinearLayout>
-
-        <ImageView
-            android:id="@+id/profile_image"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="User Profile"
-            android:src="@drawable/ic_profile"
-            app:tint="@color/wine_light_surface" />
-
-    </RelativeLayout>
+        app:elevation="8dp"
+        app:layout_anchor="@+id/content_container"
+        app:layout_anchorGravity="end|center"
+        app:srcCompat="@drawable/ic_shopping_cart"
+        app:tint="@color/wine_dark_background" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

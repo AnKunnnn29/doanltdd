@@ -10,8 +10,13 @@
     
     <!-- Permission for Notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    
+    <!-- Permissions for Location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
+        android:name=".UTETeaApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -21,6 +26,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DoAn"
         android:usesCleartextTraffic="true">
+        
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="YOUR_API_KEY_HERE" />
 
         <!-- Start Activity as Launcher -->
         <activity
@@ -109,8 +119,6 @@
             android:name=".Activities.AddEditCategoryActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
-        
-        <!-- Removed Firebase Messaging Service -->
 
     </application>
 

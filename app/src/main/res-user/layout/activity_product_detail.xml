@@ -116,6 +116,22 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="16dp"/>
 
+                 <!-- Branch Selection (Placed before Size) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/spinner_branch_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Chọn chi nhánh">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerBranch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <!-- Size Selection -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/spinner_size_layout" 
@@ -148,22 +164,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:orientation="vertical" />
-
-                <!-- Branch Selection -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/spinner_branch_layout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:hint="Chọn chi nhánh">
-
-                    <AutoCompleteTextView
-                        android:id="@+id/spinnerBranch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none" />
-                </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.divider.MaterialDivider
                     android:layout_width="match_parent"

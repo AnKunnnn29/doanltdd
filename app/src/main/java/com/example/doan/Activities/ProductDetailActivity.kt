@@ -1,5 +1,6 @@
 package com.example.doan.Activities
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -49,6 +50,7 @@ class ProductDetailActivity : AppCompatActivity() {
     private var selectedSize: DrinkSize? = null
     private val selectedToppings = mutableSetOf<DrinkTopping>()
     private var selectedBranchId: Long? = null
+    private var defaultBranchId: Long = -1
 
     companion object {
         private const val TAG = "ProductDetailActivity"
@@ -57,6 +59,10 @@ class ProductDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_product_detail)
+        
+        // Get default branch if set
+        val prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        defaultBranchId = prefs.getLong("DEFAULT_BRANCH_ID", -1)
 
         initViews()
         getProductDetails()
@@ -216,8 +222,16 @@ class ProductDetailActivity : AppCompatActivity() {
             val branchAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, branchOptions)
             spinnerBranch.setAdapter(branchAdapter)
 
-            spinnerBranch.setText(branchAdapter.getItem(0), false)
-            selectedBranchId = branches[0].id?.toLong()
+            var defaultIndex = 0
+            if (defaultBranchId != -1L) {
+                val index = branches.indexOfFirst { it.id?.toLong() == defaultBranchId }
+                if (index != -1) {
+                    defaultIndex = index
+                }
+            }
+
+            spinnerBranch.setText(branchAdapter.getItem(defaultIndex), false)
+            selectedBranchId = branches[defaultIndex].id?.toLong()
 
             spinnerBranch.setOnItemClickListener { _, _, position, _ ->
                 selectedBranchId = branches[position].id?.toLong()
@@ -298,7 +312,7 @@ class ProductDetailActivity : AppCompatActivity() {
     private fun showSuccessDialog() {
         AlertDialog.Builder(this)
             .setTitle("Thêm vào giỏ hàng thành công!")
-            .setMessage("Bạn có muốn xem giỏ hàng ngay không?\n\n⚠️ Giỏ hàng sẽ tự động xóa sau 5 phút.")
+            .setMessage("Bạn có muốn xem giỏ hàng ngay không?\n\n Giỏ hàng sẽ tự động xóa sau 5 phút.")
             .setPositiveButton("Xem giỏ hàng") { _, _ -> startActivity(Intent(this, CartActivity::class.java)) }
             .setNegativeButton("Tiếp tục mua") { d, _ -> d.dismiss() }
             .show()

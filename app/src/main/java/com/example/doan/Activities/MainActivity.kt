@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -18,69 +19,91 @@ import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationBarView
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
 
     private var selectedItemId = R.id.nav_home
     private lateinit var fabCart: FloatingActionButton
     private lateinit var tvCartBadge: TextView
+    private lateinit var fabCartContainer: View
+    private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var userNameTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        try {
+            setContentView(R.layout.activity_main)
 
-        // Check if user is Manager, redirect to ManagerActivity
-        val sessionManager = SessionManager(this)
-        if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
-            Log.d(TAG, "Manager detected in MainActivity, redirecting to ManagerActivity")
-            val intent = Intent(this, ManagerActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            val sessionManager = SessionManager(this)
+            if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
+                Log.d(TAG, "Manager detected in MainActivity, redirecting to ManagerActivity")
+                val intent = Intent(this, ManagerActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+                finish()
+                return
             }
-            startActivity(intent)
-            finish()
-            return
-        }
 
-        val userNameTextView = findViewById<TextView>(R.id.user_name)
-        val fullName = sessionManager.getFullName()
+            userNameTextView = findViewById(R.id.user_name)
+            val fullName = sessionManager.getFullName()
 
-        userNameTextView.text = if (sessionManager.isLoggedIn() && !fullName.isNullOrEmpty()) {
-            "Hi, $fullName"
-        } else {
-            "Hi, Guest"
-        }
+            userNameTextView.text = if (sessionManager.isLoggedIn() && !fullName.isNullOrEmpty()) {
+                "Hi, $fullName"
+            } else {
+                "Hi, Guest"
+            }
 
-        // Setup Cart FAB
-        fabCart = findViewById(R.id.fab_cart)
-        tvCartBadge = findViewById(R.id.tv_cart_badge)
-        
-        fabCart.setOnClickListener {
-            startActivity(Intent(this, CartActivity::class.java))
-        }
+            // Remove setup of Floating Action Button as it was removed from layout
+            // fabCart = findViewById(R.id.fab_cart)
+            // tvCartBadge = findViewById(R.id.tv_cart_badge)
+            // fabCartContainer = findViewById(R.id.fab_cart_container)
+            
+            // setupDraggableFab()
 
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNavigationView.setOnItemSelectedListener(this)
+            bottomNavigationView = findViewById(R.id.bottom_navigation)
+            bottomNavigationView.setOnItemSelectedListener(this)
 
-        // Load the default fragment (HomeFragment)
-        if (savedInstanceState == null) {
-            loadFragment(HomeFragment(), false)
-        } else {
-            selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_home)
+            if (savedInstanceState == null) {
+                loadFragment(HomeFragment(), false)
+                updateHeaderVisibility(true)
+            } else {
+                selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_home)
+                // We need to restore the fragment state or just let the system handle it,
+                // but ensuring header visibility is correct is tricky without knowing which frag is active.
+                // For now, let's default based on selected ID.
+                if (selectedItemId == R.id.nav_home) {
+                    updateHeaderVisibility(true)
+                } else {
+                    updateHeaderVisibility(false)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onCreate: ${e.message}")
+            e.printStackTrace()
         }
     }
     
+    // setupDraggableFab removed
+
     override fun onResume() {
         super.onResume()
         updateCartBadge()
+        // Re-select the item based on current state, but prevent loop if setting it triggers listener
+        if (bottomNavigationView.selectedItemId != selectedItemId) {
+            bottomNavigationView.selectedItemId = selectedItemId
+        }
     }
     
     private fun updateCartBadge() {
         val itemCount = CartManager.getInstance().getItemCount()
+        val badge = bottomNavigationView.getOrCreateBadge(R.id.nav_cart)
         if (itemCount > 0) {
-            tvCartBadge.visibility = View.VISIBLE
-            tvCartBadge.text = itemCount.toString()
+            badge.isVisible = true
+            badge.number = itemCount
         } else {
-            tvCartBadge.visibility = View.GONE
+            badge.isVisible = false
         }
     }
 
@@ -90,15 +113,37 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        selectedItemId = item.itemId
+        // If clicking the same item, do nothing (or scroll to top)
+        // if (item.itemId == selectedItemId && item.itemId != R.id.nav_cart) return true
 
-        val fragment: Fragment? = when (item.itemId) {
-            R.id.nav_home -> HomeFragment()
-            R.id.nav_order -> OrderFragment()
-            R.id.nav_store -> StoreFragment()
-            R.id.nav_account -> AccountFragment()
-            else -> null
+        var fragment: Fragment? = null
+        var showHeader = false
+
+        when (item.itemId) {
+            R.id.nav_home -> {
+                fragment = HomeFragment()
+                showHeader = true
+                selectedItemId = item.itemId
+            }
+            R.id.nav_order -> {
+                fragment = OrderFragment()
+                selectedItemId = item.itemId
+            }
+            R.id.nav_cart -> {
+                startActivity(Intent(this, CartActivity::class.java))
+                return false // Return false to not select the item visually
+            }
+            R.id.nav_store -> {
+                fragment = StoreFragment()
+                selectedItemId = item.itemId
+            }
+            R.id.nav_account -> {
+                fragment = AccountFragment()
+                selectedItemId = item.itemId
+            }
         }
+        
+        updateHeaderVisibility(showHeader)
 
         fragment?.let {
             loadFragment(it, true)
@@ -106,6 +151,15 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
 
         return false
+    }
+
+    private fun updateHeaderVisibility(show: Boolean) {
+        val headerLayout = findViewById<View>(R.id.app_bar)
+        if (show) {
+            headerLayout.visibility = View.VISIBLE
+        } else {
+            headerLayout.visibility = View.GONE
+        }
     }
 
     private fun loadFragment(fragment: Fragment, animate: Boolean) {
