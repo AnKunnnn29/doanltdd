@@ -31,23 +31,30 @@ class OrderFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_order, container, false)
+        return try {
+            val view = inflater.inflate(R.layout.fragment_order, container, false)
 
-        ordersRecyclerView = view.findViewById(R.id.orders_recycler_view)
-        ordersRecyclerView.layoutManager = LinearLayoutManager(context)
+            ordersRecyclerView = view.findViewById(R.id.orders_recycler_view)
+            ordersRecyclerView.layoutManager = LinearLayoutManager(context)
 
-        orderAdapter = OrderAdapter(requireContext(), orderList)
-        ordersRecyclerView.adapter = orderAdapter
+            orderAdapter = OrderAdapter(requireContext(), orderList)
+            ordersRecyclerView.adapter = orderAdapter
 
-        val userId = getLoggedInUserId()
+            val userId = getLoggedInUserId()
 
-        if (userId != -1) {
-            loadOrders(userId)
-        } else {
-            Toast.makeText(context, "Vui lòng đăng nhập để xem đơn hàng.", Toast.LENGTH_LONG).show()
+            if (userId != -1) {
+                loadOrders(userId)
+            } else {
+                Toast.makeText(context, "Vui lòng đăng nhập để xem đơn hàng.", Toast.LENGTH_LONG).show()
+            }
+
+            view
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onCreateView: ${e.message}")
+            e.printStackTrace()
+            Toast.makeText(context, "Lỗi tải đơn hàng", Toast.LENGTH_SHORT).show()
+            inflater.inflate(R.layout.fragment_order, container, false)
         }
-
-        return view
     }
 
     private fun getLoggedInUserId(): Int {

@@ -49,29 +49,36 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_home, container, false)
+        return try {
+            val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        // Setup Banner
-        bannerViewPager = view.findViewById(R.id.banner_view_pager)
-        bannerIndicator = view.findViewById(R.id.banner_indicator)
-        setupBannerSlider()
+            // Setup Banner
+            bannerViewPager = view.findViewById(R.id.banner_view_pager)
+            bannerIndicator = view.findViewById(R.id.banner_indicator)
+            setupBannerSlider()
 
-        // Setup Product RecyclerView
-        productRecyclerView = view.findViewById(R.id.product_recycler_view)
-        productRecyclerView.layoutManager = GridLayoutManager(context, 2)
-        productAdapter = ProductAdapter(currentProductList)
-        productRecyclerView.adapter = productAdapter
+            // Setup Product RecyclerView
+            productRecyclerView = view.findViewById(R.id.product_recycler_view)
+            productRecyclerView.layoutManager = GridLayoutManager(context, 2)
+            productAdapter = ProductAdapter(currentProductList)
+            productRecyclerView.adapter = productAdapter
 
-        // Setup Category RecyclerView
-        categoryRecyclerView = view.findViewById(R.id.category_recycler_view)
-        categoryRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        categoryAdapter = CategoryAdapter(DataCache.categories ?: listOf(), this)
-        categoryRecyclerView.adapter = categoryAdapter
+            // Setup Category RecyclerView
+            categoryRecyclerView = view.findViewById(R.id.category_recycler_view)
+            categoryRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            categoryAdapter = CategoryAdapter(DataCache.categories ?: listOf(), this)
+            categoryRecyclerView.adapter = categoryAdapter
 
-        // Load data
-        loadData()
+            // Load data
+            loadData()
 
-        return view
+            view
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "Error in onCreateView: ${e.message}")
+            e.printStackTrace()
+            Toast.makeText(context, "Lỗi tải trang chủ", Toast.LENGTH_SHORT).show()
+            inflater.inflate(R.layout.fragment_home, container, false)
+        }
     }
 
     private fun setupBannerSlider() {

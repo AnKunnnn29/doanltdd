@@ -9,9 +9,9 @@
         android:icon="@android:drawable/ic_menu_send"
         android:title="Order" />
     <item
-        android:id="@+id/nav_qr"
-        android:icon="@android:drawable/ic_menu_camera"
-        android:title="QR Code" />
+        android:id="@+id/nav_cart"
+        android:icon="@drawable/ic_shopping_cart"
+        android:title="Cart" />
     <item
         android:id="@+id/nav_store"
         android:icon="@android:drawable/ic_menu_myplaces"

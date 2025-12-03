@@ -17,33 +17,6 @@
         android:textColor="@color/black"
         android:layout_marginBottom="24dp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:background="@android:color/white"
-        android:layout_marginBottom="8dp"
-        android:elevation="2dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Nhận Thông báo Đẩy"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            android:paddingStart="16dp"/>
-
-        <Switch
-            android:id="@+id/switch_notifications"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingEnd="16dp"/>
-
-    </LinearLayout>
-
     <TextView
         android:id="@+id/tv_terms_of_use"
         android:layout_width="match_parent"

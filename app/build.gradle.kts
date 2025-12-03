@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.example.doan"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.doan"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -34,6 +34,16 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    sourceSets {
+        getByName("main") {
+            res.srcDirs(
+                "src/main/res",
+                "src/main/res-user",
+                "src/main/res-manager"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -41,6 +51,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -60,4 +71,29 @@ dependencies {
 
     // CircleIndicator for ViewPager2
     implementation("me.relex:circleindicator:2.1.6")
+    
+    // Google Maps & Location
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+}
+
+tasks.register("deleteDuplicateResources") {
+    doLast {
+        val duplicateFile = file("src/main/res/layout/fragment_store.xml")
+        if (duplicateFile.exists()) {
+            println("Deleting duplicate file: ${duplicateFile.absolutePath}")
+            duplicateFile.delete()
+        }
+        
+        val duplicateDetailFile = file("src/main/res/layout/activity_product_detail.xml")
+        if (duplicateDetailFile.exists()) {
+            println("Deleting duplicate file: ${duplicateDetailFile.absolutePath}")
+            duplicateDetailFile.delete()
+        }
+    }
+}
+
+// Hook into the build process
+tasks.named("preBuild") {
+    dependsOn("deleteDuplicateResources")
 }

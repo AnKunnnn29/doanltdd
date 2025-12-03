@@ -9,115 +9,181 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.doan.Fragments.AccountFragment
 import com.example.doan.Fragments.HomeFragment
 import com.example.doan.Fragments.OrderFragment
 import com.example.doan.Fragments.StoreFragment
+import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
-import com.example.doan.Utils.CartManager
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationBarView
 
 class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
 
     private var selectedItemId = R.id.nav_home
-    private lateinit var fabCart: FloatingActionButton
-    private lateinit var tvCartBadge: TextView
     private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var userNameTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        val sessionManager = SessionManager(this)
-        if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
-            Log.d(TAG, "Manager detected, redirecting to ManagerActivity")
-            startActivity(Intent(this, ManagerActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            })
-            finish()
-            return
+        try {
+            setContentView(R.layout.activity_main)
+
+            val sessionManager = SessionManager(this)
+
+            // Manager redirection
+            if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
+                Log.d(TAG, "Manager detected in MainActivity, redirecting to ManagerActivity")
+                val intent = Intent(this, ManagerActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+                finish()
+                return
+            }
+
+            // Username
+            userNameTextView = findViewById(R.id.user_name)
+            val fullName = sessionManager.getFullName()
+
+            userNameTextView.text = if (sessionManager.isLoggedIn() && !fullName.isNullOrEmpty()) {
+                "Hi, $fullName"
+            } else {
+                "Hi, Guest"
+            }
+
+            // --- Restore LEFT feature: profile_image click ---
+            val profileImage = findViewById<ImageView>(R.id.profile_image)
+            profileImage?.setOnClickListener {
+                startActivity(Intent(this, AccountActivity::class.java))
+            }
+
+            // Bottom Navigation
+            bottomNavigationView = findViewById(R.id.bottom_navigation)
+            bottomNavigationView.setOnItemSelectedListener(this)
+
+            // First load
+            if (savedInstanceState == null) {
+                loadFragment(HomeFragment(), false)
+                updateHeaderVisibility(true)
+            } else {
+                selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_home)
+                updateHeaderVisibility(selectedItemId == R.id.nav_home)
+            }
+
+            // Handle intent from notifications or other screens
+            handleIntent(intent)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onCreate: ${e.message}")
+            e.printStackTrace()
         }
-
-        setupViews(sessionManager)
-        handleIntent(intent)
     }
 
+    // Restore LEFT feature: handle SELECTED_ITEM
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
     }
 
-    private fun setupViews(sessionManager: SessionManager) {
-        val userNameTextView = findViewById<TextView>(R.id.user_name)
-        userNameTextView.text = if (sessionManager.isLoggedIn() && !sessionManager.getFullName().isNullOrEmpty()) {
-            "Hi, ${sessionManager.getFullName()}"
-        } else {
-            "Hi, Guest"
-        }
-
-        findViewById<ImageView>(R.id.profile_image).setOnClickListener {
-            startActivity(Intent(this, AccountActivity::class.java))
-        }
-
-        fabCart = findViewById(R.id.fab_cart)
-        tvCartBadge = findViewById(R.id.tv_cart_badge)
-        fabCart.setOnClickListener {
-            startActivity(Intent(this, CartActivity::class.java))
-        }
-
-        bottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.setOnItemSelectedListener(this)
-    }
-
     private fun handleIntent(intent: Intent?) {
-        val selectedItem = intent?.getIntExtra("SELECTED_ITEM", R.id.nav_home) ?: R.id.nav_home
+        val selectedItem = intent?.getIntExtra("SELECTED_ITEM", selectedItemId) ?: selectedItemId
         if (bottomNavigationView.selectedItemId != selectedItem) {
             bottomNavigationView.selectedItemId = selectedItem
-            loadFragmentForItem(selectedItem)
         }
     }
 
     override fun onResume() {
         super.onResume()
         updateCartBadge()
+
+        if (bottomNavigationView.selectedItemId != selectedItemId) {
+            bottomNavigationView.selectedItemId = selectedItemId
+        }
     }
 
+    // Cart badge from API
     private fun updateCartBadge() {
-        val itemCount = CartManager.getInstance().getItemCount()
-        if (itemCount > 0) {
-            tvCartBadge.visibility = View.VISIBLE
-            tvCartBadge.text = itemCount.toString()
-        } else {
-            tvCartBadge.visibility = View.GONE
+        val userId = SessionManager(this).getUserId()
+        if (userId == -1) {
+            bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
+            return
         }
+
+        RetrofitClient.getInstance(this).apiService.getCart(userId.toLong())
+            .enqueue(object :
+                retrofit2.Callback<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>> {
+                override fun onResponse(
+                    call: retrofit2.Call<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>,
+                    response: retrofit2.Response<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val itemCount = response.body()?.data?.items?.size ?: 0
+                        val badge = bottomNavigationView.getOrCreateBadge(R.id.nav_cart)
+                        if (itemCount > 0) {
+                            badge.isVisible = true
+                            badge.number = itemCount
+                        } else {
+                            badge.isVisible = false
+                        }
+                    } else {
+                        bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
+                    }
+                }
+
+                override fun onFailure(
+                    call: retrofit2.Call<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>,
+                    t: Throwable
+                ) {
+                    Log.e(TAG, "Error loading cart badge: ${t.message}")
+                    bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
+                }
+            })
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == selectedItemId) return false // Do not reload if the same item is selected
-        
-        if (item.itemId == R.id.nav_account) {
-            startActivity(Intent(this, AccountActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-            })
-            return false // Prevent selection change in this activity
+
+        var fragment: Fragment? = null
+        var showHeader = false
+
+        when (item.itemId) {
+            R.id.nav_home -> {
+                fragment = HomeFragment()
+                showHeader = true
+                selectedItemId = item.itemId
+            }
+            R.id.nav_order -> {
+                fragment = OrderFragment()
+                selectedItemId = item.itemId
+            }
+            R.id.nav_cart -> {
+                startActivity(Intent(this, CartActivity::class.java))
+                return false
+            }
+            R.id.nav_store -> {
+                fragment = StoreFragment()
+                selectedItemId = item.itemId
+            }
+            R.id.nav_account -> {
+                fragment = AccountFragment()
+                selectedItemId = item.itemId
+            }
         }
 
-        loadFragmentForItem(item.itemId)
-        return true
+        updateHeaderVisibility(showHeader)
+
+        fragment?.let {
+            loadFragment(it, true)
+            return true
+        }
+        return false
     }
 
-    private fun loadFragmentForItem(itemId: Int) {
-        selectedItemId = itemId
-        val fragment: Fragment? = when (itemId) {
-            R.id.nav_home -> HomeFragment()
-            R.id.nav_order -> OrderFragment()
-            R.id.nav_store -> StoreFragment()
-            else -> null
-        }
-
-        fragment?.let { loadFragment(it, true) }
+    private fun updateHeaderVisibility(show: Boolean) {
+        val headerLayout = findViewById<View>(R.id.app_bar)
+        headerLayout?.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun loadFragment(fragment: Fragment, animate: Boolean) {

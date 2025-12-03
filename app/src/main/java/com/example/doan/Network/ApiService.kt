@@ -76,8 +76,8 @@ interface ApiService {
     @GET("stores/search")
     fun searchStores(@Query("keyword") keyword: String): Call<ApiResponse<List<Store>>>
 
-    @GET("branches")
-    fun getBranches(): Call<ApiResponse<List<Branch>>>
+    // getBranches() removed - backend doesn't have this endpoint
+    // Use getStores() instead for store/branch selection
 
     // ==================== CART ====================
     @POST("cart/add")
