@@ -6,6 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
 
 class RetrofitClient private constructor(context: Context) {
@@ -27,7 +28,6 @@ class RetrofitClient private constructor(context: Context) {
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
         
-        // Create Gson with lenient parsing
         val gson = GsonBuilder()
             .setLenient()
             .create()
@@ -35,7 +35,8 @@ class RetrofitClient private constructor(context: Context) {
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(ScalarsConverterFactory.create()) // For plain text
+            .addConverterFactory(GsonConverterFactory.create(gson)) // For JSON
             .build()
         
         apiService = retrofit.create(ApiService::class.java)

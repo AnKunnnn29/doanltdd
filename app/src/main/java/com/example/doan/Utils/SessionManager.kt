@@ -11,6 +11,7 @@ class SessionManager(context: Context) {
     fun saveLoginSession(
         userId: Int,
         username: String?,
+        email: String?,
         fullName: String?,
         phone: String?,
         role: String?,
@@ -21,6 +22,7 @@ class SessionManager(context: Context) {
             putBoolean(KEY_IS_LOGGED_IN, true)
             putInt(KEY_USER_ID, userId)
             putString(KEY_USERNAME, username)
+            putString(KEY_EMAIL, email)
             putString(KEY_FULL_NAME, fullName)
             putString(KEY_PHONE, phone)
             putString(KEY_ROLE, role)
@@ -41,10 +43,20 @@ class SessionManager(context: Context) {
     fun getUserId(): Int = prefs.getInt(KEY_USER_ID, -1)
     
     fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
+
+    fun getEmail(): String? = prefs.getString(KEY_EMAIL, null)
+
+    fun setEmail(email: String) {
+        editor.putString(KEY_EMAIL, email).apply()
+    }
     
     fun getFullName(): String? = prefs.getString(KEY_FULL_NAME, null)
+
+    fun setFullName(fullName: String) {
+        editor.putString(KEY_FULL_NAME, fullName).apply()
+    }
     
-    fun getPhone(): String? = prefs.getString(KEY_PHONE, null)
+    fun getPhoneNumber(): String? = prefs.getString(KEY_PHONE, null)
     
     fun getRole(): String = prefs.getString(KEY_ROLE, "USER") ?: "USER"
     
@@ -57,6 +69,7 @@ class SessionManager(context: Context) {
         private const val KEY_TOKEN = "jwt_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USERNAME = "username"
+        private const val KEY_EMAIL = "email"
         private const val KEY_FULL_NAME = "full_name"
         private const val KEY_PHONE = "phone"
         private const val KEY_ROLE = "role"

@@ -8,6 +8,16 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    // ==================== USER PROFILE ====================
+    @GET("me")
+    fun getMyProfile(): Call<ApiResponse<UserProfileDto>>
+
+    @PUT("me")
+    fun updateProfile(@Body request: UpdateProfileRequest): Call<ApiResponse<UserProfileDto>>
+    
+    @PUT("me/change-password")
+    fun changePassword(@Body request: ChangePasswordRequest): Call<String>
+
     // ==================== AUTHENTICATION ====================
     @POST("auth/login")
     fun login(@Body request: LoginRequest): Call<ApiResponse<LoginResponse>>
@@ -23,6 +33,12 @@ interface ApiService {
 
     @POST("auth/resend-otp")
     fun resendOtp(@Query("target") emailOrPhone: String): Call<ApiResponse<String>>
+
+    @POST("auth/forgot-password")
+    fun forgotPassword(@Body request: ForgotPasswordRequest): Call<String>
+    
+    @POST("auth/reset-password")
+    fun resetPassword(@Body request: ResetPasswordRequest): Call<String>
 
     @GET("auth/health")
     fun healthCheck(): Call<ApiResponse<String>>

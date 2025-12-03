@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="28dp"
+    android:background="@color/wine_light_surface">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👤 CHI TIẾT TÀI KHOẢN"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_rounded_container"
+        android:backgroundTint="@color/wine_neutral_light"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/tv_detail_full_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Full Name"
+            android:textColor="@color/wine_dark_background"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_detail_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@username"
+            android:textColor="@color/wine_neutral_dark"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="THÔNG TIN LIÊN HỆ"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_rounded_container"
+        android:backgroundTint="@color/wine_neutral_light"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView android:text="Số điện thoại:" style="@style/DetailLabel"/>
+        <TextView android:id="@+id/tv_detail_phone" style="@style/DetailValue"/>
+
+        <View style="@style/DetailDivider"/>
+
+        <TextView android:text="Email:" style="@style/DetailLabel"/>
+        <TextView android:id="@+id/tv_detail_email" style="@style/DetailValue"/>
+
+        <View style="@style/DetailDivider"/>
+
+        <TextView android:text="Địa chỉ:" style="@style/DetailLabel"/>
+        <TextView android:id="@+id/tv_detail_address" style="@style/DetailValue"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="THÔNG TIN THÀNH VIÊN"
+        android:textColor="@color/wine_dark_background"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_rounded_container"
+        android:backgroundTint="@color/wine_neutral_light"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp">
+
+        <TextView android:text="Hạng thành viên:" style="@style/DetailLabel"/>
+        <TextView android:id="@+id/tv_detail_tier" style="@style/DetailValue" android:textColor="@color/wine_accent_gold"/>
+
+        <View style="@style/DetailDivider"/>
+
+        <TextView android:text="Điểm tích lũy:" style="@style/DetailLabel"/>
+        <TextView android:id="@+id/tv_detail_points" style="@style/DetailValue" android:textColor="@color/wine_primary"/>
+
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_close_dialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Đóng"
+        android:layout_gravity="end"
+        style="@style/Widget.Material3.Button.TextButton" />
+
+</LinearLayout>

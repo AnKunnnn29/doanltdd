@@ -8,6 +8,9 @@ data class LoginResponse(
     
     @SerializedName("username")
     var username: String? = null,
+
+    @SerializedName("email")
+    var email: String? = null,
     
     @SerializedName("fullName")
     var fullName: String? = null,
@@ -20,7 +23,7 @@ data class LoginResponse(
     
     @SerializedName("memberTier")
     var memberTier: String? = null,
-    
+
     @SerializedName("token")
     var token: String? = null
 ) {

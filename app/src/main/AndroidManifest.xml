@@ -2,14 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
-    
-    <!-- Permission for Notifications -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" /> <!-- Permission for Notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -21,97 +25,76 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DoAn"
         android:usesCleartextTraffic="true">
-
-        <!-- Start Activity as Launcher -->
+        <activity
+            android:name=".Activities.ResetPasswordActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".Activities.ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.ChangePasswordActivity"
+            android:exported="false" />
         <activity
             android:name=".Activities.StartActivity"
             android:exported="true"
             android:theme="@style/Theme.DoAn">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Splash Screen -->
+        </activity> <!-- Splash Screen -->
         <activity
             android:name=".Activities.SplashActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-
-        <!-- Main Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Main Activity -->
         <activity
             android:name=".Activities.MainActivity"
-            android:exported="false" />
-
-        <!-- Welcome Activity -->
+            android:exported="false" /> <!-- Welcome Activity -->
         <activity
             android:name=".Activities.WelcomeActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-
-        <!-- Login Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Login Activity -->
         <activity
             android:name=".Activities.LoginActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-
-        <!-- Register Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Register Activity -->
         <activity
             android:name=".Activities.RegisterActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-
-        <!-- OTP Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- OTP Activity -->
         <activity
             android:name=".Activities.OtpActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-
-        <!-- Product Detail Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Product Detail Activity -->
         <activity
             android:name=".Activities.ProductDetailActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-            
-        <!-- Cart Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Cart Activity -->
         <activity
             android:name=".Activities.CartActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-
-        <!-- Other Activities -->
+            android:theme="@style/Theme.DoAn" /> <!-- Other Activities -->
         <activity android:name=".Activities.AddProductActivity" />
         <activity android:name=".Activities.AccountActivity" />
         <activity android:name=".Activities.SettingsActivity" />
-        <activity android:name=".Activities.UserProfileActivity" />
-        
-        <!-- Manager Activity -->
+        <activity android:name=".Activities.UserProfileActivity" /> <!-- Manager Activity -->
         <activity
             android:name=".Activities.ManagerActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-        
-        <!-- Category Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Category Activity -->
         <activity
             android:name=".Activities.CategoryActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-        
-        <!-- Add/Edit Drink Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Add/Edit Drink Activity -->
         <activity
             android:name=".Activities.AddEditDrinkActivity"
             android:exported="false"
-            android:theme="@style/Theme.DoAn" />
-        
-        <!-- Add/Edit Category Activity -->
+            android:theme="@style/Theme.DoAn" /> <!-- Add/Edit Category Activity -->
         <activity
             android:name=".Activities.AddEditCategoryActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
-        
-        <!-- Removed Firebase Messaging Service -->
-
     </application>
 
 </manifest>

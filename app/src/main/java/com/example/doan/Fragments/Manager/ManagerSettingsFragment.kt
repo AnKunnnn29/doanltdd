@@ -55,7 +55,7 @@ class ManagerSettingsFragment : Fragment() {
 
     private fun loadManagerInfo() {
         val fullName = sessionManager.getFullName()
-        val phone = sessionManager.getPhone()
+        val phone = sessionManager.getPhoneNumber()
         val role = sessionManager.getRole()
 
         tvManagerName.text = fullName ?: "Manager"
