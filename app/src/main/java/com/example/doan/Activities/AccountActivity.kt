@@ -43,6 +43,7 @@ class AccountActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         profileEmail.text = sessionManager.getEmail()
 
         findViewById<RelativeLayout>(R.id.user_detail_option).setOnClickListener {
+            Log.d("AccountActivity", "User detail option clicked")
             fetchAndShowUserDetails()
         }
 
@@ -55,6 +56,7 @@ class AccountActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         }
 
         findViewById<RelativeLayout>(R.id.settings_option).setOnClickListener {
+            Log.d("AccountActivity", "SETTING user details")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
@@ -75,6 +77,7 @@ class AccountActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
 
     private fun fetchAndShowUserDetails() {
         // You can show a loading indicator here
+        Log.d("AccountActivity", "Fetching user details")
         val call = apiService.getMyProfile()
         call.enqueue(object : Callback<ApiResponse<UserProfileDto>> {
             override fun onResponse(
@@ -163,7 +166,7 @@ class AccountActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         val profileEmail = findViewById<TextView>(R.id.profile_email)
         profileName.text = sessionManager.getFullName()
         profileEmail.text = sessionManager.getEmail()
-        
+
         bottomNavigationView.selectedItemId = R.id.nav_account
     }
 }

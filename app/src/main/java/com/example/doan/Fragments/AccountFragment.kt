@@ -1,106 +1,156 @@
 package com.example.doan.Fragments
 
-import android.content.Context
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.example.doan.Activities.AccountActivity
-import com.example.doan.Activities.LoginActivity
-import com.example.doan.Activities.UserProfileActivity
-import com.example.doan.Activities.SettingsActivity
+import com.example.doan.Activities.*
+import com.example.doan.Models.ApiResponse
+import com.example.doan.Models.UserProfileDto
+import com.example.doan.Network.ApiService
+import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class AccountFragment : Fragment() {
 
+    private lateinit var sessionManager: SessionManager
+    private lateinit var apiService: ApiService
+    private lateinit var profileNameText: TextView
+    private lateinit var profileEmailText: TextView
+    private lateinit var userDetailOption: RelativeLayout
     private lateinit var profileOption: RelativeLayout
+    private lateinit var changePasswordOption: RelativeLayout
     private lateinit var settingsOption: RelativeLayout
     private lateinit var logoutButton: MaterialButton
-    private lateinit var profileNameText: TextView
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        return try {
-            val view = inflater.inflate(R.layout.activity_account, container, false)
 
-            profileOption = view.findViewById(R.id.profile_option)
-            settingsOption = view.findViewById(R.id.settings_option)
-            logoutButton = view.findViewById(R.id.logout_button)
-            profileNameText = view.findViewById(R.id.profile_name)
+        val view = inflater.inflate(R.layout.activity_account, container, false)
 
-            profileOption.setOnClickListener { handleProfileClick() }
-            settingsOption.setOnClickListener { handleSettingsClick() }
-            logoutButton.setOnClickListener { handleLogoutClick() }
+        sessionManager = SessionManager(requireContext())
+        apiService = RetrofitClient.getInstance(requireContext()).apiService
 
-            view
-        } catch (e: Exception) {
-            android.util.Log.e("AccountFragment", "Error in onCreateView: ${e.message}")
-            e.printStackTrace()
-            Toast.makeText(context, "Lỗi tải trang tài khoản", Toast.LENGTH_SHORT).show()
-            inflater.inflate(R.layout.activity_account, container, false)
+        // Header info
+        profileNameText = view.findViewById(R.id.profile_name)
+        profileEmailText = view.findViewById(R.id.profile_email)
+
+        // Options
+        userDetailOption = view.findViewById(R.id.user_detail_option)
+        profileOption = view.findViewById(R.id.profile_option)
+        changePasswordOption = view.findViewById(R.id.change_password_option)
+        settingsOption = view.findViewById(R.id.settings_option)
+        logoutButton = view.findViewById(R.id.logout_button)
+
+        // Set Click Events
+        userDetailOption.setOnClickListener { fetchAndShowUserDetails() }
+        profileOption.setOnClickListener {
+            startActivity(Intent(requireContext(), UserProfileActivity::class.java))
         }
+        changePasswordOption.setOnClickListener {
+            startActivity(Intent(requireContext(), ChangePasswordActivity::class.java))
+        }
+        settingsOption.setOnClickListener {
+            startActivity(Intent(requireContext(), SettingsActivity::class.java))
+        }
+
+        logoutButton.setOnClickListener {
+            if (sessionManager.isLoggedIn()) {
+                performLogout()
+            } else {
+                startActivity(Intent(requireContext(), LoginActivity::class.java))
+            }
+        }
+
+        return view
     }
 
     override fun onResume() {
         super.onResume()
-        updateUI()
+
+        // Refresh header
+        profileNameText.text = sessionManager.getFullName()
+        profileEmailText.text = sessionManager.getEmail()
     }
 
-    private fun isUserLoggedIn(): Boolean {
-        val sessionManager = SessionManager(requireContext())
-        return sessionManager.isLoggedIn()
+    //          API CALL
+    private fun fetchAndShowUserDetails() {
+        Log.d("AccountFragment", "Fetching user details")
+
+        apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
+            override fun onResponse(
+                call: Call<ApiResponse<UserProfileDto>>,
+                response: Response<ApiResponse<UserProfileDto>>
+            ) {
+                if (response.isSuccessful && response.body()?.data != null) {
+                    val profile = response.body()!!.data
+                    showUserDetailDialog(profile!!)
+
+                    // cập nhật session với data mới
+                    sessionManager.saveLoginSession(
+                        userId = profile.id?.toInt() ?: -1,
+                        username = profile.username,
+                        email = profile.email,
+                        fullName = profile.fullName,
+                        phone = profile.phone,
+                        role = sessionManager.getRole(),
+                        memberTier = profile.memberTier,
+                        token = sessionManager.getToken()
+                    )
+
+                } else {
+                    Toast.makeText(requireContext(), "Lấy thông tin thất bại", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
+                Toast.makeText(requireContext(), "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
-    private fun updateUI() {
-        if (isUserLoggedIn()) {
-            val sessionManager = SessionManager(requireContext())
-            val userName = sessionManager.getUsername()
+    //        DIALOG DETAIL
+    private fun showUserDetailDialog(user: UserProfileDto) {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_user_profile_detail)
 
-            profileNameText.text = "Xin chào, $userName"
-            logoutButton.text = "Đăng xuất"
-        } else {
-            profileNameText.text = "Đăng nhập / Đăng ký"
-            logoutButton.text = "Đăng nhập"
+        dialog.findViewById<TextView>(R.id.tv_detail_full_name).text = user.fullName ?: "N/A"
+        dialog.findViewById<TextView>(R.id.tv_detail_username).text = "@${user.username ?: "N/A"}"
+        dialog.findViewById<TextView>(R.id.tv_detail_email).text = user.email ?: "N/A"
+        dialog.findViewById<TextView>(R.id.tv_detail_phone).text = user.phone ?: "N/A"
+        dialog.findViewById<TextView>(R.id.tv_detail_address).text = user.address ?: "N/A"
+        dialog.findViewById<TextView>(R.id.tv_detail_tier).text = user.memberTier ?: "N/A"
+        dialog.findViewById<TextView>(R.id.tv_detail_points).text = "${user.points ?: 0} điểm"
+
+        dialog.findViewById<Button>(R.id.btn_close_dialog).setOnClickListener {
+            dialog.dismiss()
         }
+
+        dialog.show()
     }
 
-    private fun handleProfileClick() {
-        if (isUserLoggedIn()) {
-             // When clicking "Profile" inside the Account fragment (which uses activity_account.xml layout)
-             // we navigate to UserProfileActivity to edit/view detailed profile.
-             startActivity(Intent(context, UserProfileActivity::class.java))
-        } else {
-            startActivity(Intent(context, LoginActivity::class.java))
-        }
-    }
-
-    private fun handleSettingsClick() {
-        startActivity(Intent(context, SettingsActivity::class.java))
-    }
-
-    private fun handleLogoutClick() {
-        if (isUserLoggedIn()) {
-            performLogout()
-        } else {
-            startActivity(Intent(context, LoginActivity::class.java))
-        }
-    }
-
+    //            LOGOUT
     private fun performLogout() {
-        val sessionManager = SessionManager(requireContext())
         sessionManager.logout()
 
-        Toast.makeText(context, "Đã đăng xuất thành công!", Toast.LENGTH_LONG).show()
-        updateUI()
+        val intent = Intent(requireContext(), LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+        startActivity(intent)
+        requireActivity().finish()
     }
 }
