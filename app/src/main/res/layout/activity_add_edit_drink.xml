@@ -153,8 +153,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:hint="URL ảnh (tùy chọn)"
-        android:visibility="gone"
+        android:hint="URL ảnh"
+        app:hintTextColor="@color/wine_primary"
+        app:boxStrokeColor="@color/wine_primary"
+        app:startIconDrawable="@android:drawable/ic_menu_gallery"
+        app:startIconTint="@color/wine_neutral_dark"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -162,6 +169,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textUri"
+            android:textColor="@color/wine_dark_background"
             android:maxLines="1" />
 
     </com.google.android.material.textfield.TextInputLayout>
