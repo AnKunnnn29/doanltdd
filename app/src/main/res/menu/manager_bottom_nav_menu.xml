@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_manager_dashboard"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="Dashboard" />
+    
+    <item
+        android:id="@+id/nav_manager_drinks"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="Món nước" />
+    
+    <item
+        android:id="@+id/nav_manager_orders"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Đơn hàng" />
+    
+    <item
+        android:id="@+id/nav_manager_categories"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Danh mục" />
+    
+    <item
+        android:id="@+id/nav_manager_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="Cài đặt" />
+</menu>
