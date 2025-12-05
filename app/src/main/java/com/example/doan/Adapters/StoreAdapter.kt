@@ -12,7 +12,8 @@ import com.google.android.material.chip.Chip
 
 class StoreAdapter(
     private val context: Context,
-    private var stores: List<Store>
+    private var stores: List<Store>,
+    private val onStoreClick: (Store) -> Unit // Click listener
 ) : RecyclerView.Adapter<StoreAdapter.StoreViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StoreViewHolder {
@@ -40,7 +41,7 @@ class StoreAdapter(
         private val chipStoreStatus: Chip = itemView.findViewById(R.id.chip_store_status)
 
         fun bind(store: Store) {
-            tvStoreName.text = store.name
+            tvStoreName.text = store.storeName
             tvStoreAddress.text = store.address
             tvStorePhone.text = store.phone ?: "N/A"
             
@@ -50,6 +51,10 @@ class StoreAdapter(
             // Status
             chipStoreStatus.text = "Hoạt động"
             chipStoreStatus.setChipBackgroundColorResource(R.color.success)
+            
+            itemView.setOnClickListener {
+                onStoreClick(store)
+            }
         }
     }
 }

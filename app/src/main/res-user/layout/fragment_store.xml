@@ -32,59 +32,115 @@
             app:cardCornerRadius="24dp"
             app:cardElevation="4dp">
 
-            <LinearLayout
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search_location"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="8dp"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="8dp"
-                    android:src="@android:drawable/ic_menu_search"
-                    app:tint="@color/wine_neutral_dark" />
-
-                <EditText
-                    android:id="@+id/et_search_address"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:hint="Nhập địa chỉ của bạn..."
-                    android:padding="8dp"
-                    android:maxLines="1"
-                    android:inputType="textPostalAddress" />
+                app:queryHint="Tìm kiếm địa điểm..."
+                app:iconifiedByDefault="false"
+                android:background="@android:color/transparent"/>
                     
-                <ImageView
-                    android:id="@+id/btn_search_address"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:padding="6dp"
-                    android:src="@android:drawable/ic_menu_send"
-                    app:tint="@color/wine_primary"
-                    android:background="?attr/selectableItemBackgroundBorderless"/>
-            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Map Container -->
-        <androidx.cardview.widget.CardView
+        <!-- Scrollable Content: List + Map -->
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp">
-            
-            <fragment
-                android:id="@+id/map"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:fillViewport="true">
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-                
-        </androidx.cardview.widget.CardView>
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- List of Branches -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Danh sách chi nhánh"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/wine_dark_background"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_branches"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="visible" />
+
+                <!-- Map Container -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bản đồ"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/wine_dark_background"/>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="400dp"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="24dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+                    
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <fragment
+                            android:id="@+id/map"
+                            android:name="com.google.android.gms.maps.SupportMapFragment"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                        <!-- Zoom Buttons -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="12dp">
+
+                            <ImageButton
+                                android:id="@+id/btn_zoom_in"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginBottom="8dp"
+                                android:background="@drawable/bg_circle_white"
+                                android:src="@drawable/ic_add"
+                                android:elevation="4dp"
+                                app:tint="@color/wine_primary"
+                                android:contentDescription="Zoom In" />
+
+                            <ImageButton
+                                android:id="@+id/btn_zoom_out"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/bg_circle_white"
+                                android:src="@drawable/ic_remove"
+                                android:elevation="4dp"
+                                app:tint="@color/wine_primary"
+                                android:contentDescription="Zoom Out" />
+                        </LinearLayout>
+
+                    </RelativeLayout>
+                        
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
         <!-- Selected Branch Info (Hidden by default) -->
         <com.google.android.material.card.MaterialCardView

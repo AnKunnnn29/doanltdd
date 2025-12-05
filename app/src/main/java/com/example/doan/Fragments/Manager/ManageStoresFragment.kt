@@ -33,7 +33,10 @@ class ManageStoresFragment : Fragment() {
         rvStores = view.findViewById(R.id.rv_stores)
         rvStores.layoutManager = LinearLayoutManager(context)
 
-        adapter = StoreAdapter(requireContext(), storeList)
+        adapter = StoreAdapter(
+            requireContext(), storeList,
+            onStoreClick = TODO()
+        )
         rvStores.adapter = adapter
 
         loadStores()

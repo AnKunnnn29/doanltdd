@@ -6,8 +6,8 @@ data class RegisterRequest(
     @SerializedName("username")
     var username: String,
     
-    @SerializedName("phone")
-    var phone: String,
+    @SerializedName("email")
+    var email: String,
     
     @SerializedName("password")
     var password: String,
@@ -16,5 +16,10 @@ data class RegisterRequest(
     var fullName: String,
     
     @SerializedName("address")
-    var address: String? = null
+    var address: String? = null,
+
+    @SerializedName("phone")
+    var phone: String? = null
+
+
 )

@@ -2,18 +2,24 @@ package com.example.doan.Fragments
 
 import android.content.Context
 import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.*
-import androidx.cardview.widget.CardView
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.doan.Adapters.StoreAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Branch
+import com.example.doan.Models.DistanceMatrixResponse
+import com.example.doan.Models.Store
 import com.example.doan.Network.RetrofitClient
+import com.example.doan.Network.RetrofitClientMaps
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -23,8 +29,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.Places
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import retrofit2.Call
@@ -32,27 +38,36 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
 import java.util.Locale
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 class StoreFragment : Fragment(), OnMapReadyCallback {
 
-    private lateinit var etSearchAddress: EditText
-    private lateinit var btnSearchAddress: ImageView
+    private lateinit var searchView: SearchView
+    private lateinit var recyclerBranches: RecyclerView
     private lateinit var cardBranchInfo: MaterialCardView
     private lateinit var tvBranchName: TextView
     private lateinit var tvBranchAddress: TextView
     private lateinit var tvDistance: TextView
     private lateinit var btnSetDefaultBranch: MaterialButton
     private lateinit var progressBar: ProgressBar
+    
+    // Zoom controls
+    private lateinit var btnZoomIn: ImageButton
+    private lateinit var btnZoomOut: ImageButton
+    
+    private lateinit var storeAdapter: StoreAdapter
 
     private var map: GoogleMap? = null
     private var userLocation: LatLng? = null
     private var branches: List<Branch> = emptyList()
+    private var stores: List<Store> = emptyList()
     private var selectedBranch: Branch? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (!Places.isInitialized()) {
+            Places.initialize(requireContext(), getString(R.string.google_maps_key))
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,6 +80,7 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             initViews(view)
             setupMap()
             setupListeners()
+            setupRecyclerView()
             
             view
         } catch (e: Exception) {
@@ -76,14 +92,31 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun initViews(view: View) {
-        etSearchAddress = view.findViewById(R.id.et_search_address)
-        btnSearchAddress = view.findViewById(R.id.btn_search_address)
+        searchView = view.findViewById(R.id.search_location)
+        recyclerBranches = view.findViewById(R.id.recycler_branches)
         cardBranchInfo = view.findViewById(R.id.card_branch_info)
         tvBranchName = view.findViewById(R.id.tv_branch_name)
         tvBranchAddress = view.findViewById(R.id.tv_branch_address)
         tvDistance = view.findViewById(R.id.tv_distance)
         btnSetDefaultBranch = view.findViewById(R.id.btn_set_default_branch)
         progressBar = view.findViewById(R.id.progress_bar)
+        
+        // Init zoom buttons
+        btnZoomIn = view.findViewById(R.id.btn_zoom_in)
+        btnZoomOut = view.findViewById(R.id.btn_zoom_out)
+    }
+    
+    private fun setupRecyclerView() {
+        recyclerBranches.layoutManager = LinearLayoutManager(context)
+        // Pass click listener to adapter
+        storeAdapter = StoreAdapter(requireContext(), stores) { clickedStore ->
+            // Find the branch corresponding to the clicked store
+            val clickedBranch = branches.find { it.id == clickedStore.id }
+            if (clickedBranch != null) {
+                onBranchListClick(clickedBranch)
+            }
+        }
+        recyclerBranches.adapter = storeAdapter
     }
 
     private fun setupMap() {
@@ -92,50 +125,52 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setupListeners() {
-        btnSearchAddress.setOnClickListener {
-            val address = etSearchAddress.text.toString().trim()
-            if (address.isNotEmpty()) {
-                searchAddress(address)
-            }
-        }
-
-        etSearchAddress.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                val address = etSearchAddress.text.toString().trim()
-                if (address.isNotEmpty()) {
-                    searchAddress(address)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (!query.isNullOrEmpty()) {
+                    searchAddress(query)
+                    searchView.clearFocus()
                 }
-                true
-            } else {
-                false
+                return false
             }
-        }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+        })
 
         btnSetDefaultBranch.setOnClickListener {
             selectedBranch?.let { branch ->
                 saveDefaultBranch(branch)
                 Toast.makeText(context, "Đã chọn ${branch.branchName} làm chi nhánh mặc định", Toast.LENGTH_SHORT).show()
-                
-                // Optional: Navigate to Order or Home screen
-                // requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation).selectedItemId = R.id.nav_order
             }
+        }
+        
+        // Map Zoom Listeners
+        btnZoomIn.setOnClickListener {
+            map?.animateCamera(CameraUpdateFactory.zoomIn())
+        }
+        
+        btnZoomOut.setOnClickListener {
+            map?.animateCamera(CameraUpdateFactory.zoomOut())
         }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         
-        // Move camera to a default location (e.g., Ho Chi Minh City)
+        // Disable default zoom controls since we added custom ones
+        map?.uiSettings?.isZoomControlsEnabled = false
+        
         val hcmc = LatLng(10.7769, 106.7009)
         map?.moveCamera(CameraUpdateFactory.newLatLngZoom(hcmc, 12f))
 
-        // Setup marker click listener
         map?.setOnMarkerClickListener { marker ->
             val tag = marker.tag
             if (tag is Branch) {
                 onBranchMarkerClick(tag)
             }
-            false // Allow default behavior (center map on marker)
+            false
         }
         
         map?.setOnMapClickListener {
@@ -148,19 +183,14 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
 
     private fun loadBranches() {
         progressBar.visibility = View.VISIBLE
-        // Use getStores() instead of getBranches() since backend doesn't have branches endpoint
-        RetrofitClient.getInstance(requireContext()).apiService.getStores().enqueue(object : Callback<ApiResponse<List<com.example.doan.Models.Store>>> {
-            override fun onResponse(call: Call<ApiResponse<List<com.example.doan.Models.Store>>>, response: Response<ApiResponse<List<com.example.doan.Models.Store>>>) {
+        RetrofitClient.getInstance(requireContext()).apiService.getStores().enqueue(object : Callback<ApiResponse<List<Store>>> {
+            override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
                 progressBar.visibility = View.GONE
                 if (response.isSuccessful && response.body()?.success == true) {
-                    val stores = response.body()?.data ?: emptyList()
+                    stores = response.body()?.data ?: emptyList()
                     
-                    Log.d(TAG, "Loaded ${stores.size} stores from API")
-                    stores.forEachIndexed { index, store ->
-                        Log.d(TAG, "Store $index: ${store.storeName} at ${store.address}")
-                    }
+                    storeAdapter.updateStores(stores)
                     
-                    // Convert Store to Branch for compatibility
                     branches = stores.map { store ->
                         Branch(
                             id = store.id,
@@ -168,7 +198,7 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                             address = store.address
                         )
                     }
-                    DataCache.branches = branches // Cache for other screens
+                    DataCache.branches = branches
                     
                     if (branches.isEmpty()) {
                         Toast.makeText(context, "Không có cửa hàng nào", Toast.LENGTH_SHORT).show()
@@ -181,7 +211,7 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                 }
             }
 
-            override fun onFailure(call: Call<ApiResponse<List<com.example.doan.Models.Store>>>, t: Throwable) {
+            override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
                 progressBar.visibility = View.GONE
                 Log.e(TAG, "Error fetching stores", t)
                 Toast.makeText(context, "Lỗi kết nối server: ${t.message}", Toast.LENGTH_SHORT).show()
@@ -191,8 +221,8 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
 
     private fun displayBranchesOnMap() {
         map?.let { googleMap ->
-            // Keep user marker if exists
             googleMap.clear()
+            
             userLocation?.let {
                 googleMap.addMarker(
                     MarkerOptions()
@@ -206,8 +236,6 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             var hasBranches = false
 
             for (branch in branches) {
-                // Branch is converted from Store which has latitude/longitude
-                // Try to get coordinates from geocoding the address
                 val branchLocation = getLatLngFromAddress(branch.address ?: "")
                 
                 if (branchLocation != null) {
@@ -221,25 +249,22 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                     marker?.tag = branch
                     boundsBuilder.include(branchLocation)
                     hasBranches = true
-                    
-                    Log.d(TAG, "Added marker for ${branch.branchName} at $branchLocation")
-                } else {
-                    Log.w(TAG, "Could not geocode address for ${branch.branchName}: ${branch.address}")
                 }
             }
             
             if (hasBranches) {
                 try {
+                    userLocation?.let { boundsBuilder.include(it) }
                     val bounds = boundsBuilder.build()
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
                 } catch (e: Exception) {
                     Log.e(TAG, "Error animating camera: ${e.message}")
                 }
+            } else if (userLocation != null) {
+                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation!!, 15f))
             } else {
-                // No branches could be geocoded, show default location (HCMC)
                 val hcmc = LatLng(10.7769, 106.7009)
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(hcmc, 12f))
-                Toast.makeText(context, "Không thể hiển thị vị trí cửa hàng trên bản đồ", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -253,20 +278,7 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                 if (location != null) {
                     userLocation = location
                     map?.let { googleMap ->
-                        // Clear previous markers but re-add branch markers
-                        displayBranchesOnMap() 
-                        
-                        // Add/Update user marker
-                        googleMap.addMarker(
-                            MarkerOptions()
-                                .position(location)
-                                .title("Vị trí của bạn: $address")
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                        )?.showInfoWindow()
-
-                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 14f))
-                        
-                        // Auto-calculate distances
+                        displayBranchesOnMap()
                         recalculateDistances()
                     }
                 } else {
@@ -290,47 +302,84 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         return null
     }
 
+    private fun onBranchListClick(branch: Branch) {
+        // Center map on branch
+        val branchLocation = getLatLngFromAddress(branch.address ?: "")
+        if (branchLocation != null) {
+            map?.animateCamera(CameraUpdateFactory.newLatLngZoom(branchLocation, 16f))
+            // Show info
+            onBranchMarkerClick(branch)
+        } else {
+            Toast.makeText(context, "Không xác định được vị trí cửa hàng này", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun onBranchMarkerClick(branch: Branch) {
         selectedBranch = branch
         tvBranchName.text = branch.branchName
         tvBranchAddress.text = branch.address
         
         if (userLocation != null) {
-            // Calculate distance
-            // We need branch location again. In real app, store it in Branch object.
             val branchLoc = getLatLngFromAddress(branch.address ?: "")
             if (branchLoc != null) {
-                val distance = calculateDistance(userLocation!!, branchLoc)
-                tvBranchAddress.text = "${branch.address}\n(Cách bạn khoảng ${String.format("%.1f", distance)} km)"
-                tvDistance.text = "Cách bạn: ${String.format("%.1f", distance)} km"
-                tvDistance.visibility = View.VISIBLE
+                // Call Google Matrix API
+                calculateDistanceWithMatrixApi(userLocation!!, branchLoc)
             } else {
                  tvDistance.visibility = View.GONE
             }
         } else {
             tvDistance.text = "Nhập địa chỉ để xem khoảng cách"
-             tvDistance.visibility = View.VISIBLE
+            tvDistance.visibility = View.VISIBLE
         }
         
         cardBranchInfo.visibility = View.VISIBLE
     }
     
     private fun recalculateDistances() {
-        // Update UI if a branch is already selected
         selectedBranch?.let { branch ->
             onBranchMarkerClick(branch)
         }
     }
 
-    private fun calculateDistance(start: LatLng, end: LatLng): Double {
-        val earthRadius = 6371.0 // km
-        val dLat = Math.toRadians(end.latitude - start.latitude)
-        val dLon = Math.toRadians(end.longitude - start.longitude)
-        val a = sin(dLat / 2).pow(2.0) +
-                cos(Math.toRadians(start.latitude)) * cos(Math.toRadians(end.latitude)) *
-                sin(dLon / 2).pow(2.0)
-        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        return earthRadius * c
+    private fun calculateDistanceWithMatrixApi(origin: LatLng, dest: LatLng) {
+        val originStr = "${origin.latitude},${origin.longitude}"
+        val destStr = "${dest.latitude},${dest.longitude}"
+        val key = getString(R.string.google_maps_key)
+
+        RetrofitClientMaps.instance.getDistance(originStr, destStr, key)
+            .enqueue(object : Callback<DistanceMatrixResponse> {
+                override fun onResponse(
+                    call: Call<DistanceMatrixResponse>,
+                    response: Response<DistanceMatrixResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val body = response.body()
+                        if (body?.status == "OK" && body.rows.isNotEmpty()) {
+                            val element = body.rows[0].elements.getOrNull(0)
+                            if (element?.status == "OK") {
+                                val distanceText = element.distance.text
+                                val durationText = element.duration.text
+                                
+                                tvDistance.text = "Khoảng cách: $distanceText ($durationText)"
+                                tvDistance.visibility = View.VISIBLE
+                                
+                                // Update address text with more info
+                                tvBranchAddress.text = "${selectedBranch?.address}\n(Cách bạn $distanceText - Đi khoảng $durationText)"
+                            } else {
+                                tvDistance.text = "Không thể tính khoảng cách"
+                            }
+                        }
+                    } else {
+                        Log.e(TAG, "Matrix API Error: ${response.code()}")
+                        tvDistance.text = "Lỗi tính khoảng cách"
+                    }
+                }
+
+                override fun onFailure(call: Call<DistanceMatrixResponse>, t: Throwable) {
+                    Log.e(TAG, "Matrix API Failure", t)
+                    tvDistance.text = "Lỗi kết nối"
+                }
+            })
     }
 
     private fun saveDefaultBranch(branch: Branch) {
@@ -340,8 +389,6 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             putString("DEFAULT_BRANCH_NAME", branch.branchName)
             apply()
         }
-        
-        // Also update session or global state if needed
     }
 
     companion object {

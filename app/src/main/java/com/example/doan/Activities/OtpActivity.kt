@@ -31,6 +31,8 @@ class OtpActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_otp)
+        Log.d(TAG, "onCreate called")
+
 
         otpInput = findViewById(R.id.input_otp)
         verifyButton = findViewById(R.id.btn_verify_otp)
@@ -66,7 +68,7 @@ class OtpActivity : AppCompatActivity() {
 
     private fun requestRegistrationAndOtp() {
         Toast.makeText(this, "Đang gửi yêu cầu đăng ký...", Toast.LENGTH_SHORT).show()
-        val registerRequest = RegisterRequest(username, email, password, username, "")
+        val registerRequest = RegisterRequest(username, email, password, username, "","")
 
         RetrofitClient.getInstance(this).apiService.registerWithOtp(registerRequest)
             .enqueue(object : Callback<ApiResponse<String>> {

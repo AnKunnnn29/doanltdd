@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     app:startIconDrawable="@android:drawable/ic_dialog_email"
-                    android:hint="Số điện thoại / Email">
+                    android:hint="Email">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/input_reg_email"

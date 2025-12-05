@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -10,10 +12,6 @@
     
     <!-- Permission for Notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    
-    <!-- Permissions for Location -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:name=".UTETeaApplication"
@@ -26,11 +24,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DoAn"
         android:usesCleartextTraffic="true">
-        
+
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY_HERE" />
+            android:value="@string/google_maps_key" />
+
+        <activity
+            android:name=".Activities.ResetPasswordActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".Activities.ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.ChangePasswordActivity"
+            android:exported="false" />
+
 
         <!-- Start Activity as Launcher -->
         <activity
@@ -81,6 +90,12 @@
         <!-- Product Detail Activity -->
         <activity
             android:name=".Activities.ProductDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+            
+        <!-- Product Detail New Activity -->
+        <activity
+            android:name=".Activities.ProductDetailNewActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
             

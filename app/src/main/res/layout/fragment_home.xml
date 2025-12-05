@@ -18,14 +18,32 @@
         android:paddingTop="32dp">
 
         <!-- SEARCH BAR -->
-        <androidx.appcompat.widget.SearchView
-            android:id="@+id/search_view"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/search_background"
-            app:iconifiedByDefault="false"
-            app:queryHint="Tìm kiếm đồ uống..." />
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+            
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/search_background"
+                app:iconifiedByDefault="false"
+                app:queryHint="Tìm kiếm đồ uống..." />
+
+            <!-- Search Suggestions Recycler (Initially Hidden) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_search_suggestions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@color/white"
+                android:elevation="4dp"
+                android:visibility="gone"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
+        </LinearLayout>
 
         <!-- Banner Slider -->
         <RelativeLayout
@@ -66,16 +84,52 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         
 
-        <TextView
-            android:id="@+id/section_title"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Thực đơn/Sản phẩm"
-            android:textColor="@color/wine_dark_background"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"
-            tools:ignore="HardcodedText" />
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/section_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thực đơn/Sản phẩm"
+                android:textColor="@color/wine_dark_background"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_centerVertical="true"
+                tools:ignore="HardcodedText" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                
+                <ImageView
+                    android:id="@+id/btn_filter_price"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_sort"
+                    android:padding="4dp"
+                    app:tint="@color/wine_primary"
+                    android:contentDescription="Lọc theo giá"
+                    android:layout_marginEnd="8dp"/>
+
+                <ImageView
+                    android:id="@+id/btn_clear_filter"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:padding="4dp"
+                    app:tint="@color/wine_neutral_dark"
+                    android:contentDescription="Xóa lọc"
+                    android:visibility="gone"/>
+                    
+            </LinearLayout>
+
+        </RelativeLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/product_recycler_view"

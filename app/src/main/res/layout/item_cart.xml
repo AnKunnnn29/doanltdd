@@ -1,137 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/wine_light_surface">
+    app:cardElevation="4dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="12dp"
+        android:gravity="center_vertical">
 
-        <com.google.android.material.card.MaterialCardView
+        <CheckBox
+            android:id="@+id/cb_select_item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"/>
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/iv_cart_item_image"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/wine_neutral_light">
-            <ImageView
-                android:id="@+id/img_product"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_image_placeholder"
-                android:contentDescription="Product Image" />
-        </com.google.android.material.card.MaterialCardView>
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+            tools:src="@drawable/ic_image_placeholder" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
-            android:layout_gravity="center_vertical">
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_product_name"
+                android:id="@+id/tv_cart_item_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tên món"
-                android:textStyle="bold"
-                android:textSize="17sp"
-                android:textColor="@color/wine_dark_background"
+                android:ellipsize="end"
                 android:maxLines="1"
-                android:ellipsize="end"/>
-
-            <TextView
-                android:id="@+id/tv_product_size"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Size: M"
-                android:textSize="14sp"
-                android:textColor="@color/wine_neutral_dark"
-                android:layout_marginTop="4dp"/>
-
-            <TextView
-                android:id="@+id/tv_product_price"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="50,000 VNĐ"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                tools:text="Trà sữa trân châu" />
+
+            <TextView
+                android:id="@+id/tv_cart_item_details"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="@color/wine_neutral_dark"
+                tools:text="Size: L, Thêm trân châu" />
+
+            <TextView
+                android:id="@+id/tv_cart_item_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
                 android:textColor="@color/wine_primary"
-                android:layout_marginTop="4dp"/>
+                android:textStyle="bold"
+                tools:text="55,000 VNĐ" />
+
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="end">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_remove"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="Xóa"
-                android:textColor="@color/error"
-                android:textSize="13sp"
-                android:padding="0dp"
-                android:minWidth="0dp"/>
-            <LinearLayout
+            <TextView
+                android:id="@+id/tv_cart_item_quantity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:paddingHorizontal="8dp"
+                android:text="x1"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textStyle="bold" />
+
+             <ImageButton
+                android:id="@+id/btn_delete_item"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/quantity_box_background">
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_minus"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:text="-"
-                    android:textSize="18sp"
-                    android:textColor="@color/wine_dark_background"
-                    android:padding="0dp"
-                    android:minWidth="0dp"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"/>
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Xóa sản phẩm"
+                android:src="@drawable/ic_delete"
+                app:tint="@color/design_default_color_error" />
 
-                <TextView
-                    android:id="@+id/tv_quantity"
-                    android:layout_width="32dp"
-                    android:layout_height="wrap_content"
-                    android:text="1"
-                    android:gravity="center"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/wine_dark_background"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_plus"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:text="+"
-                    android:textSize="18sp"
-                    android:textColor="@color/wine_dark_background"
-                    android:padding="0dp"
-                    android:minWidth="0dp"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"/>
-            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
+
 </com.google.android.material.card.MaterialCardView>

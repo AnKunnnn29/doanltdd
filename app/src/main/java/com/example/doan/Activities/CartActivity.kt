@@ -1,42 +1,44 @@
 package com.example.doan.Activities
 
-import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Adapters.CartAdapter
-import com.example.doan.Models.*
+import com.example.doan.Models.ApiResponse
+import com.example.doan.Models.Cart
+import com.example.doan.Models.CartItem
+import com.example.doan.Models.CreateOrderRequest
+import com.example.doan.Models.Order
+import com.example.doan.Models.Store
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
-import com.google.android.material.button.MaterialButton
+import com.example.doan.Utils.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
-class CartActivity : AppCompatActivity() {
+class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
-    private lateinit var recyclerCart: RecyclerView
-    private lateinit var tvTotalCartPrice: TextView
+    private lateinit var rvCartItems: RecyclerView
+    private lateinit var cartAdapter: CartAdapter
     private lateinit var tvEmptyCart: TextView
-    private lateinit var tvCountdown: TextView
-    private lateinit var btnCheckout: MaterialButton
-    private lateinit var btnBack: ImageView
-
-    private var currentCart: Cart? = null
-    private var cartAdapter: CartAdapter? = null
-    private var countdownHandler: Handler? = null
-    private var countdownRunnable: Runnable? = null
-    private var countdownTimeLeft = 300000L // 5 phút
+    private lateinit var tvTotalPrice: TextView
+    private lateinit var btnCheckout: Button
+    private lateinit var cbSelectAll: CheckBox
+    private lateinit var btnDeleteSelected: Button
+    private lateinit var spinnerBranch: Spinner
+    private lateinit var spinnerPaymentMethod: Spinner
+    
+    private var cartItems = mutableListOf<CartItem>()
+    private var stores = listOf<Store>()
+    private val paymentMethods = listOf("COD", "Momo", "ZaloPay", "Banking")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,261 +46,191 @@ class CartActivity : AppCompatActivity() {
 
         initViews()
         setupRecyclerView()
-        loadCartFromServer()
-        startCountdown()
+        setupListeners()
+        loadCart()
+        loadStores()
     }
 
     private fun initViews() {
-        recyclerCart = findViewById(R.id.recycler_cart)
-        tvTotalCartPrice = findViewById(R.id.tv_total_cart_price)
+        rvCartItems = findViewById(R.id.rv_cart_items)
         tvEmptyCart = findViewById(R.id.tv_empty_cart)
-        tvCountdown = findViewById(R.id.tv_countdown)
+        tvTotalPrice = findViewById(R.id.tv_total_price_cart)
         btnCheckout = findViewById(R.id.btn_checkout)
-        btnBack = findViewById(R.id.btn_back)
-
-        btnBack.setOnClickListener { finish() }
-        btnCheckout.setOnClickListener { handleCheckout() }
+        cbSelectAll = findViewById(R.id.cb_select_all)
+        btnDeleteSelected = findViewById(R.id.btn_delete_selected)
+        spinnerBranch = findViewById(R.id.spinner_branch_cart)
+        spinnerPaymentMethod = findViewById(R.id.spinner_payment_method)
+        
+        // Setup Payment Method Spinner
+        val paymentAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, paymentMethods)
+        spinnerPaymentMethod.adapter = paymentAdapter
+        
+        findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar_cart).setNavigationOnClickListener { finish() }
     }
 
     private fun setupRecyclerView() {
-        recyclerCart.layoutManager = LinearLayoutManager(this)
+        cartAdapter = CartAdapter(this, cartItems, this)
+        rvCartItems.layoutManager = LinearLayoutManager(this)
+        rvCartItems.adapter = cartAdapter
     }
 
-    private fun loadCartFromServer() {
-        val userId = getLoggedInUserId()
-        if (userId == -1) {
-            Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+    private fun setupListeners() {
+        cbSelectAll.setOnCheckedChangeListener { _, isChecked ->
+            cartAdapter.selectAll(isChecked)
         }
 
-        RetrofitClient.getInstance(this).apiService.getCart(userId.toLong())
-            .enqueue(object : Callback<ApiResponse<Cart>> {
-                override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        currentCart = response.body()?.data
-                        updateCartUI()
-                    } else {
-                        Toast.makeText(this@CartActivity, "Không thể tải giỏ hàng", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
-                    Log.e(TAG, "Error loading cart: ${t.message}")
-                    Toast.makeText(this@CartActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-
-    private fun updateCartUI() {
-        if (currentCart?.items.isNullOrEmpty()) {
-            tvEmptyCart.visibility = View.VISIBLE
-            recyclerCart.visibility = View.GONE
-            tvCountdown.visibility = View.GONE
-            btnCheckout.isEnabled = false
-            stopCountdown()
-        } else {
-            tvEmptyCart.visibility = View.GONE
-            recyclerCart.visibility = View.VISIBLE
-            tvCountdown.visibility = View.VISIBLE
-            btnCheckout.isEnabled = true
-            
-            tvTotalCartPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", currentCart?.totalAmount)
-            
-            cartAdapter = CartAdapter(this, currentCart?.items ?: emptyList(), object : CartAdapter.OnCartChangeListener {
-                override fun onCartChanged() {
-                    loadCartFromServer()
-                }
-            })
-            recyclerCart.adapter = cartAdapter
-        }
-    }
-
-    private fun startCountdown() {
-        countdownHandler = Handler(Looper.getMainLooper())
-        countdownRunnable = object : Runnable {
-            override fun run() {
-                if (countdownTimeLeft > 0) {
-                    countdownTimeLeft -= COUNTDOWN_INTERVAL
-                    updateCountdownDisplay()
-                    countdownHandler?.postDelayed(this, COUNTDOWN_INTERVAL)
-                } else {
-                    clearCartOnServer()
-                }
+        btnDeleteSelected.setOnClickListener {
+            val selectedItems = cartAdapter.getSelectedItems()
+            if (selectedItems.isNotEmpty()) {
+                showDeleteConfirmationDialog(selectedItems)
             }
         }
-        countdownHandler?.post(countdownRunnable!!)
+        
+        btnCheckout.setOnClickListener { 
+            val selectedItems = cartAdapter.getSelectedItems()
+            if (selectedItems.isEmpty()) {
+                Toast.makeText(this, "Vui lòng chọn sản phẩm để mua", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            val selectedStorePosition = spinnerBranch.selectedItemPosition
+            if (selectedStorePosition == Spinner.INVALID_POSITION || stores.isEmpty()) {
+                Toast.makeText(this, "Vui lòng chọn chi nhánh", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val selectedStore = stores[selectedStorePosition]
+            
+            val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
+
+            createOrder(selectedItems, selectedStore.id, selectedPaymentMethod)
+        }
     }
 
-    private fun stopCountdown() {
-        countdownHandler?.removeCallbacks(countdownRunnable!!)
-    }
-
-    private fun updateCountdownDisplay() {
-        val seconds = countdownTimeLeft / 1000
-        tvCountdown.text = String.format(Locale.getDefault(), "Giỏ hàng sẽ tự động xóa sau: %d giây", seconds)
-    }
-
-    private fun clearCartOnServer() {
-        val userId = getLoggedInUserId()
+    private fun loadCart() {
+        val userId = SessionManager(this).getUserId()
         if (userId == -1) return
 
-        RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong())
-            .enqueue(object : Callback<ApiResponse<Void>> {
+        RetrofitClient.getInstance(this).apiService.getCart(userId.toLong()).enqueue(object : Callback<ApiResponse<Cart>> {
+            override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val loadedItems = response.body()?.data?.items ?: emptyList()
+                    cartItems.clear()
+                    val itemsWithSelection = loadedItems.map { it.apply { isSelected = false } }
+                    cartItems.addAll(itemsWithSelection)
+                    cartAdapter.notifyDataSetChanged()
+                    updateUi()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
+                Log.e("CartActivity", "Error loading cart", t)
+            }
+        })
+    }
+    
+    private fun loadStores() {
+        RetrofitClient.getInstance(this).apiService.getStores().enqueue(object : Callback<ApiResponse<List<Store>>> {
+            override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    stores = response.body()?.data ?: emptyList()
+                    val storeNames = stores.map { it.storeName }
+                    val adapter = ArrayAdapter(this@CartActivity, android.R.layout.simple_spinner_dropdown_item, storeNames)
+                    spinnerBranch.adapter = adapter
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                Log.e("CartActivity", "Error loading stores", t)
+            }
+        })
+    }
+
+    private fun updateUi() {
+        if (cartItems.isEmpty()) {
+            tvEmptyCart.visibility = View.VISIBLE
+            rvCartItems.visibility = View.GONE
+        } else {
+            tvEmptyCart.visibility = View.GONE
+            rvCartItems.visibility = View.VISIBLE
+        }
+        calculateTotalPrice()
+    }
+
+    private fun calculateTotalPrice() {
+        val selectedItems = cartAdapter.getSelectedItems()
+        val total = selectedItems.sumOf { 
+            (it.unitPrice ?: 0.0) * (it.quantity ?: 1)
+        }
+        tvTotalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
+    }
+
+    override fun onItemSelectedChanged() {
+        calculateTotalPrice()
+    }
+
+    override fun onItemDeleted(item: CartItem) {
+        val userId = SessionManager(this).getUserId()
+        if (userId == -1) return
+
+        item.id?.let {
+            RetrofitClient.getInstance(this).apiService.removeCartItem(it, userId.toLong()).enqueue(object : Callback<ApiResponse<Void>> {
                 override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
-                    Toast.makeText(this@CartActivity, "Giỏ hàng đã bị xóa do hết thời gian", Toast.LENGTH_LONG).show()
-                    finish()
+                    if (response.isSuccessful) {
+                        loadCart()
+                    }
                 }
-
-                override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
-                    Log.e(TAG, "Error clearing cart: ${t.message}")
-                }
+                override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {}
             })
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopCountdown()
-    }
-
-    private fun handleCheckout() {
-        if (currentCart?.items.isNullOrEmpty()) {
-            Toast.makeText(this, "Giỏ hàng trống", Toast.LENGTH_SHORT).show()
-            return
         }
-
-        val userId = getLoggedInUserId()
-        if (userId == -1) {
-            Toast.makeText(this, "Vui lòng đăng nhập để thanh toán", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        showPaymentMethodDialog()
     }
-
-    private fun showPaymentMethodDialog() {
-        // TODO: Thêm bước chọn cửa hàng trước khi chọn phương thức thanh toán
-        // Hiện tại đang hardcode storeId = 1 trong processOrder()
-        
-        val paymentMethods = arrayOf("💵 Thanh toán khi nhận hàng (COD)", "💳 Thanh toán VNPay")
-        
+    
+    private fun showDeleteConfirmationDialog(itemsToDelete: List<CartItem>){
         AlertDialog.Builder(this)
-            .setTitle("Chọn phương thức thanh toán")
-            .setItems(paymentMethods) { _, which ->
-                val paymentMethod = if (which == 0) "COD" else "VNPAY"
-                processOrder(paymentMethod)
+            .setTitle("Xác nhận xóa")
+            .setMessage("Bạn có chắc muốn xóa ${itemsToDelete.size} mục đã chọn?")
+            .setPositiveButton("Xóa") { _, _ ->
+                cartAdapter.deleteSelectedItems()
             }
             .setNegativeButton("Hủy", null)
             .show()
     }
-
-    private fun processOrder(paymentMethod: String) {
-        stopCountdown()
-
-        val userId = getLoggedInUserId()
-        if (userId == -1 || currentCart?.items.isNullOrEmpty()) {
-            Toast.makeText(this, "Giỏ hàng trống hoặc chưa đăng nhập", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // Validate cart items
-        val invalidItems = currentCart?.items?.filter { 
-            it.drinkId == null || it.drinkId == 0L || it.quantity == null || it.quantity!! <= 0 
-        }
-        if (!invalidItems.isNullOrEmpty()) {
-            Toast.makeText(this, "Có sản phẩm không hợp lệ trong giỏ hàng", Toast.LENGTH_SHORT).show()
-            loadCartFromServer() // Reload to fix
-            return
-        }
-
-        val orderItems = currentCart?.items?.map { item ->
-            val toppingIds = item.toppings?.map { it.id.toLong() }
-            OrderItemRequest(
-                item.drinkId!!,
-                item.sizeName ?: "M",
-                item.quantity!!,
-                item.note,
-                toppingIds
+    
+    private fun createOrder(items: List<CartItem>, storeId: Int, paymentMethod: String) {
+        val orderItems = items.map { item ->
+            com.example.doan.Models.OrderItemRequest(
+                drinkId = item.drinkId!!.toLong(), 
+                quantity = item.quantity ?: 1,
+                sizeName = item.sizeName ?: "M",
+                toppingIds = item.toppings?.mapNotNull { topping -> topping.id.toLong() } ?: emptyList(),
+                note = item.note
             )
-        } ?: emptyList()
+        }
+        
+        val request = CreateOrderRequest(
+            storeId = storeId.toLong(),
+            items = orderItems,
+            type = "DELIVERY", 
+            paymentMethod = paymentMethod
+        )
 
-        // TODO: Cho phép user chọn cửa hàng thay vì hardcode storeId = 1
-        val request = CreateOrderRequest(1L, "PICKUP", "Tại cửa hàng", paymentMethod, null, null, orderItems)
-
-        btnCheckout.isEnabled = false
-        btnCheckout.text = "Đang xử lý..."
-
-        RetrofitClient.getInstance(this).apiService.createOrder(request)
-            .enqueue(object : Callback<ApiResponse<Order>> {
-                override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        val order = response.body()?.data
-                        
-                        if (paymentMethod == "COD") {
-                            clearCartAfterOrder(userId)
-                            showSuccessAndTrackOrder(order)
-                        } else {
-                            Toast.makeText(this@CartActivity, "Đang chuyển đến VNPay...", Toast.LENGTH_SHORT).show()
-                            handleVNPayPayment(order)
-                        }
-                    } else {
-                        btnCheckout.isEnabled = true
-                        btnCheckout.text = "THANH TOÁN"
-                        val message = response.body()?.message ?: "Lỗi đặt hàng"
-                        Toast.makeText(this@CartActivity, message, Toast.LENGTH_LONG).show()
-                        startCountdown()
+        RetrofitClient.getInstance(this).apiService.createOrder(request).enqueue(object: Callback<ApiResponse<Order>> {
+            override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
+                if(response.isSuccessful && response.body()?.success == true) {
+                    Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@CartActivity, MainActivity::class.java).apply {
+                        putExtra("SELECTED_ITEM", R.id.nav_order)
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     }
+                    startActivity(intent)
+                    finish()
+                } else {
+                    Toast.makeText(this@CartActivity, "Đặt hàng thất bại: ${response.body()?.message}", Toast.LENGTH_LONG).show()
                 }
-
-                override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
-                    btnCheckout.isEnabled = true
-                    btnCheckout.text = "THANH TOÁN"
-                    Toast.makeText(this@CartActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
-                    startCountdown()
-                }
-            })
-    }
-    
-    private fun handleVNPayPayment(order: Order?) {
-        AlertDialog.Builder(this)
-            .setTitle("VNPay Payment")
-            .setMessage("Chức năng thanh toán VNPay đang được phát triển.\n\nMã đơn hàng: #${order?.id}")
-            .setPositiveButton("OK") { _, _ ->
-                clearCartAfterOrder(getLoggedInUserId())
             }
-            .show()
-    }
 
-    private fun clearCartAfterOrder(userId: Int) {
-        RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong())
-            .enqueue(object : Callback<ApiResponse<Void>> {
-                override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {}
-                override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {}
-            })
-    }
-    
-    private fun showSuccessAndTrackOrder(order: Order?) {
-        AlertDialog.Builder(this)
-            .setTitle("🎉 Cảm ơn bạn!")
-            .setMessage("Đơn hàng #${order?.id} đã được đặt thành công!\n\n" +
-                       "Phương thức: Thanh toán khi nhận hàng\n" +
-                       "Tổng tiền: ${String.format(Locale.getDefault(), "%,.0f VNĐ", currentCart?.totalAmount)}\n\n" +
-                       "Trạng thái: Đang chờ xử lý\n" +
-                       "📱 Bạn có thể xem đơn hàng trong mục 'Đơn hàng của tôi'")
-            .setPositiveButton("OK") { _, _ -> finish() }
-            .setCancelable(false)
-            .show()
-    }
-
-    private fun getLoggedInUserId(): Int {
-        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt(KEY_USER_ID, -1)
-    }
-
-    companion object {
-        private const val TAG = "CartActivity"
-        private const val PREFS_NAME = "UserPrefs"
-        private const val KEY_USER_ID = "userId"
-        private const val COUNTDOWN_INTERVAL = 1000L
+            override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
+                Toast.makeText(this@CartActivity, "Lỗi: ${t.message}", Toast.LENGTH_LONG).show()
+            }
+        })
     }
 }

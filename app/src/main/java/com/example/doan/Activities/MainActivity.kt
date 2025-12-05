@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -17,25 +17,23 @@ import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationBarView
-import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
 
     private var selectedItemId = R.id.nav_home
-    private lateinit var fabCart: FloatingActionButton
-    private lateinit var tvCartBadge: TextView
-    private lateinit var fabCartContainer: View
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var userNameTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         try {
             setContentView(R.layout.activity_main)
 
             val sessionManager = SessionManager(this)
+
+            // Manager redirection
             if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
                 Log.d(TAG, "Manager detected in MainActivity, redirecting to ManagerActivity")
                 val intent = Intent(this, ManagerActivity::class.java).apply {
@@ -46,6 +44,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 return
             }
 
+            // Username
             userNameTextView = findViewById(R.id.user_name)
             val fullName = sessionManager.getFullName()
 
@@ -55,58 +54,67 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 "Hi, Guest"
             }
 
-            // Remove setup of Floating Action Button as it was removed from layout
-            // fabCart = findViewById(R.id.fab_cart)
-            // tvCartBadge = findViewById(R.id.tv_cart_badge)
-            // fabCartContainer = findViewById(R.id.fab_cart_container)
-            
-            // setupDraggableFab()
+            // --- Restore LEFT feature: profile_image click ---
+            val profileImage = findViewById<ImageView>(R.id.profile_image)
+            profileImage?.setOnClickListener {
+                startActivity(Intent(this, AccountActivity::class.java))
+            }
 
+            // Bottom Navigation
             bottomNavigationView = findViewById(R.id.bottom_navigation)
             bottomNavigationView.setOnItemSelectedListener(this)
 
+            // First load
             if (savedInstanceState == null) {
                 loadFragment(HomeFragment(), false)
                 updateHeaderVisibility(true)
             } else {
                 selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_home)
-                // We need to restore the fragment state or just let the system handle it,
-                // but ensuring header visibility is correct is tricky without knowing which frag is active.
-                // For now, let's default based on selected ID.
-                if (selectedItemId == R.id.nav_home) {
-                    updateHeaderVisibility(true)
-                } else {
-                    updateHeaderVisibility(false)
-                }
+                updateHeaderVisibility(selectedItemId == R.id.nav_home)
             }
+
+            // Handle intent from notifications or other screens
+            handleIntent(intent)
+
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate: ${e.message}")
             e.printStackTrace()
         }
     }
-    
-    // setupDraggableFab removed
+
+    // Restore LEFT feature: handle SELECTED_ITEM
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val selectedItem = intent?.getIntExtra("SELECTED_ITEM", selectedItemId) ?: selectedItemId
+        if (bottomNavigationView.selectedItemId != selectedItem) {
+            bottomNavigationView.selectedItemId = selectedItem
+        }
+    }
 
     override fun onResume() {
         super.onResume()
         updateCartBadge()
-        // Re-select the item based on current state, but prevent loop if setting it triggers listener
+
         if (bottomNavigationView.selectedItemId != selectedItemId) {
             bottomNavigationView.selectedItemId = selectedItemId
         }
     }
-    
+
+    // Cart badge from API
     private fun updateCartBadge() {
-        // Get cart count from server instead of local CartManager
         val userId = SessionManager(this).getUserId()
         if (userId == -1) {
-            // Not logged in, hide badge
             bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
             return
         }
-        
+
         RetrofitClient.getInstance(this).apiService.getCart(userId.toLong())
-            .enqueue(object : retrofit2.Callback<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>> {
+            .enqueue(object :
+                retrofit2.Callback<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>> {
                 override fun onResponse(
                     call: retrofit2.Call<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>,
                     response: retrofit2.Response<com.example.doan.Models.ApiResponse<com.example.doan.Models.Cart>>
@@ -135,14 +143,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             })
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt("selectedItemId", selectedItemId)
-    }
-
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // If clicking the same item, do nothing (or scroll to top)
-        // if (item.itemId == selectedItemId && item.itemId != R.id.nav_cart) return true
 
         var fragment: Fragment? = null
         var showHeader = false
@@ -159,7 +160,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             }
             R.id.nav_cart -> {
                 startActivity(Intent(this, CartActivity::class.java))
-                return false // Return false to not select the item visually
+                return false
             }
             R.id.nav_store -> {
                 fragment = StoreFragment()
@@ -170,24 +171,19 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 selectedItemId = item.itemId
             }
         }
-        
+
         updateHeaderVisibility(showHeader)
 
         fragment?.let {
             loadFragment(it, true)
             return true
         }
-
         return false
     }
 
     private fun updateHeaderVisibility(show: Boolean) {
         val headerLayout = findViewById<View>(R.id.app_bar)
-        if (show) {
-            headerLayout.visibility = View.VISIBLE
-        } else {
-            headerLayout.visibility = View.GONE
-        }
+        headerLayout?.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun loadFragment(fragment: Fragment, animate: Boolean) {

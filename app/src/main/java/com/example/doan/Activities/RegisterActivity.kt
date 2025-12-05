@@ -2,6 +2,7 @@ package com.example.doan.Activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -14,7 +15,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var usernameInput: EditText
     private lateinit var passwordInput: EditText
     private lateinit var confirmPasswordInput: EditText
-    private lateinit var phoneInput: EditText
+    private lateinit var emailInput: EditText
     private lateinit var registerButton: Button
     private lateinit var loginLink: TextView
 
@@ -25,7 +26,7 @@ class RegisterActivity : AppCompatActivity() {
         usernameInput = findViewById(R.id.input_reg_username)
         passwordInput = findViewById(R.id.input_reg_password)
         confirmPasswordInput = findViewById(R.id.input_reg_confirm_password)
-        phoneInput = findViewById(R.id.input_reg_email)
+        emailInput = findViewById(R.id.input_reg_email)
         registerButton = findViewById(R.id.btn_register_submit)
         loginLink = findViewById(R.id.text_login_link)
 
@@ -37,7 +38,7 @@ class RegisterActivity : AppCompatActivity() {
         val username = usernameInput.text.toString().trim()
         val password = passwordInput.text.toString().trim()
         val confirmPassword = confirmPasswordInput.text.toString().trim()
-        val email = phoneInput.text.toString().trim()
+        val email = emailInput.text.toString().trim()
 
         if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin bắt buộc.", Toast.LENGTH_SHORT).show()
@@ -60,7 +61,8 @@ class RegisterActivity : AppCompatActivity() {
             putExtra("PASSWORD", password)
             putExtra("EMAIL", email)
         }
+        Log.d("RegisterActivity", "Starting OtpActivity with data: $username, $password, $email")
         startActivity(intent)
-        finish()
+//        finish()
     }
 }
