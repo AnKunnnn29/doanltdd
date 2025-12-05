@@ -11,7 +11,8 @@ data class CartItem(
     var unitPrice: Double? = null,
     var totalPrice: Double? = null,
     var toppings: List<DrinkTopping>? = null,
-    var note: String? = null
+    var note: String? = null,
+    var isSelected: Boolean = false
 ) {
     val product: Product
         get() = Product(

@@ -4,24 +4,25 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.doan.Models.CartItem
 import com.example.doan.R
-import com.example.doan.Utils.CartManager
-import com.google.android.material.button.MaterialButton
 import java.util.Locale
 
 class CartAdapter(
     private val context: Context,
-    private val cartItems: List<CartItem>,
-    private val listener: OnCartChangeListener
+    private var cartItems: MutableList<CartItem>,
+    private val listener: OnCartItemChangeListener
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
-    interface OnCartChangeListener {
-        fun onCartChanged()
+    interface OnCartItemChangeListener {
+        fun onItemSelectedChanged()
+        fun onItemDeleted(item: CartItem)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
@@ -31,47 +32,69 @@ class CartAdapter(
 
     override fun onBindViewHolder(holder: CartViewHolder, position: Int) {
         val item = cartItems[position]
-        holder.bind(item, position)
+        holder.bind(item)
     }
 
     override fun getItemCount(): Int = cartItems.size
 
+    fun getSelectedItems(): List<CartItem> {
+        return cartItems.filter { it.isSelected }
+    }
+
+    fun selectAll(isSelected: Boolean) {
+        cartItems.forEach { it.isSelected = isSelected }
+        notifyDataSetChanged()
+        listener.onItemSelectedChanged()
+    }
+
+    fun deleteSelectedItems() {
+        val itemsToRemove = cartItems.filter { it.isSelected }
+        itemsToRemove.forEach { listener.onItemDeleted(it) }
+    }
+    
+    fun updateItems(newItems: List<CartItem>){
+        cartItems.clear()
+        cartItems.addAll(newItems)
+        notifyDataSetChanged()
+    }
+
     inner class CartViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imgProduct: ImageView = itemView.findViewById(R.id.img_product)
-        private val tvName: TextView = itemView.findViewById(R.id.tv_product_name)
-        private val tvSize: TextView = itemView.findViewById(R.id.tv_product_size)
-        private val tvPrice: TextView = itemView.findViewById(R.id.tv_product_price)
-        private val tvQuantity: TextView = itemView.findViewById(R.id.tv_quantity)
-        private val btnMinus: MaterialButton = itemView.findViewById(R.id.btn_minus)
-        private val btnPlus: MaterialButton = itemView.findViewById(R.id.btn_plus)
-        private val btnRemove: MaterialButton = itemView.findViewById(R.id.btn_remove)
+        private val ivImage: ImageView = itemView.findViewById(R.id.iv_cart_item_image)
+        private val tvName: TextView = itemView.findViewById(R.id.tv_cart_item_name)
+        private val tvDetails: TextView = itemView.findViewById(R.id.tv_cart_item_details)
+        private val tvPrice: TextView = itemView.findViewById(R.id.tv_cart_item_price)
+        private val tvQuantity: TextView = itemView.findViewById(R.id.tv_cart_item_quantity)
+        private val btnDeleteItem: ImageButton = itemView.findViewById(R.id.btn_delete_item)
+        private val cbSelectItem: CheckBox = itemView.findViewById(R.id.cb_select_item)
 
-        fun bind(item: CartItem, position: Int) {
-            Glide.with(context).load(item.product.imageUrl).into(imgProduct)
-            tvName.text = item.product.name
-            tvSize.text = "Size: ${item.sizeName}"
-            tvPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", item.totalPrice)
-            tvQuantity.text = item.quantity.toString()
-
-            btnMinus.setOnClickListener {
-                if ((item.quantity ?: 0) > 1) {
-                    CartManager.getInstance().updateQuantity(position, (item.quantity ?: 0) - 1)
-                    notifyItemChanged(position)
-                    listener.onCartChanged()
+        fun bind(item: CartItem) {
+            tvName.text = item.drinkName
+            val details = mutableListOf<String>()
+            item.sizeName?.let { details.add("Size: $it") }
+            item.toppings?.let { toppings ->
+                if (toppings.isNotEmpty()) {
+                    details.add(toppings.joinToString { it.toppingName ?: "" })
                 }
             }
+            tvDetails.text = details.joinToString(", ")
 
-            btnPlus.setOnClickListener {
-                CartManager.getInstance().updateQuantity(position, (item.quantity ?: 0) + 1)
-                notifyItemChanged(position)
-                listener.onCartChanged()
+            // Use unitPrice which is the price for one item including options
+            val singleItemPrice = item.unitPrice ?: 0.0
+            tvPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", singleItemPrice)
+
+            tvQuantity.text = "x${item.quantity}"
+
+            Glide.with(context).load(item.drinkImage).placeholder(R.drawable.ic_image_placeholder).into(ivImage)
+
+            cbSelectItem.setOnCheckedChangeListener(null) 
+            cbSelectItem.isChecked = item.isSelected
+            cbSelectItem.setOnCheckedChangeListener { _, isChecked ->
+                item.isSelected = isChecked
+                listener.onItemSelectedChanged()
             }
 
-            btnRemove.setOnClickListener {
-                CartManager.getInstance().removeItem(position)
-                notifyItemRemoved(position)
-                notifyItemRangeChanged(position, cartItems.size)
-                listener.onCartChanged()
+            btnDeleteItem.setOnClickListener {
+                listener.onItemDeleted(item)
             }
         }
     }

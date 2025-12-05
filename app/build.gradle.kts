@@ -68,13 +68,14 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-
     // CircleIndicator for ViewPager2
     implementation("me.relex:circleindicator:2.1.6")
     
     // Google Maps & Location
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.1.0")
+
+    implementation("com.google.android.libraries.places:places:3.4.0")
 }
 
 tasks.register("deleteDuplicateResources") {
@@ -97,3 +98,4 @@ tasks.register("deleteDuplicateResources") {
 tasks.named("preBuild") {
     dependsOn("deleteDuplicateResources")
 }
+

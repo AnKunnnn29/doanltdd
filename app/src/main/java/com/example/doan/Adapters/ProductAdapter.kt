@@ -11,7 +11,6 @@ import com.bumptech.glide.Glide
 import com.example.doan.Activities.ProductDetailActivity
 import com.example.doan.Models.Product
 import com.example.doan.R
-import com.google.gson.Gson
 import java.util.Locale
 
 class ProductAdapter(private val productList: List<Product>) : 
@@ -36,11 +35,14 @@ class ProductAdapter(private val productList: List<Product>) :
             .into(holder.productImage)
         
         holder.itemView.setOnClickListener {
-            val intent = Intent(holder.itemView.context, ProductDetailActivity::class.java)
-            val gson = Gson()
-            val productJson = gson.toJson(product)
-            android.util.Log.d("ProductAdapter", "Sending product JSON: $productJson")
-            intent.putExtra("product", productJson)
+            val intent = Intent(holder.itemView.context, ProductDetailActivity::class.java).apply {
+                putExtra("PRODUCT_ID", product.id)
+                putExtra("PRODUCT_NAME", product.name)
+                putExtra("PRODUCT_PRICE", product.price)
+                putExtra("PRODUCT_DESC", product.description)
+                putExtra("PRODUCT_IMAGE", product.imageUrl)
+                putExtra("CATEGORY_NAME", product.category)
+            }
             holder.itemView.context.startActivity(intent)
         }
     }

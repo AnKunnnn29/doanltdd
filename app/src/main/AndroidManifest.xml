@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -26,7 +28,7 @@
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY_HERE" />
+            android:value="@string/google_maps_key" />
 
         <activity
             android:name=".Activities.ResetPasswordActivity"
@@ -91,6 +93,12 @@
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
             
+        <!-- Product Detail New Activity -->
+        <activity
+            android:name=".Activities.ProductDetailNewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+            
         <!-- Cart Activity -->
         <activity
             android:name=".Activities.CartActivity"
@@ -126,8 +134,6 @@
             android:name=".Activities.AddEditCategoryActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
-        
-        <!-- Removed Firebase Messaging Service -->
 
     </application>
 
