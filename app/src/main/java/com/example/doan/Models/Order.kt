@@ -41,7 +41,10 @@ data class Order(
     var createdAt: String? = null,
     
     @SerializedName("updatedAt")
-    var updatedAt: String? = null
+    var updatedAt: String? = null,
+    
+    @SerializedName("items")
+    var items: List<OrderItem>? = null
 ) : Serializable {
     
     fun getDisplayOrderNumber(): String {

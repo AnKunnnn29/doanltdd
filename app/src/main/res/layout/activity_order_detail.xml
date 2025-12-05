@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SỬ DỤNG CoordinatorLayout làm layout gốc để cho phép các hành vi cuộn phức tạp, -->
+<!-- ví dụ như thanh AppBar tự ẩn/hiện khi cuộn. -->
+<!-- Nền chính của màn hình được đặt màu wine_primary. -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/wine_primary"
+    tools:context=".Activities.OrderDetailActivity">
+
+    <!-- YÊU CẦU: Tạo hiệu ứng nền 2 lớp, đồng bộ với màn hình Home. -->
+    <!-- GIẢI PHÁP: AppBarLayout được làm trong suốt và không có đổ bóng (elevation=0dp) -->
+    <!-- để nó hòa vào nền màu wine_primary của CoordinatorLayout mẹ. -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:elevation="0dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_order_detail"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Chi tiết đơn hàng" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- TÁC DỤNG: Tạo khối nội dung chính có nền trắng bo góc và hiệu ứng cuộn bên dưới thanh AppBar. -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_arc_top_white"
+        android:paddingTop="16dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- Card 1: Hiển thị thông tin chung của đơn hàng -->
+            <!-- Sử dụng MaterialCardView để tạo giao diện thẻ nhất quán. -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="2dp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_order_detail_id"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceHeadline6"
+                        tools:text="Đơn hàng #12345" />
+
+                    <TextView
+                        android:id="@+id/tv_order_detail_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:drawablePadding="8dp"
+                        android:gravity="center_vertical"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        app:drawableStartCompat="@drawable/ic_calendar" /> <!-- YÊU CẦU: Thêm icon lịch. Đã tạo drawable/ic_calendar.xml -->
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_order_detail_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        tools:text="Đang xử lý" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 2: Hiển thị danh sách các món ăn trong đơn hàng -->
+            <!-- RecyclerView được đặt bên trong CardView để hiển thị một danh sách động. -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="2dp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="16dp"
+                        android:paddingTop="16dp"
+                        android:paddingEnd="16dp"
+                        android:text="Các món đã đặt"
+                        android:textAppearance="?attr/textAppearanceSubtitle1"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_order_detail_items"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:padding="8dp"
+                        tools:itemCount="3" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 3: Hiển thị chi tiết thanh toán của đơn hàng -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="2dp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chi tiết thanh toán"
+                        android:textAppearance="?attr/textAppearanceSubtitle1"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:text="Tổng cộng"
+                            android:textAppearance="?attr/textAppearanceBody1" />
+
+                        <TextView
+                            android:id="@+id/tv_order_detail_total"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:textAppearance="?attr/textAppearanceBody1"
+                            android:textStyle="bold"
+                            tools:text="150.000 ₫" />
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/tv_payment_method"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        tools:text="Thanh toán khi nhận hàng (COD)" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

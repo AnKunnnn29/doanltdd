@@ -4,9 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.doan.Fragments.AccountFragment
@@ -23,7 +20,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     private var selectedItemId = R.id.nav_home
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var userNameTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,45 +31,22 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
             // Manager redirection
             if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
-                Log.d(TAG, "Manager detected in MainActivity, redirecting to ManagerActivity")
-                val intent = Intent(this, ManagerActivity::class.java).apply {
+                Log.d(TAG, "Manager detected, redirecting to ManagerActivity")
+                startActivity(Intent(this, ManagerActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                startActivity(intent)
+                })
                 finish()
                 return
             }
 
-            // Username
-            userNameTextView = findViewById(R.id.user_name)
-            val fullName = sessionManager.getFullName()
-
-            userNameTextView.text = if (sessionManager.isLoggedIn() && !fullName.isNullOrEmpty()) {
-                "Hi, $fullName"
-            } else {
-                "Hi, Guest"
-            }
-
-            // --- Restore LEFT feature: profile_image click ---
-            val profileImage = findViewById<ImageView>(R.id.profile_image)
-            profileImage?.setOnClickListener {
-                startActivity(Intent(this, AccountActivity::class.java))
-            }
-
-            // Bottom Navigation
             bottomNavigationView = findViewById(R.id.bottom_navigation)
             bottomNavigationView.setOnItemSelectedListener(this)
 
-            // First load
             if (savedInstanceState == null) {
+                // First time creation, load home fragment
                 loadFragment(HomeFragment(), false)
-                updateHeaderVisibility(true)
-            } else {
-                selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_home)
-                updateHeaderVisibility(selectedItemId == R.id.nav_home)
             }
-
-            // Handle intent from notifications or other screens
+            
             handleIntent(intent)
 
         } catch (e: Exception) {
@@ -82,29 +55,33 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
     }
 
-    // Restore LEFT feature: handle SELECTED_ITEM
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("selectedItemId", selectedItemId)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_home)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
     }
 
     private fun handleIntent(intent: Intent?) {
-        val selectedItem = intent?.getIntExtra("SELECTED_ITEM", selectedItemId) ?: selectedItemId
-        if (bottomNavigationView.selectedItemId != selectedItem) {
-            bottomNavigationView.selectedItemId = selectedItem
+        val navToItem = intent?.getIntExtra("SELECTED_ITEM", -1)
+        if (navToItem != null && navToItem != -1) {
+            bottomNavigationView.selectedItemId = navToItem
         }
     }
 
     override fun onResume() {
         super.onResume()
         updateCartBadge()
-
-        if (bottomNavigationView.selectedItemId != selectedItemId) {
-            bottomNavigationView.selectedItemId = selectedItemId
-        }
     }
 
-    // Cart badge from API
     private fun updateCartBadge() {
         val userId = SessionManager(this).getUserId()
         if (userId == -1) {
@@ -144,46 +121,30 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-
-        var fragment: Fragment? = null
-        var showHeader = false
-
-        when (item.itemId) {
-            R.id.nav_home -> {
-                fragment = HomeFragment()
-                showHeader = true
-                selectedItemId = item.itemId
-            }
-            R.id.nav_order -> {
-                fragment = OrderFragment()
-                selectedItemId = item.itemId
-            }
-            R.id.nav_cart -> {
-                startActivity(Intent(this, CartActivity::class.java))
-                return false
-            }
-            R.id.nav_store -> {
-                fragment = StoreFragment()
-                selectedItemId = item.itemId
-            }
-            R.id.nav_account -> {
-                fragment = AccountFragment()
-                selectedItemId = item.itemId
-            }
+        // Prevent reloading the same fragment
+        if (item.itemId == selectedItemId && item.itemId != R.id.nav_cart) {
+            return false
         }
 
-        updateHeaderVisibility(showHeader)
+        var fragment: Fragment? = null
+
+        when (item.itemId) {
+            R.id.nav_home -> fragment = HomeFragment()
+            R.id.nav_order -> fragment = OrderFragment()
+            R.id.nav_store -> fragment = StoreFragment()
+            R.id.nav_account -> fragment = AccountFragment()
+            R.id.nav_cart -> {
+                startActivity(Intent(this, CartActivity::class.java))
+                return false // Do not change fragment, just launch the activity
+            }
+        }
 
         fragment?.let {
             loadFragment(it, true)
+            selectedItemId = item.itemId
             return true
         }
         return false
-    }
-
-    private fun updateHeaderVisibility(show: Boolean) {
-        val headerLayout = findViewById<View>(R.id.app_bar)
-        headerLayout?.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun loadFragment(fragment: Fragment, animate: Boolean) {

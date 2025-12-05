@@ -1,15 +1,20 @@
 package com.example.doan.Fragments
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.doan.Activities.OrderDetailActivity
 import com.example.doan.Adapters.OrderAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Order
@@ -19,10 +24,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class OrderFragment : Fragment() {
+class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
 
     private lateinit var ordersRecyclerView: RecyclerView
     private lateinit var orderAdapter: OrderAdapter
+    private lateinit var tvLoginPrompt: TextView
+    private lateinit var toolbar: Toolbar
 
     private val orderList = mutableListOf<Order>()
 
@@ -31,38 +38,44 @@ class OrderFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return try {
-            val view = inflater.inflate(R.layout.fragment_order, container, false)
+        val view = inflater.inflate(R.layout.fragment_order, container, false)
 
-            ordersRecyclerView = view.findViewById(R.id.orders_recycler_view)
-            ordersRecyclerView.layoutManager = LinearLayoutManager(context)
+        toolbar = view.findViewById(R.id.toolbar_order)
+        (activity as? AppCompatActivity)?.setSupportActionBar(toolbar)
 
-            orderAdapter = OrderAdapter(requireContext(), orderList)
-            ordersRecyclerView.adapter = orderAdapter
+        ordersRecyclerView = view.findViewById(R.id.orders_recycler_view)
+        tvLoginPrompt = view.findViewById(R.id.tv_login_prompt_order)
+        ordersRecyclerView.layoutManager = LinearLayoutManager(context)
 
-            val userId = getLoggedInUserId()
+        orderAdapter = OrderAdapter(requireContext(), orderList)
+        orderAdapter.setOnOrderClickListener(this)
+        ordersRecyclerView.adapter = orderAdapter
 
-            if (userId != -1) {
-                loadOrders(userId)
-            } else {
-                Toast.makeText(context, "Vui lòng đăng nhập để xem đơn hàng.", Toast.LENGTH_LONG).show()
-            }
+        return view
+    }
 
-            view
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in onCreateView: ${e.message}")
-            e.printStackTrace()
-            Toast.makeText(context, "Lỗi tải đơn hàng", Toast.LENGTH_SHORT).show()
-            inflater.inflate(R.layout.fragment_order, container, false)
+    override fun onResume() {
+        super.onResume()
+        checkLoginAndLoadOrders()
+    }
+
+    private fun checkLoginAndLoadOrders() {
+        val userId = getLoggedInUserId()
+        if (userId != -1) {
+            tvLoginPrompt.visibility = View.GONE
+            ordersRecyclerView.visibility = View.VISIBLE
+            loadOrders(userId)
+        } else {
+            tvLoginPrompt.visibility = View.VISIBLE
+            ordersRecyclerView.visibility = View.GONE
+            orderList.clear()
+            orderAdapter.notifyDataSetChanged()
         }
     }
 
     private fun getLoggedInUserId(): Int {
-        context?.let {
-            val prefs = it.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            return prefs.getInt(KEY_USER_ID, -1)
-        }
-        return -1
+        val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_USER_ID, -1)
     }
 
     private fun loadOrders(userId: Int) {
@@ -100,9 +113,15 @@ class OrderFragment : Fragment() {
             })
     }
 
+    override fun onOrderClick(order: Order) {
+        val intent = Intent(requireContext(), OrderDetailActivity::class.java)
+        intent.putExtra("order", order)
+        startActivity(intent)
+    }
+
     companion object {
         private const val TAG = "OrderFragment"
-        private const val PREFS_NAME = "UserPrefs"
-        private const val KEY_USER_ID = "userId"
+        private const val PREFS_NAME = "UTETeaPrefs"
+        private const val KEY_USER_ID = "user_id"
     }
 }

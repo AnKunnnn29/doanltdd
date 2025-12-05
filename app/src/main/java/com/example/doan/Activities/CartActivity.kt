@@ -217,6 +217,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
                 if(response.isSuccessful && response.body()?.success == true) {
                     Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+                    clearCartOnServer()
                     val intent = Intent(this@CartActivity, MainActivity::class.java).apply {
                         putExtra("SELECTED_ITEM", R.id.nav_order)
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -230,6 +231,23 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
             override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
                 Toast.makeText(this@CartActivity, "Lỗi: ${t.message}", Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    private fun clearCartOnServer() {
+        val userId = SessionManager(this).getUserId()
+        if (userId == -1) return
+
+        RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong()).enqueue(object: Callback<ApiResponse<Void>> {
+            override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                if (!response.isSuccessful) {
+                    Log.e("CartActivity", "Failed to clear cart on server")
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                Log.e("CartActivity", "Error clearing cart on server", t)
             }
         })
     }
