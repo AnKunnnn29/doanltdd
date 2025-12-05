@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.example.doan.Activities.AccountActivity
 import com.example.doan.Activities.ProductDetailActivity
 import com.example.doan.Adapters.BannerAdapter
 import com.example.doan.Adapters.CategoryAdapter
@@ -28,6 +30,7 @@ import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.SessionManager
 import me.relex.circleindicator.CircleIndicator3
 import retrofit2.Call
 import retrofit2.Callback
@@ -39,6 +42,8 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private lateinit var productRecyclerView: RecyclerView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var searchSuggestionRecyclerView: RecyclerView
+    private lateinit var userNameTextView: TextView
+    private lateinit var profileImageView: ImageView
     
     private lateinit var productAdapter: ProductAdapter
     private lateinit var categoryAdapter: CategoryAdapter
@@ -69,6 +74,7 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
             val view = inflater.inflate(R.layout.fragment_home, container, false)
 
             initViews(view)
+            setupHeader()
             setupBannerSlider()
             setupRecyclerViews()
             setupSearch()
@@ -85,6 +91,8 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     }
 
     private fun initViews(view: View) {
+        userNameTextView = view.findViewById(R.id.user_name_home)
+        profileImageView = view.findViewById(R.id.profile_image_home)
         bannerViewPager = view.findViewById(R.id.banner_view_pager)
         bannerIndicator = view.findViewById(R.id.banner_indicator)
         productRecyclerView = view.findViewById(R.id.product_recycler_view)
@@ -93,6 +101,21 @@ class HomeFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         searchView = view.findViewById(R.id.search_view)
         btnFilterPrice = view.findViewById(R.id.btn_filter_price)
         btnClearFilter = view.findViewById(R.id.btn_clear_filter)
+    }
+
+    private fun setupHeader() {
+        val sessionManager = SessionManager(requireContext())
+        val fullName = sessionManager.getFullName()
+
+        userNameTextView.text = if (sessionManager.isLoggedIn() && !fullName.isNullOrEmpty()) {
+            fullName
+        } else {
+            "Guest"
+        }
+
+        profileImageView.setOnClickListener {
+            startActivity(Intent(context, AccountActivity::class.java))
+        }
     }
 
     private fun setupRecyclerViews() {
