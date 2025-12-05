@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- SỬ DỤNG CoordinatorLayout làm layout gốc để cho phép các hành vi cuộn phức tạp, -->
-<!-- ví dụ như thanh AppBar tự ẩn/hiện khi cuộn. -->
-<!-- Nền chính của màn hình được đặt màu wine_primary. -->
+<!-- TÁC DỤNG TỔNG THỂ: Màn hình này sử dụng CoordinatorLayout để tạo hiệu ứng thanh header (AppBar) -->
+<!-- và nội dung (NestedScrollView) cuộn một cách mượt mà, đồng bộ với nhau. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -43,8 +42,7 @@
             android:orientation="vertical"
             android:padding="8dp">
 
-            <!-- Card 1: Hiển thị thông tin chung của đơn hàng -->
-            <!-- Sử dụng MaterialCardView để tạo giao diện thẻ nhất quán. -->
+            <!-- TÁC DỤNG: Thẻ này hiển thị các thông tin tóm tắt của đơn hàng. -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -72,7 +70,7 @@
                         android:drawablePadding="8dp"
                         android:gravity="center_vertical"
                         android:textAppearance="?attr/textAppearanceBody2"
-                        app:drawableStartCompat="@drawable/ic_calendar" /> <!-- YÊU CẦU: Thêm icon lịch. Đã tạo drawable/ic_calendar.xml -->
+                        app:drawableStartCompat="@drawable/ic_calendar" /> <!-- THAY ĐỔI: Thêm icon lịch để giao diện trực quan hơn. -->
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_order_detail_status"
@@ -84,8 +82,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 2: Hiển thị danh sách các món ăn trong đơn hàng -->
-            <!-- RecyclerView được đặt bên trong CardView để hiển thị một danh sách động. -->
+            <!-- TÁC DỤNG: Thẻ này chứa danh sách chi tiết các món ăn đã đặt. -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -117,7 +114,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 3: Hiển thị chi tiết thanh toán của đơn hàng -->
+            <!-- TÁC DỤNG: Thẻ này hiển thị thông tin về tổng tiền và phương thức thanh toán. -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

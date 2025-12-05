@@ -35,6 +35,14 @@ android {
         jvmTarget = "11"
     }
 
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
+
     sourceSets {
         getByName("main") {
             res.srcDirs(
@@ -76,6 +84,24 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.1.0")
 
     implementation("com.google.android.libraries.places:places:3.4.0")
+
+    // Compose
+    val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("dev.chrisbanes.snapper:snapper:0.3.0")
 }
 
 tasks.register("deleteDuplicateResources") {

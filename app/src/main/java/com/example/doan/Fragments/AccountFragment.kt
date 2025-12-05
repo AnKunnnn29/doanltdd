@@ -26,11 +26,14 @@ import retrofit2.Response
 
 class AccountFragment : Fragment() {
 
+    // TÁC DỤNG: Màn hình này hiển thị thông tin tài khoản và các tùy chọn liên quan.
+
     private lateinit var sessionManager: SessionManager
     private lateinit var apiService: ApiService
     private lateinit var profileNameText: TextView
     private lateinit var profileEmailText: TextView
     private lateinit var userDetailOption: RelativeLayout
+    private lateinit var orderHistoryOption: RelativeLayout // YÊU CẦU: Thêm mục "Lịch sử đơn hàng".
     private lateinit var profileOption: RelativeLayout
     private lateinit var changePasswordOption: RelativeLayout
     private lateinit var settingsOption: RelativeLayout
@@ -45,19 +48,22 @@ class AccountFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
         apiService = RetrofitClient.getInstance(requireContext()).apiService
 
-        // Header info
+        // Gán các view từ layout.
         profileNameText = view.findViewById(R.id.profile_name)
         profileEmailText = view.findViewById(R.id.profile_email)
-
-        // Options
         userDetailOption = view.findViewById(R.id.user_detail_option)
+        orderHistoryOption = view.findViewById(R.id.order_history_option) // YÊU CẦU: Gán view cho mục mới.
         profileOption = view.findViewById(R.id.profile_option)
         changePasswordOption = view.findViewById(R.id.change_password_option)
         settingsOption = view.findViewById(R.id.settings_option)
         logoutButton = view.findViewById(R.id.logout_button)
 
-        // Set Click Events
+        // Thiết lập sự kiện click.
         userDetailOption.setOnClickListener { fetchAndShowUserDetails() }
+        orderHistoryOption.setOnClickListener { 
+            // YÊU CẦU: Khi nhấn, mở màn hình Lịch sử đơn hàng.
+            startActivity(Intent(requireContext(), OrderHistoryActivity::class.java))
+        }
         profileOption.setOnClickListener {
             startActivity(Intent(requireContext(), UserProfileActivity::class.java))
         }
@@ -81,14 +87,13 @@ class AccountFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-
-        // Refresh header
+        // Làm mới thông tin header mỗi khi quay lại màn hình.
         profileNameText.text = sessionManager.getFullName()
         profileEmailText.text = sessionManager.getEmail()
     }
 
-    //          API CALL
     private fun fetchAndShowUserDetails() {
+        // TÁC DỤNG: Lấy và hiển thị chi tiết thông tin người dùng trong một dialog.
         Log.d("AccountFragment", "Fetching user details")
 
         apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
@@ -100,7 +105,7 @@ class AccountFragment : Fragment() {
                     val profile = response.body()!!.data
                     showUserDetailDialog(profile!!)
 
-                    // cập nhật session với data mới
+                    // Cập nhật session với dữ liệu mới nhất.
                     sessionManager.saveLoginSession(
                         userId = profile.id?.toInt() ?: -1,
                         username = profile.username,
@@ -123,8 +128,8 @@ class AccountFragment : Fragment() {
         })
     }
 
-    //        DIALOG DETAIL
     private fun showUserDetailDialog(user: UserProfileDto) {
+        // TÁC DỤNG: Hiển thị một dialog với thông tin chi tiết của người dùng.
         val dialog = Dialog(requireContext())
         dialog.setContentView(R.layout.dialog_user_profile_detail)
 
@@ -143,8 +148,8 @@ class AccountFragment : Fragment() {
         dialog.show()
     }
 
-    //            LOGOUT
     private fun performLogout() {
+        // TÁC DỤNG: Xóa session và điều hướng người dùng về màn hình đăng nhập.
         sessionManager.logout()
 
         val intent = Intent(requireContext(), LoginActivity::class.java)

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- TÁC DỤNG TỔNG THỂ: Layout cho màn hình Tài khoản (AccountFragment). -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -17,7 +18,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Header -->
+            <!-- TÁC DỤNG: Phần header hiển thị ảnh đại diện, tên và email của người dùng. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,7 +58,7 @@
 
             </LinearLayout>
 
-            <!-- Menu Options Card -->
+            <!-- TÁC DỤNG: Thẻ chứa các tùy chọn menu cho người dùng. -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -69,7 +70,7 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- User Detail Option -->
+                    <!-- Tùy chọn: Xem chi tiết người dùng -->
                     <RelativeLayout
                         android:id="@+id/user_detail_option"
                         android:layout_width="match_parent"
@@ -110,7 +111,49 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
-                    <!-- Profile Option -->
+                    <!-- YÊU CẦU: Thêm mục "Lịch sử đơn hàng" vào màn hình Account. -->
+                    <!-- Tùy chọn: Xem lịch sử đơn hàng -->
+                    <RelativeLayout
+                        android:id="@+id/order_history_option"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:id="@+id/icon_order_history"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:src="@android:drawable/ic_menu_recent_history"
+                            app:tint="@color/wine_dark_background" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="16dp"
+                            android:layout_toEndOf="@id/icon_order_history"
+                            android:text="Lịch sử đơn hàng"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_arrow_forward" />
+
+                    </RelativeLayout>
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <!-- Tùy chọn: Chỉnh sửa hồ sơ -->
                     <RelativeLayout
                         android:id="@+id/profile_option"
                         android:layout_width="match_parent"
@@ -150,7 +193,7 @@
                     <com.google.android.material.divider.MaterialDivider
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
-                    <!-- Change Password Option -->
+                    <!-- Tùy chọn: Đổi mật khẩu -->
                     <RelativeLayout
                         android:id="@+id/change_password_option"
                         android:layout_width="match_parent"
@@ -192,7 +235,7 @@
                         android:layout_height="wrap_content" />
 
 
-                    <!-- Settings Option -->
+                    <!-- Tùy chọn: Cài đặt -->
                     <RelativeLayout
                         android:id="@+id/settings_option"
                         android:layout_width="match_parent"
@@ -233,7 +276,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
-                    <!-- Logout Button -->
+                    <!-- Tùy chọn: Đăng xuất -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/logout_button"
                         style="@style/Widget.Material3.Button.TextButton"
@@ -252,15 +295,5 @@
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@color/white"
-        app:itemIconTint="@color/bottom_nav_selector"
-        app:itemTextColor="@color/bottom_nav_selector"
-        app:itemRippleColor="@color/wine_neutral_light"
-        app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>

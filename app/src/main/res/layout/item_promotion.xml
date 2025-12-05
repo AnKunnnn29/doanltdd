@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- THAY ĐỔI: Sử dụng một FrameLayout gốc để bọc CardView. -->
+<!-- CardView bên trong sẽ có margin, tạo ra khoảng cách và kiểm soát kích thước thực tế. -->
+<!-- SỬA LỖI: layout_width và layout_height của gốc phải là match_parent để ViewPager2 hoạt động. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:cardCornerRadius="16dp">
+
+        <ImageView
+            android:id="@+id/iv_promotion_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            tools:src="@drawable/banners" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#44000000" />
+
+        <TextView
+            android:id="@+id/tv_promotion_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:padding="16dp"
+            android:text="Combo ưu đãi đặc biệt"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
+
+    </com.google.android.material.card.MaterialCardView>
+</FrameLayout>

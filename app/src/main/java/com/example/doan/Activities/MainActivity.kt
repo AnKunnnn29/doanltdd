@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.doan.Fragments.AccountFragment
 import com.example.doan.Fragments.HomeFragment
-import com.example.doan.Fragments.OrderFragment
+import com.example.doan.Fragments.MenuFragment
 import com.example.doan.Fragments.StoreFragment
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
@@ -17,6 +17,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
 
 class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
+
+    // TÁC DỤNG: Activity chính của ứng dụng, quản lý BottomNavigationView và các Fragment chính.
 
     private var selectedItemId = R.id.nav_home
     private lateinit var bottomNavigationView: BottomNavigationView
@@ -29,7 +31,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
             val sessionManager = SessionManager(this)
 
-            // Manager redirection
+            // YÊU CẦU: Chuyển hướng người dùng quản lý sang màn hình riêng.
             if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
                 Log.d(TAG, "Manager detected, redirecting to ManagerActivity")
                 startActivity(Intent(this, ManagerActivity::class.java).apply {
@@ -43,7 +45,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             bottomNavigationView.setOnItemSelectedListener(this)
 
             if (savedInstanceState == null) {
-                // First time creation, load home fragment
+                // Tải HomeFragment làm màn hình mặc định khi ứng dụng khởi động.
                 loadFragment(HomeFragment(), false)
             }
             
@@ -57,6 +59,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        // Lưu lại ID của tab đang được chọn để khôi phục khi cần (ví dụ: xoay màn hình).
         outState.putInt("selectedItemId", selectedItemId)
     }
 
@@ -67,10 +70,12 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        // Xử lý intent được gửi đến MainActivity khi nó đã đang chạy.
         handleIntent(intent)
     }
 
     private fun handleIntent(intent: Intent?) {
+        // TÁC DỤNG: Điều hướng đến một tab cụ thể nếu có yêu cầu từ intent.
         val navToItem = intent?.getIntExtra("SELECTED_ITEM", -1)
         if (navToItem != null && navToItem != -1) {
             bottomNavigationView.selectedItemId = navToItem
@@ -79,10 +84,12 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     override fun onResume() {
         super.onResume()
+        // Cập nhật số lượng sản phẩm trong giỏ hàng mỗi khi quay lại màn hình này.
         updateCartBadge()
     }
 
     private fun updateCartBadge() {
+        // TÁC DỤNG: Lấy số lượng sản phẩm từ API và hiển thị trên icon giỏ hàng.
         val userId = SessionManager(this).getUserId()
         if (userId == -1) {
             bottomNavigationView.getBadge(R.id.nav_cart)?.isVisible = false
@@ -121,7 +128,9 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // Prevent reloading the same fragment
+        // TÁC DỤNG: Xử lý sự kiện khi người dùng nhấn vào một mục trên BottomNavigationView.
+        
+        // Ngăn không cho tải lại fragment nếu người dùng nhấn vào tab đang được chọn.
         if (item.itemId == selectedItemId && item.itemId != R.id.nav_cart) {
             return false
         }
@@ -130,12 +139,12 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
         when (item.itemId) {
             R.id.nav_home -> fragment = HomeFragment()
-            R.id.nav_order -> fragment = OrderFragment()
+            R.id.nav_order -> fragment = MenuFragment() // YÊU CẦU: Tab "Order" giờ sẽ hiển thị trang "Thực đơn".
             R.id.nav_store -> fragment = StoreFragment()
             R.id.nav_account -> fragment = AccountFragment()
             R.id.nav_cart -> {
                 startActivity(Intent(this, CartActivity::class.java))
-                return false // Do not change fragment, just launch the activity
+                return false // Chỉ mở Activity, không thay đổi fragment.
             }
         }
 
@@ -148,6 +157,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
 
     private fun loadFragment(fragment: Fragment, animate: Boolean) {
+        // TÁC DỤNG: Thay thế fragment hiện tại bằng một fragment mới.
         supportFragmentManager.beginTransaction().apply {
             if (animate) {
                 setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
