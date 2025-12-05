@@ -131,6 +131,7 @@ class OtpActivity : AppCompatActivity() {
     }
 
     private fun resendOtp() {
+        Toast.makeText(this@OtpActivity, "Đang gửi lại OTP...", Toast.LENGTH_SHORT).show()
         RetrofitClient.getInstance(this).apiService.resendOtp(email)
             .enqueue(object : Callback<ApiResponse<String>> {
                 override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
