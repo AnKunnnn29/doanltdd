@@ -68,7 +68,7 @@ class OtpActivity : AppCompatActivity() {
 
     private fun requestRegistrationAndOtp() {
         Toast.makeText(this, "Đang gửi yêu cầu đăng ký...", Toast.LENGTH_SHORT).show()
-        val registerRequest = RegisterRequest(username, email, password, username, "","")
+        val registerRequest = RegisterRequest(username, email, password, username, "",null)
 
         RetrofitClient.getInstance(this).apiService.registerWithOtp(registerRequest)
             .enqueue(object : Callback<ApiResponse<String>> {
@@ -78,13 +78,13 @@ class OtpActivity : AppCompatActivity() {
                     } else {
                         var errorMessage = "Lỗi khi gửi OTP."
                         try {
-                            errorMessage = response.body()?.message 
+                            errorMessage = response.body()?.message
                                 ?: response.errorBody()?.string()?.let { JSONObject(it).getString("message") }
-                                ?: errorMessage
+                                        ?: errorMessage
                         } catch (e: Exception) {
                             Log.e(TAG, "Error parsing error response in requestRegistrationAndOtp", e)
                         }
-                        Toast.makeText(this@OtpActivity, errorMessage, Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@OtpActivity, "ALO" + errorMessage, Toast.LENGTH_LONG).show()
                     }
                 }
 
@@ -138,11 +138,11 @@ class OtpActivity : AppCompatActivity() {
                         Toast.makeText(this@OtpActivity, "OTP đã được gửi lại!", Toast.LENGTH_SHORT).show()
                     } else {
                         var errorMessage = "Lỗi gửi lại OTP."
-                        errorMessage = response.body()?.message 
+                        errorMessage = response.body()?.message
                             ?: try {
                                 response.errorBody()?.string()?.let { JSONObject(it).getString("message") }
                             } catch (e: Exception) { null }
-                            ?: errorMessage
+                                    ?: errorMessage
                         Toast.makeText(this@OtpActivity, errorMessage, Toast.LENGTH_LONG).show()
                     }
                 }
