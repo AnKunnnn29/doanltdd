@@ -3,40 +3,59 @@ package com.example.doan.Models
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
+/**
+ * FIX C7: Cập nhật SerializedName để khớp với Backend OrderDto
+ * Backend trả về: id, userId, userName, storeId, storeName, type, address, 
+ *                 pickupTime, status, totalPrice, discount, finalPrice, 
+ *                 paymentMethod, promotionCode, items, createdAt, updatedAt
+ */
 data class Order(
     @SerializedName("id")
     var id: Int = 0,
     
-    @SerializedName("order_number")
-    var orderNumber: String? = null,
+    @SerializedName("userId")
+    var userId: Long? = null,
     
-    @SerializedName("created_at")
-    var date: String? = null,
+    @SerializedName("userName")
+    var userName: String? = null,
+    
+    @SerializedName("storeId")
+    var storeId: Long? = null,
+    
+    @SerializedName("storeName")
+    var storeName: String? = null,
+    
+    @SerializedName("type")
+    var type: String? = null,
     
     @SerializedName("status")
     var status: String? = null,
     
-    @SerializedName("total_price")
-    var totalAmount: Double = 0.0,
+    // FIX C7: Backend trả về "totalPrice" không phải "total_price"
+    @SerializedName("totalPrice")
+    var totalPrice: Double = 0.0,
     
-    @SerializedName("final_price")
+    @SerializedName("discount")
+    var discount: Double = 0.0,
+    
+    // FIX C7: Backend trả về "finalPrice" không phải "final_price"
+    @SerializedName("finalPrice")
     var finalPrice: Double = 0.0,
     
     @SerializedName("address")
     var address: String? = null,
     
-    @SerializedName("customer_name")
-    var customerName: String? = null,
+    @SerializedName("pickupTime")
+    var pickupTime: String? = null,
     
-    @SerializedName("customer_phone")
-    var customerPhone: String? = null,
-    
-    @SerializedName("payment_status")
-    var paymentStatus: String? = null,
-    
-    @SerializedName("payment_method")
+    // FIX C7: Backend trả về "paymentMethod" không phải "payment_method"
+    @SerializedName("paymentMethod")
     var paymentMethod: String? = null,
     
+    @SerializedName("promotionCode")
+    var promotionCode: String? = null,
+    
+    // FIX C7: Backend trả về "createdAt" (đã đúng)
     @SerializedName("createdAt")
     var createdAt: String? = null,
     
@@ -47,11 +66,23 @@ data class Order(
     var items: List<OrderItem>? = null
 ) : Serializable {
     
+    // Backward compatibility - giữ lại các property cũ
+    val totalAmount: Double get() = totalPrice
+    val customerName: String? get() = userName
+    
     fun getDisplayOrderNumber(): String {
-        return if (orderNumber.isNullOrEmpty()) {
-            id.toString()
-        } else {
-            orderNumber!!
+        return "#${id}"
+    }
+    
+    fun getDisplayStatus(): String {
+        return when (status) {
+            "PENDING" -> "Chờ xử lý"
+            "MAKING" -> "Đang pha chế"
+            "SHIPPING" -> "Đang giao"
+            "READY" -> "Sẵn sàng"
+            "DONE" -> "Hoàn thành"
+            "CANCELED" -> "Đã hủy"
+            else -> status ?: "Không xác định"
         }
     }
 }

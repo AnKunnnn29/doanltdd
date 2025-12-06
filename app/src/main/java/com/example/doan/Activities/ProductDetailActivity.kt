@@ -33,7 +33,6 @@ class ProductDetailActivity : AppCompatActivity() {
     private lateinit var btnAddToCart: MaterialButton
     private lateinit var btnConfirmOrder: MaterialButton
     private lateinit var spinnerSize: Spinner
-    private lateinit var spinnerBranch: Spinner
     private lateinit var layoutToppings: LinearLayout
     private lateinit var tvToppingLabel: TextView
 
@@ -42,7 +41,10 @@ class ProductDetailActivity : AppCompatActivity() {
     private var quantity = 1
     private var selectedSize: DrinkSize? = null
     private val selectedToppings = mutableSetOf<DrinkTopping>()
-    private val branches = listOf("Chi nhánh chính")
+    
+    // FIX C5: Lưu reference của các Retrofit calls để cancel khi Activity destroy
+    private var loadProductCall: Call<ApiResponse<List<Drink>>>? = null
+    private var addToCartCall: Call<ApiResponse<Cart>>? = null
 
     companion object {
         private const val TAG = "ProductDetailActivity"
@@ -56,6 +58,14 @@ class ProductDetailActivity : AppCompatActivity() {
         getIntentData()
         setupListeners()
         loadProductDetails()
+    }
+    
+    // FIX C5: Cancel tất cả pending calls khi Activity bị destroy
+    override fun onDestroy() {
+        super.onDestroy()
+        loadProductCall?.cancel()
+        addToCartCall?.cancel()
+        Log.d(TAG, "Cancelled pending API calls")
     }
 
     private fun initViews() {
@@ -74,12 +84,8 @@ class ProductDetailActivity : AppCompatActivity() {
         btnConfirmOrder = findViewById(R.id.btn_confirm_order)
 
         spinnerSize = findViewById(R.id.spinner_size)
-        spinnerBranch = findViewById(R.id.spinner_branch)
         layoutToppings = findViewById(R.id.layout_toppings)
         tvToppingLabel = findViewById(R.id.tv_topping_label)
-
-        val branchAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, branches)
-        spinnerBranch.adapter = branchAdapter
     }
 
     private fun getIntentData() {
@@ -106,20 +112,55 @@ class ProductDetailActivity : AppCompatActivity() {
     }
 
     private fun loadProductDetails() {
-        RetrofitClient.getInstance(this).apiService.getDrinks().enqueue(object : Callback<ApiResponse<List<Drink>>> {
+        // FIX C5: Lưu reference để có thể cancel
+        loadProductCall = RetrofitClient.getInstance(this).apiService.getDrinks()
+        loadProductCall?.enqueue(object : Callback<ApiResponse<List<Drink>>> {
             override fun onResponse(call: Call<ApiResponse<List<Drink>>>, response: Response<ApiResponse<List<Drink>>>) {
+                // FIX C5: Kiểm tra Activity còn tồn tại không
+                if (isFinishing || isDestroyed) {
+                    Log.d(TAG, "Activity destroyed, ignoring response")
+                    return
+                }
+                
                 if (response.isSuccessful && response.body()?.success == true) {
                     val drinks = response.body()?.data ?: emptyList()
                     product = drinks.find { it.id == productId }
 
                     product?.let {
                         displayProductFullDetails(it)
+                    } ?: run {
+                        // FIX C2: Hiển thị lỗi cho user khi không tìm thấy sản phẩm
+                        Toast.makeText(this@ProductDetailActivity, "Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    // FIX C2: Xử lý lỗi response và hiển thị cho user
+                    val errorMessage = try {
+                        response.body()?.message ?: response.errorBody()?.string() ?: "Lỗi tải thông tin sản phẩm"
+                    } catch (e: Exception) {
+                        "Lỗi tải thông tin sản phẩm"
+                    }
+                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Error response: $errorMessage")
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<List<Drink>>>, t: Throwable) {
-                Log.e(TAG, "Error loading product details", t)
+                // FIX C5: Kiểm tra Activity còn tồn tại không
+                if (isFinishing || isDestroyed) {
+                    Log.d(TAG, "Activity destroyed, ignoring failure")
+                    return
+                }
+                
+                // FIX C2: Hiển thị lỗi mạng cho user
+                if (!call.isCanceled) {
+                    val errorMessage = when {
+                        t is java.net.UnknownHostException -> "Không có kết nối mạng"
+                        t is java.net.SocketTimeoutException -> "Kết nối quá thời gian chờ"
+                        else -> "Lỗi kết nối: ${t.message}"
+                    }
+                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Error loading product details", t)
+                }
             }
         })
     }
@@ -213,7 +254,6 @@ class ProductDetailActivity : AppCompatActivity() {
             return
         }
 
-        val userId = session.getUserId()
         val request = AddToCartRequest(
             drinkId = productId.toLong(),
             sizeId = selectedSize?.id?.toLong() ?: 0L,
@@ -222,25 +262,47 @@ class ProductDetailActivity : AppCompatActivity() {
             note = ""
         )
 
-        RetrofitClient.getInstance(this).apiService.addToCart(userId.toLong(), request)
-            .enqueue(object : Callback<ApiResponse<Cart>> {
-                override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        if (goToCart) {
-                            startActivity(Intent(this@ProductDetailActivity, CartActivity::class.java))
-                            finish()
-                        } else {
-                            showSuccessDialog()
-                        }
+        // FIX C5: Lưu reference để có thể cancel
+        // Sử dụng API mới - không cần truyền userId (lấy từ JWT token)
+        addToCartCall = RetrofitClient.getInstance(this).apiService.addToCart(request)
+        addToCartCall?.enqueue(object : Callback<ApiResponse<Cart>> {
+            override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
+                // FIX C5: Kiểm tra Activity còn tồn tại không
+                if (isFinishing || isDestroyed) return
+                
+                if (response.isSuccessful && response.body()?.success == true) {
+                    if (goToCart) {
+                        startActivity(Intent(this@ProductDetailActivity, CartActivity::class.java))
+                        finish()
                     } else {
-                        Toast.makeText(this@ProductDetailActivity, response.body()?.message ?: "Lỗi thêm giỏ hàng", Toast.LENGTH_SHORT).show()
+                        showSuccessDialog()
                     }
+                } else {
+                    // FIX C2: Xử lý lỗi response tốt hơn
+                    val errorMessage = try {
+                        response.body()?.message ?: response.errorBody()?.string() ?: "Lỗi thêm giỏ hàng"
+                    } catch (e: Exception) {
+                        "Lỗi thêm giỏ hàng"
+                    }
+                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
                 }
+            }
 
-                override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
-                    Toast.makeText(this@ProductDetailActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+            override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
+                // FIX C5: Kiểm tra Activity còn tồn tại không
+                if (isFinishing || isDestroyed) return
+                
+                // FIX C2: Hiển thị lỗi mạng cho user
+                if (!call.isCanceled) {
+                    val errorMessage = when {
+                        t is java.net.UnknownHostException -> "Không có kết nối mạng"
+                        t is java.net.SocketTimeoutException -> "Kết nối quá thời gian chờ"
+                        else -> "Lỗi kết nối: ${t.message}"
+                    }
+                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
                 }
-            })
+            }
+        })
     }
 
     private fun showSuccessDialog() {

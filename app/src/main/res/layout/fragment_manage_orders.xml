@@ -69,6 +69,11 @@
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="SẴN SÀNG" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="HOÀN THÀNH" />
 
             <com.google.android.material.tabs.TabItem
@@ -78,19 +83,26 @@
         </com.google.android.material.tabs.TabLayout>
     </HorizontalScrollView>
 
-    <!-- RecyclerView for Orders -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_orders"
+    <!-- SwipeRefreshLayout with RecyclerView -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
-        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/scroll_tabs"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_orders"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- Progress Bar -->
     <ProgressBar

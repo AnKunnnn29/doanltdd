@@ -1,15 +1,21 @@
 package com.example.doan.Activities
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.doan.Fragments.AccountFragment
 import com.example.doan.Fragments.HomeFragment
 import com.example.doan.Fragments.MenuFragment
 import com.example.doan.Fragments.StoreFragment
+import com.example.doan.Network.AuthInterceptor
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
@@ -22,6 +28,15 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     private var selectedItemId = R.id.nav_home
     private lateinit var bottomNavigationView: BottomNavigationView
+    
+    // FIX C4: BroadcastReceiver để xử lý token expired
+    private val tokenExpiredReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.w(TAG, "Token expired broadcast received")
+            Toast.makeText(this@MainActivity, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show()
+            navigateToLogin()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,11 +65,35 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             }
             
             handleIntent(intent)
+            
+            // FIX C4: Đăng ký broadcast receiver cho token expired
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+                tokenExpiredReceiver,
+                IntentFilter(AuthInterceptor.ACTION_TOKEN_EXPIRED)
+            )
 
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate: ${e.message}")
             e.printStackTrace()
         }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // FIX C4: Hủy đăng ký broadcast receiver
+        try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(tokenExpiredReceiver)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error unregistering receiver: ${e.message}")
+        }
+    }
+    
+    private fun navigateToLogin() {
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

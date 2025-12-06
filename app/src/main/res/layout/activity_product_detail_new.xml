@@ -174,29 +174,6 @@
                         android:layout_marginBottom="20dp"
                         android:background="@color/wine_neutral_light" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Chi nhánh phục vụ"
-                        android:textColor="@color/wine_dark_background"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <Spinner
-                        android:id="@+id/spinner_branch"
-                        android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/rounded_spinner_background"
-                        android:padding="12dp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginBottom="20dp"
-                        android:background="@color/wine_neutral_light" />
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

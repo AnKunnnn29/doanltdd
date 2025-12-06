@@ -4,7 +4,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,11 +43,18 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private lateinit var btnCheckout: Button
     private lateinit var cbSelectAll: CheckBox
     private lateinit var btnDeleteSelected: Button
-    private lateinit var spinnerBranch: Spinner
     private lateinit var spinnerPaymentMethod: Spinner
+    private lateinit var spinnerStore: Spinner
+    private lateinit var rgDeliveryType: RadioGroup
+    private lateinit var rbPickup: RadioButton
+    private lateinit var rbDelivery: RadioButton
+    private lateinit var llDeliveryAddress: LinearLayout
+    private lateinit var etDeliveryAddress: EditText
     
     private var cartItems = mutableListOf<CartItem>()
-    private var stores = listOf<Store>()
+    private var storeList = mutableListOf<Store>()
+    private var selectedStoreId: Int? = null
+    private var selectedDeliveryType: String = "PICKUP" // Mặc định là đến lấy
     private val paymentMethods = listOf("COD", "Momo", "ZaloPay", "Banking")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +65,6 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         setupRecyclerView()
         setupListeners()
         loadCart()
-        loadStores()
     }
 
     private fun initViews() {
@@ -58,12 +74,20 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         btnCheckout = findViewById(R.id.btn_checkout)
         cbSelectAll = findViewById(R.id.cb_select_all)
         btnDeleteSelected = findViewById(R.id.btn_delete_selected)
-        spinnerBranch = findViewById(R.id.spinner_branch_cart)
         spinnerPaymentMethod = findViewById(R.id.spinner_payment_method)
+        spinnerStore = findViewById(R.id.spinner_store)
+        rgDeliveryType = findViewById(R.id.rg_delivery_type)
+        rbPickup = findViewById(R.id.rb_pickup)
+        rbDelivery = findViewById(R.id.rb_delivery)
+        llDeliveryAddress = findViewById(R.id.ll_delivery_address)
+        etDeliveryAddress = findViewById(R.id.et_delivery_address)
         
         // Setup Payment Method Spinner
         val paymentAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, paymentMethods)
         spinnerPaymentMethod.adapter = paymentAdapter
+        
+        // Load stores từ API
+        loadStores()
         
         findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar_cart).setNavigationOnClickListener { finish() }
     }
@@ -86,6 +110,32 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             }
         }
         
+        // Xử lý chọn loại giao hàng (PICKUP / DELIVERY)
+        rgDeliveryType.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.rb_pickup -> {
+                    selectedDeliveryType = "PICKUP"
+                    llDeliveryAddress.visibility = View.GONE
+                }
+                R.id.rb_delivery -> {
+                    selectedDeliveryType = "DELIVERY"
+                    llDeliveryAddress.visibility = View.VISIBLE
+                }
+            }
+        }
+        
+        // Xử lý chọn chi nhánh từ Spinner
+        spinnerStore.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (storeList.isNotEmpty() && position < storeList.size) {
+                    selectedStoreId = storeList[position].id
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                selectedStoreId = null
+            }
+        }
+        
         btnCheckout.setOnClickListener { 
             val selectedItems = cartAdapter.getSelectedItems()
             if (selectedItems.isEmpty()) {
@@ -93,17 +143,51 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 return@setOnClickListener
             }
             
-            val selectedStorePosition = spinnerBranch.selectedItemPosition
-            if (selectedStorePosition == Spinner.INVALID_POSITION || stores.isEmpty()) {
+            if (selectedStoreId == null) {
                 Toast.makeText(this, "Vui lòng chọn chi nhánh", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val selectedStore = stores[selectedStorePosition]
+            
+            // Kiểm tra địa chỉ nếu chọn giao tận nơi
+            val deliveryAddress = if (selectedDeliveryType == "DELIVERY") {
+                val address = etDeliveryAddress.text.toString().trim()
+                if (address.isEmpty()) {
+                    Toast.makeText(this, "Vui lòng nhập địa chỉ giao hàng", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                address
+            } else null
             
             val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
 
-            createOrder(selectedItems, selectedStore.id, selectedPaymentMethod)
+            createOrder(selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
         }
+    }
+    
+    private fun loadStores() {
+        RetrofitClient.getInstance(this).apiService.getStores().enqueue(object : Callback<ApiResponse<List<Store>>> {
+            override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    storeList.clear()
+                    storeList.addAll(response.body()?.data ?: emptyList())
+                    
+                    // Setup Store Spinner
+                    val storeNames = storeList.map { it.storeName ?: "Chi nhánh ${it.id}" }
+                    val storeAdapter = ArrayAdapter(this@CartActivity, android.R.layout.simple_spinner_dropdown_item, storeNames)
+                    spinnerStore.adapter = storeAdapter
+                    
+                    // Chọn chi nhánh đầu tiên mặc định
+                    if (storeList.isNotEmpty()) {
+                        selectedStoreId = storeList[0].id
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                Log.e("CartActivity", "Error loading stores", t)
+                Toast.makeText(this@CartActivity, "Không thể tải danh sách chi nhánh", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun loadCart() {
@@ -128,22 +212,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         })
     }
     
-    private fun loadStores() {
-        RetrofitClient.getInstance(this).apiService.getStores().enqueue(object : Callback<ApiResponse<List<Store>>> {
-            override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
-                if (response.isSuccessful && response.body()?.success == true) {
-                    stores = response.body()?.data ?: emptyList()
-                    val storeNames = stores.map { it.storeName }
-                    val adapter = ArrayAdapter(this@CartActivity, android.R.layout.simple_spinner_dropdown_item, storeNames)
-                    spinnerBranch.adapter = adapter
-                }
-            }
 
-            override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
-                Log.e("CartActivity", "Error loading stores", t)
-            }
-        })
-    }
 
     private fun updateUi() {
         if (cartItems.isEmpty()) {
@@ -169,18 +238,25 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
 
     override fun onItemDeleted(item: CartItem) {
-        val userId = SessionManager(this).getUserId()
-        if (userId == -1) return
+        // Kiểm tra user đã đăng nhập chưa
+        if (SessionManager(this).getUserId() == -1) return
 
-        item.id?.let {
-            RetrofitClient.getInstance(this).apiService.removeCartItem(it, userId.toLong()).enqueue(object : Callback<ApiResponse<Void>> {
-                override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
-                    if (response.isSuccessful) {
-                        loadCart()
+        item.id?.let { cartItemId ->
+            // Sử dụng API mới - không cần truyền userId (lấy từ JWT token)
+            RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)
+                .enqueue(object : Callback<ApiResponse<Void>> {
+                    override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                        if (response.isSuccessful) {
+                            loadCart()
+                        } else {
+                            Toast.makeText(this@CartActivity, "Không thể xóa sản phẩm", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
-                override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {}
-            })
+                    override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                        Log.e("CartActivity", "Error removing cart item", t)
+                        Toast.makeText(this@CartActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                    }
+                })
         }
     }
     
@@ -195,7 +271,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             .show()
     }
     
-    private fun createOrder(items: List<CartItem>, storeId: Int, paymentMethod: String) {
+    private fun createOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
         val orderItems = items.map { item ->
             com.example.doan.Models.OrderItemRequest(
                 drinkId = item.drinkId!!.toLong(), 
@@ -209,8 +285,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         val request = CreateOrderRequest(
             storeId = storeId.toLong(),
             items = orderItems,
-            type = "DELIVERY", 
-            paymentMethod = paymentMethod
+            type = selectedDeliveryType, // PICKUP hoặc DELIVERY
+            paymentMethod = paymentMethod,
+            address = deliveryAddress // Địa chỉ giao hàng (null nếu PICKUP)
         )
 
         RetrofitClient.getInstance(this).apiService.createOrder(request).enqueue(object: Callback<ApiResponse<Order>> {

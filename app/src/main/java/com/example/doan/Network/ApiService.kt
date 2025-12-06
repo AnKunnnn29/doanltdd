@@ -80,28 +80,36 @@ interface ApiService {
     // Use getStores() instead for store/branch selection
 
     // ==================== CART ====================
+    // Backend sử dụng Authentication từ JWT token
+    // Các endpoint vẫn hỗ trợ userId để backward compatible
+    
     @POST("cart/add")
-    fun addToCart(
-        @Query("userId") userId: Long,
-        @Body request: AddToCartRequest
-    ): Call<ApiResponse<Cart>>
+    fun addToCart(@Body request: AddToCartRequest): Call<ApiResponse<Cart>>
+    
+    // Lấy cart của user hiện tại từ JWT
+    @GET("cart")
+    fun getMyCart(): Call<ApiResponse<Cart>>
 
+    // Lấy cart theo userId (backend vẫn verify quyền)
     @GET("cart/{userId}")
     fun getCart(@Path("userId") userId: Long): Call<ApiResponse<Cart>>
 
+    // Cập nhật số lượng item trong cart
     @PUT("cart/items/{cartItemId}")
     fun updateCartItem(
         @Path("cartItemId") cartItemId: Long,
-        @Query("userId") userId: Long,
         @Query("quantity") quantity: Int
     ): Call<ApiResponse<Cart>>
 
+    // Xóa item khỏi cart
     @DELETE("cart/items/{cartItemId}")
-    fun removeCartItem(
-        @Path("cartItemId") cartItemId: Long,
-        @Query("userId") userId: Long
-    ): Call<ApiResponse<Void>>
+    fun removeCartItem(@Path("cartItemId") cartItemId: Long): Call<ApiResponse<Void>>
+    
+    // Xóa toàn bộ cart của user hiện tại
+    @DELETE("cart/clear")
+    fun clearMyCart(): Call<ApiResponse<Void>>
 
+    // Xóa cart theo userId (backend vẫn verify quyền)
     @DELETE("cart/{userId}/clear")
     fun clearCart(@Path("userId") userId: Long): Call<ApiResponse<Void>>
 
@@ -127,6 +135,12 @@ interface ApiService {
     // ==================== MANAGER APIs ====================
     @GET("manager/summary")
     fun getDashboardSummary(): Call<ApiResponse<DashboardSummary>>
+    
+    @GET("manager/statistics/revenue")
+    fun getRevenueStatistics(
+        @Query("days") days: Int = 7,
+        @Query("months") months: Int = 6
+    ): Call<ApiResponse<RevenueStatistics>>
 
     @GET("manager/orders")
     fun getManagerOrders(

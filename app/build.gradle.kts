@@ -76,6 +76,9 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    
+    // FIX C4: LocalBroadcastManager for token expired handling
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     // CircleIndicator for ViewPager2
     implementation("me.relex:circleindicator:2.1.6")
     
@@ -102,6 +105,9 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("dev.chrisbanes.snapper:snapper:0.3.0")
+    
+    // MPAndroidChart for charts/graphs
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
 
 tasks.register("deleteDuplicateResources") {
