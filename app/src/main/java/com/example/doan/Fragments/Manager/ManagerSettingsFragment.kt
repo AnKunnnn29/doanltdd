@@ -23,6 +23,7 @@ class ManagerSettingsFragment : Fragment() {
     private lateinit var cardProfile: MaterialCardView
     private lateinit var cardStore: MaterialCardView
     private lateinit var cardUsers: MaterialCardView
+    private lateinit var cardVouchers: MaterialCardView
     private lateinit var cardLogout: MaterialCardView
 
     override fun onCreateView(
@@ -42,6 +43,7 @@ class ManagerSettingsFragment : Fragment() {
         cardProfile = view.findViewById(R.id.card_profile)
         cardStore = view.findViewById(R.id.card_store)
         cardUsers = view.findViewById(R.id.card_users)
+        cardVouchers = view.findViewById(R.id.card_vouchers)
         cardLogout = view.findViewById(R.id.card_logout)
 
         // Load manager info
@@ -77,6 +79,11 @@ class ManagerSettingsFragment : Fragment() {
         // Users management card
         cardUsers.setOnClickListener {
             navigateToFragment(ManageUsersFragment())
+        }
+
+        // Vouchers management card
+        cardVouchers.setOnClickListener {
+            navigateToFragment(ManageVouchersFragment())
         }
 
         // Logout card

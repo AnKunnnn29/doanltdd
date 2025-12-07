@@ -132,6 +132,38 @@ interface ApiService {
     @POST("orders/{id}/confirm")
     fun confirmOrder(@Path("id") orderId: Int): Call<ApiResponse<String>>
 
+    // ==================== PROMOTIONS/VOUCHERS ====================
+    @GET("promotions")
+    fun getActivePromotions(): Call<ApiResponse<List<Voucher>>>
+    
+    @GET("promotions/{id}")
+    fun getPromotionById(@Path("id") id: Long): Call<ApiResponse<Voucher>>
+    
+    @GET("promotions/validate")
+    fun validatePromotion(
+        @Query("code") code: String,
+        @Query("orderAmount") orderAmount: Double?
+    ): Call<ApiResponse<Voucher>>
+    
+    // Manager APIs for Vouchers
+    @GET("promotions/manager/all")
+    fun getAllPromotions(): Call<ApiResponse<List<Voucher>>>
+    
+    @POST("promotions/manager")
+    fun createPromotion(@Body request: CreateVoucherRequest): Call<ApiResponse<Voucher>>
+    
+    @PUT("promotions/manager/{id}")
+    fun updatePromotion(
+        @Path("id") id: Long,
+        @Body request: UpdateVoucherRequest
+    ): Call<ApiResponse<Voucher>>
+    
+    @DELETE("promotions/manager/{id}")
+    fun deletePromotion(@Path("id") id: Long): Call<ApiResponse<Void>>
+    
+    @PATCH("promotions/manager/{id}/toggle-status")
+    fun togglePromotionStatus(@Path("id") id: Long): Call<ApiResponse<Voucher>>
+
     // ==================== MANAGER APIs ====================
     @GET("manager/summary")
     fun getDashboardSummary(): Call<ApiResponse<DashboardSummary>>
