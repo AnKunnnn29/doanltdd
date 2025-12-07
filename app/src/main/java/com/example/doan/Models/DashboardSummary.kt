@@ -3,9 +3,11 @@ package com.example.doan.Models
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
+import java.math.BigDecimal
+
 data class DashboardSummary(
     @SerializedName("totalRevenue")
-    var totalRevenue: Double = 0.0,
+    var totalRevenue: BigDecimal = BigDecimal.ZERO,
     
     @SerializedName("totalOrders")
     var totalOrders: Long = 0,
@@ -31,6 +33,6 @@ data class DashboardSummary(
         val totalSold: Long = 0,
         
         @SerializedName("revenue")
-        val revenue: Double = 0.0
+        val revenue: BigDecimal = BigDecimal.ZERO
     ) : Serializable
 }

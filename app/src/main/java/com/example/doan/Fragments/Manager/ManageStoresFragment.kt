@@ -35,7 +35,9 @@ class ManageStoresFragment : Fragment() {
 
         adapter = StoreAdapter(
             requireContext(), storeList,
-            onStoreClick = TODO()
+            onStoreClick = { store ->
+                Toast.makeText(context, "Chi tiết cửa hàng: ${store.storeName}", Toast.LENGTH_SHORT).show()
+            }
         )
         rvStores.adapter = adapter
 

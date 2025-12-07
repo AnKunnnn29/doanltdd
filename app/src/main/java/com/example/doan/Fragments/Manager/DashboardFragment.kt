@@ -147,6 +147,8 @@ class DashboardFragment : Fragment() {
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
                         response.body()?.data?.let { data ->
+                            val currencyFormat = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+                            tvTotalRevenue.text = currencyFormat.format(data.totalRevenue)
                             tvTotalOrders.text = data.totalOrders.toString()
                             tvPendingOrders.text = data.pendingOrders.toString()
                         }
@@ -189,10 +191,6 @@ class DashboardFragment : Fragment() {
 
     private fun displayStatistics() {
         statistics?.let { stats ->
-            // Display total revenue
-            val currencyFormat = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-            tvTotalRevenue.text = currencyFormat.format(stats.totalRevenue)
-
             // Display chart
             if (rbDaily.isChecked) {
                 displayDailyChart()
@@ -214,14 +212,11 @@ class DashboardFragment : Fragment() {
             return
         }
 
-        // Reverse để hiển thị từ cũ đến mới
-        val reversedData = dailyRevenues.reversed()
-
-        val entries = reversedData.mapIndexed { index, daily ->
+        val entries = dailyRevenues.mapIndexed { index, daily ->
             BarEntry(index.toFloat(), daily.revenue.toFloat())
         }
 
-        val labels = reversedData.map { daily ->
+        val labels = dailyRevenues.map { daily ->
             try {
                 val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val outputFormat = SimpleDateFormat("dd/MM", Locale.getDefault())
@@ -262,14 +257,11 @@ class DashboardFragment : Fragment() {
             return
         }
 
-        // Reverse để hiển thị từ cũ đến mới
-        val reversedData = monthlyRevenues.reversed()
-
-        val entries = reversedData.mapIndexed { index, monthly ->
+        val entries = monthlyRevenues.mapIndexed { index, monthly ->
             BarEntry(index.toFloat(), monthly.revenue.toFloat())
         }
 
-        val labels = reversedData.map { monthly ->
+        val labels = monthlyRevenues.map { monthly ->
             "T${monthly.month}"
         }
 

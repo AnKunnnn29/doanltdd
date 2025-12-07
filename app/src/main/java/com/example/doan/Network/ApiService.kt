@@ -50,6 +50,15 @@ interface ApiService {
     @GET("categories/{id}")
     fun getCategoryById(@Path("id") id: Int): Call<ApiResponse<Category>>
 
+    @POST("manager/categories")
+    fun createCategory(@Body categoryData: Map<String, String>): Call<ApiResponse<Category>>
+
+    @PUT("manager/categories/{id}")
+    fun updateCategory(@Path("id") id: Long, @Body categoryData: Map<String, String>): Call<ApiResponse<Category>>
+
+    @DELETE("manager/categories/{id}")
+    fun deleteCategory(@Path("id") id: Long): Call<ApiResponse<String>>
+
     // ==================== DRINKS ====================
     @GET("drinks")
     fun getDrinks(): Call<ApiResponse<List<Drink>>>

@@ -13,7 +13,7 @@ data class Category(
     @SerializedName("description")
     var description: String? = null,
     
-    @SerializedName("image")
+    @SerializedName("imageUrl")
     var image: String? = null,
     
     @SerializedName("displayOrder")

@@ -79,11 +79,18 @@ class VoucherManagerAdapter(
                 tvDates.text = "Từ ${voucher.startDate} đến ${voucher.endDate}"
             }
             
-            // Active status
+            // Active status - remove listener first to avoid triggering on bind
+            switchActive.setOnCheckedChangeListener(null)
             switchActive.isChecked = voucher.isActive
-            switchActive.setOnCheckedChangeListener { _, _ ->
-                onToggleClick(voucher)
+            switchActive.setOnCheckedChangeListener { _, isChecked ->
+                // Only trigger if actually changed
+                if (isChecked != voucher.isActive) {
+                    onToggleClick(voucher)
+                }
             }
+            
+            // Style mờ nếu inactive
+            itemView.alpha = if (voucher.isActive) 1.0f else 0.5f
             
             // Buttons
             btnEdit.setOnClickListener { onEditClick(voucher) }
