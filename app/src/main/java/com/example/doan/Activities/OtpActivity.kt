@@ -2,6 +2,7 @@ package com.example.doan.Activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -17,35 +18,39 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.concurrent.TimeUnit
 
 class OtpActivity : AppCompatActivity() {
 
     private lateinit var otpInput: EditText
     private lateinit var verifyButton: Button
     private lateinit var resendOtpText: TextView
+    private lateinit var otpExpiryText: TextView
 
     private var username: String = ""
     private var password: String = ""
     private var email: String = ""
+
+    private var otpExpiryTimer: CountDownTimer? = null
+    private var resendCooldownTimer: CountDownTimer? = null
+
+    private var isResendCooldown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_otp)
         Log.d(TAG, "onCreate called")
 
-
         otpInput = findViewById(R.id.input_otp)
         verifyButton = findViewById(R.id.btn_verify_otp)
         resendOtpText = findViewById(R.id.text_resend_otp)
+        otpExpiryText = findViewById(R.id.text_otp_expiry)
 
-        // Nhận dữ liệu từ RegisterActivity
         intent?.let {
             if (it.hasExtra("USERNAME") && it.hasExtra("PASSWORD") && it.hasExtra("EMAIL")) {
                 username = it.getStringExtra("USERNAME") ?: ""
                 password = it.getStringExtra("PASSWORD") ?: ""
                 email = it.getStringExtra("EMAIL") ?: ""
-
-                // Gọi API đăng ký để server gửi OTP
                 requestRegistrationAndOtp()
             } else {
                 Toast.makeText(this, "Lỗi: Không tìm thấy thông tin đăng ký.", Toast.LENGTH_LONG).show()
@@ -63,18 +68,58 @@ class OtpActivity : AppCompatActivity() {
             verifyOtp(otp)
         }
 
-        resendOtpText.setOnClickListener { resendOtp() }
+        resendOtpText.setOnClickListener {
+            if (!isResendCooldown) {
+                resendOtp()
+            }
+        }
+    }
+
+    private fun startOtpExpiryTimer() {
+        otpExpiryTimer?.cancel()
+        otpExpiryTimer = object : CountDownTimer(300000, 1000) { // 5 minutes
+            override fun onTick(millisUntilFinished: Long) {
+                val minutes = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)
+                val seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) % 60
+                otpExpiryText.text = String.format("Mã OTP sẽ hết hạn trong %02d:%02d", minutes, seconds)
+            }
+
+            override fun onFinish() {
+                otpExpiryText.text = "Mã OTP đã hết hạn"
+                verifyButton.isEnabled = false
+                Toast.makeText(this@OtpActivity, "Mã OTP đã hết hạn. Vui lòng gửi lại.", Toast.LENGTH_SHORT).show()
+            }
+        }.start()
+    }
+
+    private fun startResendCooldownTimer() {
+        isResendCooldown = true
+        resendCooldownTimer?.cancel()
+        resendCooldownTimer = object : CountDownTimer(60000, 1000) { // 60 seconds
+            override fun onTick(millisUntilFinished: Long) {
+                val seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)
+                resendOtpText.text = String.format("Gửi lại sau (%ds)", seconds)
+                resendOtpText.isEnabled = false
+            }
+
+            override fun onFinish() {
+                isResendCooldown = false
+                resendOtpText.text = "Chưa nhận được mã? Gửi lại"
+                resendOtpText.isEnabled = true
+            }
+        }.start()
     }
 
     private fun requestRegistrationAndOtp() {
         Toast.makeText(this, "Đang gửi yêu cầu đăng ký...", Toast.LENGTH_SHORT).show()
-        val registerRequest = RegisterRequest(username, email, password, username, "",null)
+        val registerRequest = RegisterRequest(username, email, password, username, "", null)
 
         RetrofitClient.getInstance(this).apiService.registerWithOtp(registerRequest)
             .enqueue(object : Callback<ApiResponse<String>> {
                 override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
                     if (response.isSuccessful && response.body()?.success == true) {
                         Toast.makeText(this@OtpActivity, response.body()?.message, Toast.LENGTH_SHORT).show()
+                        startOtpExpiryTimer()
                     } else {
                         var errorMessage = "Lỗi khi gửi OTP."
                         try {
@@ -101,6 +146,7 @@ class OtpActivity : AppCompatActivity() {
             .enqueue(object : Callback<ApiResponse<String>> {
                 override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
                     if (response.isSuccessful && response.body()?.success == true) {
+                        otpExpiryTimer?.cancel()
                         Toast.makeText(this@OtpActivity, "Kích hoạt thành công! Vui lòng đăng nhập.", Toast.LENGTH_LONG).show()
                         val intent = Intent(this@OtpActivity, LoginActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -132,11 +178,13 @@ class OtpActivity : AppCompatActivity() {
 
     private fun resendOtp() {
         Toast.makeText(this@OtpActivity, "Đang gửi lại OTP...", Toast.LENGTH_SHORT).show()
+        startResendCooldownTimer()
         RetrofitClient.getInstance(this).apiService.resendOtp(email)
             .enqueue(object : Callback<ApiResponse<String>> {
                 override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
                     if (response.isSuccessful && response.body()?.success == true) {
                         Toast.makeText(this@OtpActivity, "OTP đã được gửi lại!", Toast.LENGTH_SHORT).show()
+                        startOtpExpiryTimer()
                     } else {
                         var errorMessage = "Lỗi gửi lại OTP."
                         errorMessage = response.body()?.message
@@ -153,6 +201,12 @@ class OtpActivity : AppCompatActivity() {
                     Toast.makeText(this@OtpActivity, "Không thể kết nối đến server.", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        otpExpiryTimer?.cancel()
+        resendCooldownTimer?.cancel()
     }
 
     companion object {

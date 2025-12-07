@@ -4,10 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 
 class SessionManager(context: Context) {
-    
+
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     private val editor: SharedPreferences.Editor = prefs.edit()
-    
+
     fun saveLoginSession(
         userId: Int,
         username: String?,
@@ -16,7 +16,8 @@ class SessionManager(context: Context) {
         phone: String?,
         role: String?,
         memberTier: String?,
-        token: String?
+        token: String?,
+        avatar: String? = null
     ) {
         editor.apply {
             putBoolean(KEY_IS_LOGGED_IN, true)
@@ -28,20 +29,21 @@ class SessionManager(context: Context) {
             putString(KEY_ROLE, role)
             putString(KEY_MEMBER_TIER, memberTier)
             putString(KEY_TOKEN, token)
+            putString(KEY_AVATAR, avatar)
             apply()
         }
     }
-    
+
     fun logout() {
         editor.clear().apply()
     }
-    
+
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
-    
+
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
-    
+
     fun getUserId(): Int = prefs.getInt(KEY_USER_ID, -1)
-    
+
     fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
 
     fun getEmail(): String? = prefs.getString(KEY_EMAIL, null)
@@ -49,21 +51,23 @@ class SessionManager(context: Context) {
     fun setEmail(email: String) {
         editor.putString(KEY_EMAIL, email).apply()
     }
-    
+
     fun getFullName(): String? = prefs.getString(KEY_FULL_NAME, null)
 
     fun setFullName(fullName: String) {
         editor.putString(KEY_FULL_NAME, fullName).apply()
     }
-    
+
     fun getPhoneNumber(): String? = prefs.getString(KEY_PHONE, null)
-    
+
     fun getRole(): String = prefs.getString(KEY_ROLE, "USER") ?: "USER"
-    
+
     fun getMemberTier(): String = prefs.getString(KEY_MEMBER_TIER, "BRONZE") ?: "BRONZE"
-    
+
+    fun getAvatar(): String? = prefs.getString(KEY_AVATAR, null)
+
     fun isManager(): Boolean = getRole() == "MANAGER"
-    
+
     companion object {
         private const val PREF_NAME = "UTETeaPrefs"
         private const val KEY_TOKEN = "jwt_token"
@@ -75,5 +79,6 @@ class SessionManager(context: Context) {
         private const val KEY_ROLE = "role"
         private const val KEY_MEMBER_TIER = "member_tier"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
+        private const val KEY_AVATAR = "avatar"
     }
 }

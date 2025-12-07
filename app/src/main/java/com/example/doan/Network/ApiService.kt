@@ -14,7 +14,11 @@ interface ApiService {
 
     @PUT("me")
     fun updateProfile(@Body request: UpdateProfileRequest): Call<ApiResponse<UserProfileDto>>
-    
+
+    @Multipart
+    @POST("me/avatar")
+    fun uploadAvatar(@Part image: MultipartBody.Part): Call<ApiResponse<UserProfileDto>>
+
     @PUT("me/change-password")
     fun changePassword(@Body request: ChangePasswordRequest): Call<String>
 

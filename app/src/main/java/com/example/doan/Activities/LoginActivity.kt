@@ -74,7 +74,8 @@ class LoginActivity : AppCompatActivity() {
                             phone = loginResponse.phone,
                             role = loginResponse.role,
                             memberTier = loginResponse.memberTier,
-                            token = loginResponse.token
+                            token = loginResponse.token,
+                            avatar = loginResponse.avatar
                         )
                         navigateToMain()
                     } else {

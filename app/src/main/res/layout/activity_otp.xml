@@ -28,24 +28,35 @@
                 android:contentDescription="Logo"
                 android:layout_marginBottom="16dp"
                 android:src="@drawable/ic_lock"
-                app:tint="@color/white"/> <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="XÁC THỰC OTP"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:textColor="@color/wine_light_surface"
-            android:fontFamily="sans-serif-medium"/>
+                app:tint="@color/white"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XÁC THỰC OTP"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="@color/wine_light_surface"
+                android:fontFamily="sans-serif-medium"/>
 
             <TextView
                 android:id="@+id/text_otp_instruction"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nhập mã OTP đã được gửi đến số điện thoại của bạn"
+                android:text="Nhập mã OTP đã được gửi đến email của bạn"
                 android:textColor="@color/wine_light_surface"
                 android:alpha="0.9"
                 android:textAlignment="center"
                 android:textSize="18sp"
+                android:layout_marginTop="8dp"/>
+
+            <TextView
+                android:id="@+id/text_otp_expiry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mã OTP sẽ hết hạn trong 05:00"
+                android:textColor="@color/wine_light_surface"
+                android:alpha="0.9"
+                android:textSize="16sp"
                 android:layout_marginTop="8dp"/>
         </LinearLayout>
 

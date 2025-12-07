@@ -25,7 +25,10 @@ data class LoginResponse(
     var memberTier: String? = null,
 
     @SerializedName("token")
-    var token: String? = null
+    var token: String? = null,
+
+    @SerializedName("avatarUrl")
+    var avatar: String? = null
 ) {
     fun isManager(): Boolean = role == "MANAGER"
 }

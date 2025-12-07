@@ -26,15 +26,38 @@
                 android:orientation="vertical"
                 android:padding="32dp">
 
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/profile_image"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:padding="4dp"
-                    android:src="@drawable/img"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                    app:strokeColor="@color/wine_accent_gold"
-                    app:strokeWidth="2dp" />
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/profile_image"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:padding="4dp"
+                        android:src="@drawable/img"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                        app:strokeColor="@color/wine_accent_gold"
+                        app:strokeWidth="2dp" />
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab_edit_avatar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignEnd="@id/profile_image"
+                        android:layout_alignBottom="@id/profile_image"
+                        android:src="@android:drawable/ic_menu_camera"
+                        app:fabSize="mini"
+                        app:tint="@android:color/white"
+                        app:backgroundTint="@color/wine_primary"
+                        android:layout_marginEnd="-15dp"
+                        android:layout_marginBottom="-15dp"
+                        app:elevation="2dp"
+                        app:borderWidth="0dp"
+                        android:contentDescription="Edit Avatar"/>
+
+                </RelativeLayout>
+
 
                 <TextView
                     android:id="@+id/profile_name"
