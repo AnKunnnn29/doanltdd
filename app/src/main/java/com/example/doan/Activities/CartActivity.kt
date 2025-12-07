@@ -28,6 +28,8 @@ import com.example.doan.Models.CartItem
 import com.example.doan.Models.CreateOrderRequest
 import com.example.doan.Models.Order
 import com.example.doan.Models.Store
+import com.example.doan.Models.VNPayPaymentRequest
+import com.example.doan.Models.VNPayPaymentResponse
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
@@ -63,9 +65,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var storeList = mutableListOf<Store>()
     private var selectedStoreId: Int? = null
     private var selectedDeliveryType: String = "PICKUP" // Mặc định là đến lấy
-    private val paymentMethods = listOf("COD", "Momo", "ZaloPay", "Banking")
+    private val paymentMethods = listOf("COD", "VNPAY")
     private var appliedVoucher: com.example.doan.Models.Voucher? = null
     private var discountAmount: Double = 0.0
+    private var createdOrderId: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -436,14 +439,19 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         RetrofitClient.getInstance(this).apiService.createOrder(request).enqueue(object: Callback<ApiResponse<Order>> {
             override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
                 if(response.isSuccessful && response.body()?.success == true) {
-                    Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
-                    clearCartOnServer()
-                    val intent = Intent(this@CartActivity, MainActivity::class.java).apply {
-                        putExtra("SELECTED_ITEM", R.id.nav_order)
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    val order = response.body()?.data
+                    createdOrderId = order?.id?.toLong()
+                    
+                    // Kiểm tra phương thức thanh toán
+                    if (paymentMethod == "VNPAY") {
+                        // Tạo URL thanh toán VNPAY
+                        createVNPayPayment(createdOrderId!!)
+                    } else {
+                        // COD - thanh toán khi nhận hàng
+                        Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+                        clearCartOnServer()
+                        navigateToOrders()
                     }
-                    startActivity(intent)
-                    finish()
                 } else {
                     Toast.makeText(this@CartActivity, "Đặt hàng thất bại: ${response.body()?.message}", Toast.LENGTH_LONG).show()
                 }
@@ -453,6 +461,54 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 Toast.makeText(this@CartActivity, "Lỗi: ${t.message}", Toast.LENGTH_LONG).show()
             }
         })
+    }
+    
+    private fun createVNPayPayment(orderId: Long) {
+        val request = VNPayPaymentRequest(
+            orderId = orderId,
+            orderInfo = "Thanh toan don hang $orderId",
+            ipAddress = "127.0.0.1"
+        )
+        
+        RetrofitClient.getInstance(this).apiService.createVNPayPayment(request)
+            .enqueue(object : Callback<ApiResponse<VNPayPaymentResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<VNPayPaymentResponse>>,
+                    response: Response<ApiResponse<VNPayPaymentResponse>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val paymentUrl = response.body()?.data?.paymentUrl
+                        if (!paymentUrl.isNullOrEmpty()) {
+                            // Clear cart trước khi chuyển sang thanh toán
+                            clearCartOnServer()
+                            
+                            // Mở WebView để thanh toán
+                            val intent = Intent(this@CartActivity, VNPayPaymentActivity::class.java)
+                            intent.putExtra("PAYMENT_URL", paymentUrl)
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            Toast.makeText(this@CartActivity, "Không thể tạo URL thanh toán", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this@CartActivity, "Lỗi tạo thanh toán: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<VNPayPaymentResponse>>, t: Throwable) {
+                    Log.e("CartActivity", "Error creating VNPAY payment", t)
+                    Toast.makeText(this@CartActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    private fun navigateToOrders() {
+        val intent = Intent(this@CartActivity, MainActivity::class.java).apply {
+            putExtra("SELECTED_ITEM", R.id.nav_order)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun clearCartOnServer() {

@@ -242,6 +242,10 @@ interface ApiService {
     @DELETE("admin/categories/{id}")
     fun deleteCategory(@Path("id") id: Int): Call<ApiResponse<Void>>
 
+    // ==================== VNPAY PAYMENT ====================
+    @POST("vnpay/create-payment")
+    fun createVNPayPayment(@Body request: VNPayPaymentRequest): Call<ApiResponse<VNPayPaymentResponse>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

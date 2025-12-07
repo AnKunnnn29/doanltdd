@@ -130,6 +130,11 @@
             android:name=".Activities.AddEditCategoryActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.VNPayPaymentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
 
     </application>
 
