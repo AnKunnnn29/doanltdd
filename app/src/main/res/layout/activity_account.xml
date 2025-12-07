@@ -257,7 +257,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
-
                     <!-- Tùy chọn: Cài đặt -->
                     <RelativeLayout
                         android:id="@+id/settings_option"
@@ -292,31 +291,60 @@
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
                             android:src="@drawable/ic_arrow_forward" />
-
                     </RelativeLayout>
 
                     <com.google.android.material.divider.MaterialDivider
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
-                    <!-- Tùy chọn: Đăng xuất -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/logout_button"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="wrap_content"
+                    <!-- Tùy chọn: Xóa tài khoản -->
+                    <RelativeLayout
+                        android:id="@+id/delete_account_option"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="24dp"
-                        android:text="Đăng xuất"
-                        android:textColor="@color/error"
-                        app:icon="@android:drawable/ic_lock_power_off"
-                        app:iconTint="@color/error" />
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:id="@+id/icon_delete_account"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:src="@android:drawable/ic_menu_delete"
+                            app:tint="@android:color/holo_red_dark" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="16dp"
+                            android:layout_toEndOf="@id/icon_delete_account"
+                            android:text="Xóa Tài Khoản"
+                            android:textColor="@android:color/holo_red_dark"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                    </RelativeLayout>
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- TÁC DỤNG: Nút đăng xuất. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/logout_button"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:padding="16dp"
+                android:text="Đăng xuất"
+                android:textColor="@color/wine_light_surface"
+                app:strokeColor="@color/wine_light_surface" />
+
         </LinearLayout>
+
     </ScrollView>
-
-
 </RelativeLayout>

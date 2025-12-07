@@ -10,6 +10,7 @@ import com.example.doan.Network.ApiService
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
@@ -28,6 +29,11 @@ class UserProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_profile)
+
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar_user_profile)
+        toolbar.setNavigationOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
 
         sessionManager = SessionManager(this)
         apiService = RetrofitClient.getInstance(this).apiService
@@ -85,7 +91,8 @@ class UserProfileActivity : AppCompatActivity() {
                         phone = updatedProfile.phone,
                         role = sessionManager.getRole(),
                         memberTier = updatedProfile.memberTier,
-                        token = sessionManager.getToken()
+                        token = sessionManager.getToken(),
+                        avatar = updatedProfile.avatar
                     )
                     Toast.makeText(this@UserProfileActivity, "Hồ sơ đã được cập nhật", Toast.LENGTH_SHORT).show()
                     finish() // Close activity after successful update

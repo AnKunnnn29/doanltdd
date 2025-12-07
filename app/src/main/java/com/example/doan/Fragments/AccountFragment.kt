@@ -2,6 +2,7 @@ package com.example.doan.Fragments
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -53,6 +54,7 @@ class AccountFragment : Fragment() {
     private lateinit var logoutButton: MaterialButton
     private lateinit var profileImage: ShapeableImageView
     private lateinit var fabEditAvatar: FloatingActionButton
+    private lateinit var deleteAccountOption: RelativeLayout
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 1
@@ -80,6 +82,7 @@ class AccountFragment : Fragment() {
         changePasswordOption = view.findViewById(R.id.change_password_option)
         settingsOption = view.findViewById(R.id.settings_option)
         logoutButton = view.findViewById(R.id.logout_button)
+        deleteAccountOption = view.findViewById(R.id.delete_account_option)
 
         // Thiết lập sự kiện click.
         fabEditAvatar.setOnClickListener { openGalleryWithPermission() }
@@ -96,6 +99,9 @@ class AccountFragment : Fragment() {
         settingsOption.setOnClickListener {
             startActivity(Intent(requireContext(), SettingsActivity::class.java))
         }
+        deleteAccountOption.setOnClickListener {
+            showDeleteConfirmationDialog()
+        }
 
         logoutButton.setOnClickListener {
             if (sessionManager.isLoggedIn()) {
@@ -106,6 +112,36 @@ class AccountFragment : Fragment() {
         }
 
         return view
+    }
+    private fun showDeleteConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Xác nhận xóa tài khoản")
+            .setMessage("Bạn có chắc chắn muốn xóa tài khoản không? Hành động này không thể hoàn tác.")
+            .setPositiveButton("Xóa") { _, _ ->
+                deleteAccount()
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+    private fun deleteAccount() {
+        apiService.deleteAccount().enqueue(object : Callback<ApiResponse<String>> {
+            override fun onResponse(
+                call: Call<ApiResponse<String>>,
+                response: Response<ApiResponse<String>>
+            ) {
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "Tài khoản đã được xóa thành công.", Toast.LENGTH_SHORT).show()
+                    performLogout()
+                } else {
+                    Toast.makeText(requireContext(), "Xóa tài khoản thất bại.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
+                Toast.makeText(requireContext(), "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun openGalleryWithPermission() {
@@ -221,7 +257,6 @@ class AccountFragment : Fragment() {
                 .load(it)
                 .into(profileImage)
         }
-        Log.d("AccountFragment", "onResume called " + sessionManager.getAvatar())
     }
 
     private fun fetchAndShowUserDetails() {

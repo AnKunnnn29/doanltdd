@@ -1,19 +1,49 @@
 package com.example.doan.Activities
 
+import android.content.Context
 import android.os.Bundle
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.doan.R
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.materialswitch.MaterialSwitch
 
 class SettingsActivity : AppCompatActivity() {
+
+    private lateinit var switchDarkMode: MaterialSwitch
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        val notificationsSwitch = findViewById<Switch>(R.id.switch_notifications)
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar_settings)
+        toolbar.setNavigationOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+
+        switchDarkMode = findViewById(R.id.switch_dark_mode)
+
+        val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val isDarkMode = sharedPreferences.getBoolean("dark_mode", false)
+        switchDarkMode.isChecked = isDarkMode
+
+        switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+            sharedPreferences.edit().putBoolean("dark_mode", isChecked).apply()
+        }
+
+        findViewById<TextView>(R.id.tv_about).setOnClickListener {
+            showAboutDialog()
+        }
+
+        val notificationsSwitch = findViewById<MaterialSwitch>(R.id.switch_notifications)
         notificationsSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 Toast.makeText(this, "Thông báo đẩy đã được bật", Toast.LENGTH_SHORT).show()
@@ -29,6 +59,14 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tv_privacy_policy).setOnClickListener {
             showPrivacyPolicyDialog()
         }
+    }
+
+    private fun showAboutDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Giới thiệu")
+            .setMessage("Đây là ứng dụng đặt hàng trà sữa, cho phép bạn khám phá và đặt mua những loại trà sữa yêu thích của mình một cách nhanh chóng và tiện lợi.")
+            .setPositiveButton("Đóng", null)
+            .show()
     }
 
     private fun showTermsDialog() {

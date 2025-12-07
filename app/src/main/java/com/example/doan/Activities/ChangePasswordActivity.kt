@@ -8,6 +8,7 @@ import com.example.doan.Models.ChangePasswordRequest
 import com.example.doan.Network.ApiService
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
@@ -26,12 +27,17 @@ class ChangePasswordActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_change_password)
 
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar_change_password)
+        toolbar.setNavigationOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+
         apiService = RetrofitClient.getInstance(this).apiService
 
-        currentPasswordEditText = findViewById(R.id.input_current_password)
-        newPasswordEditText = findViewById(R.id.input_new_password)
-        confirmPasswordEditText = findViewById(R.id.input_confirm_password)
-        saveButton = findViewById(R.id.btn_save_password)
+        currentPasswordEditText = findViewById(R.id.et_current_password)
+        newPasswordEditText = findViewById(R.id.et_new_password)
+        confirmPasswordEditText = findViewById(R.id.et_confirm_new_password)
+        saveButton = findViewById(R.id.btn_change_password)
 
         saveButton.setOnClickListener {
             handleChangePassword()
@@ -52,7 +58,7 @@ class ChangePasswordActivity : AppCompatActivity() {
             Toast.makeText(this, "Mật khẩu mới không khớp", Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         if (newPassword.length < 6) {
             Toast.makeText(this, "Mật khẩu phải có ít nhất 6 ký tự", Toast.LENGTH_SHORT).show()
             return

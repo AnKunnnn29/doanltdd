@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Màu sắc cho chế độ tối -->
+
+    <!-- Màu chính -->
+    <color name="wine_primary">#B71C1C</color> <!-- Đỏ rượu vang, sáng hơn cho nền tối -->
+
+    <!-- Nền và bề mặt -->
+    <color name="wine_dark_background">#121212</color> <!-- Nền chính cho chế độ tối -->
+    <color name="wine_light_surface">#1E1E1E</color> <!-- Màu bề mặt cho card, dialog... trong chế độ tối -->
+    <color name="wine_neutral_light">#303030</color> <!-- Màu trung tính, sáng hơn nền một chút -->
+    <color name="background">#121212</color>
+    <color name="surface">#1E1E1E</color>
+
+    <!-- Chữ và biểu tượng -->
+    <color name="wine_light_surface_text">#FFFFFF</color> <!-- Màu chữ trên nền tối -->
+    <color name="wine_neutral_dark">#BDBDBD</color> <!-- Xám sáng cho văn bản phụ -->
+    <color name="on_background">#E0E0E0</color>
+    <color name="on_surface">#FFFFFF</color>
+    <color name="on_surface_variant">#BDBDBD</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#BDBDBD</color>
+    <color name="text_hint">#9E9E9E</color>
+    <color name="colorText">#FFFFFF</color>
+
+    <!-- Các màu khác -->
+    <color name="divider">#424242</color>
+    <color name="border">#424242</color>
+
+</resources>

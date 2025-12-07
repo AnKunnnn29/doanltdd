@@ -22,6 +22,9 @@ interface ApiService {
     @PUT("me/change-password")
     fun changePassword(@Body request: ChangePasswordRequest): Call<String>
 
+    @DELETE("me")
+    fun deleteAccount(): Call<ApiResponse<String>>
+
     // ==================== AUTHENTICATION ====================
     @POST("auth/login")
     fun login(@Body request: LoginRequest): Call<ApiResponse<LoginResponse>>
