@@ -7,29 +7,37 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import com.example.doan.R
+import com.example.doan.Utils.KeyStoreManager
+import com.example.doan.Utils.SessionManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.materialswitch.MaterialSwitch
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var switchDarkMode: MaterialSwitch
+    private lateinit var switchBiometric: MaterialSwitch
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        sessionManager = SessionManager(this)
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar_settings)
         toolbar.setNavigationOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
 
+        // Dark Mode
         switchDarkMode = findViewById(R.id.switch_dark_mode)
-
         val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
         val isDarkMode = sharedPreferences.getBoolean("dark_mode", false)
         switchDarkMode.isChecked = isDarkMode
-
         switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -38,6 +46,19 @@ class SettingsActivity : AppCompatActivity() {
             }
             sharedPreferences.edit().putBoolean("dark_mode", isChecked).apply()
         }
+
+        // Biometric
+        switchBiometric = findViewById(R.id.switch_biometric)
+        switchBiometric.isChecked = KeyStoreManager.isBiometricEnrolled(this)
+        switchBiometric.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                setupBiometricsEnrollment()
+            } else {
+                KeyStoreManager.clearBiometricData(this)
+                Toast.makeText(this, "Đăng nhập bằng vân tay đã được tắt", Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
         findViewById<TextView>(R.id.tv_about).setOnClickListener {
             showAboutDialog()
@@ -58,6 +79,69 @@ class SettingsActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.tv_privacy_policy).setOnClickListener {
             showPrivacyPolicyDialog()
+        }
+    }
+
+    private fun setupBiometricsEnrollment() {
+        val biometricManager = BiometricManager.from(this)
+        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+            BiometricManager.BIOMETRIC_SUCCESS -> {
+                val refreshToken = sessionManager.getRefreshToken() // Lấy refreshToken từ SessionManager
+                if (refreshToken != null) {
+                    showBiometricPromptForEncryption(refreshToken)
+                } else {
+                    Toast.makeText(this, "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show()
+                    switchBiometric.isChecked = false
+                }
+            }
+            else -> {
+                Toast.makeText(this, "Thiết bị không hỗ trợ hoặc chưa cài đặt vân tay!", Toast.LENGTH_LONG).show()
+                switchBiometric.isChecked = false
+            }
+        }
+    }
+
+    private fun showBiometricPromptForEncryption(token: String) {
+        val executor = ContextCompat.getMainExecutor(this)
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Kích hoạt đăng nhập bằng vân tay")
+            .setSubtitle("Xác thực để bảo mật token đăng nhập.")
+            .setNegativeButtonText("Hủy")
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            .build()
+
+        val biometricPrompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                try {
+                    KeyStoreManager.saveEncryptedToken(this@SettingsActivity, token, result.cryptoObject!!)
+                    Toast.makeText(applicationContext, "Kích hoạt vân tay thành công!", Toast.LENGTH_SHORT).show()
+                    switchBiometric.isChecked = true
+                } catch (e: Exception) {
+                    Toast.makeText(applicationContext, "Lỗi bảo mật: " + e.message, Toast.LENGTH_LONG).show()
+                    switchBiometric.isChecked = false
+                }
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                Toast.makeText(applicationContext, "Lỗi xác thực: $errString", Toast.LENGTH_SHORT).show()
+                switchBiometric.isChecked = false
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+                Toast.makeText(applicationContext, "Xác thực thất bại", Toast.LENGTH_SHORT).show()
+                switchBiometric.isChecked = false
+            }
+        })
+
+        try {
+            val cryptoObject = KeyStoreManager.getEncryptionCryptoObject()
+            biometricPrompt.authenticate(promptInfo, cryptoObject)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Lỗi khởi tạo bảo mật: " + e.message, Toast.LENGTH_LONG).show()
+            switchBiometric.isChecked = false
         }
     }
 

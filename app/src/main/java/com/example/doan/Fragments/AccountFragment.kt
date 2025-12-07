@@ -214,6 +214,7 @@ class AccountFragment : Fragment() {
                         role = sessionManager.getRole(), // Giữ role cũ
                         memberTier = userProfile.memberTier,
                         token = sessionManager.getToken(),
+                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refresh token
                         avatar = userProfile.avatar
                     )
 
@@ -280,9 +281,9 @@ class AccountFragment : Fragment() {
                         role = sessionManager.getRole(),
                         memberTier = profile.memberTier,
                         token = sessionManager.getToken(),
+                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refresh token
                         avatar = profile.avatar
                     )
-
                 } else {
                     Toast.makeText(requireContext(), "Lấy thông tin thất bại", Toast.LENGTH_SHORT).show()
                 }

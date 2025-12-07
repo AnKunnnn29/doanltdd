@@ -29,6 +29,9 @@ interface ApiService {
     @POST("auth/login")
     fun login(@Body request: LoginRequest): Call<ApiResponse<LoginResponse>>
 
+    @POST("auth/refresh-token")
+    fun refreshToken(@Body request: RefreshTokenRequest): Call<ApiResponse<JwtResponse>>
+
     @POST("auth/register")
     fun register(@Body request: RegisterRequest): Call<ApiResponse<RegisterResponse>>
 

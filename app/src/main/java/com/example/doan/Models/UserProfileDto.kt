@@ -28,5 +28,8 @@ data class UserProfileDto(
     val points: Int? = null,
 
     @SerializedName("avatarUrl")
-    val avatar: String? = null
+    val avatar: String? = null,
+
+    @SerializedName("role")
+    val role: String? = null
 )

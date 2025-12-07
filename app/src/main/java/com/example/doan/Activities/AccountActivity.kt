@@ -153,6 +153,18 @@ class AccountActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful && response.body()?.data != null) {
                     val userProfile = response.body()?.data!!
+                    sessionManager.saveLoginSession(
+                        userId = userProfile.id?.toInt() ?: -1,
+                        username = userProfile.username,
+                        email = userProfile.email,
+                        fullName = userProfile.fullName,
+                        phone = userProfile.phone,
+                        role = sessionManager.getRole(),
+                        memberTier = userProfile.memberTier,
+                        token = sessionManager.getToken(),
+                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refreshToken
+                        avatar = userProfile.avatar
+                    )
                     Glide.with(this@AccountActivity)
                         .load(userProfile.avatar)
                         .into(profileImage)
@@ -201,7 +213,9 @@ class AccountActivity : AppCompatActivity() {
                         phone = userProfile.phone,
                         role = sessionManager.getRole(), // Role is not in UserProfileDto, so we keep the old one
                         memberTier = userProfile.memberTier,
-                        token = sessionManager.getToken()
+                        token = sessionManager.getToken(),
+                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refreshToken
+                        avatar = userProfile.avatar
                     )
                 } else {
                     Toast.makeText(this@AccountActivity, "Lấy thông tin thất bại", Toast.LENGTH_SHORT).show()

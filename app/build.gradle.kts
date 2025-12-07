@@ -108,6 +108,9 @@ dependencies {
     
     // MPAndroidChart for charts/graphs
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // Biometric authentication
+    implementation("androidx.biometric:biometric:1.1.0")
 }
 
 tasks.register("deleteDuplicateResources") {

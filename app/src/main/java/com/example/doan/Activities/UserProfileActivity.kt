@@ -82,7 +82,7 @@ class UserProfileActivity : AppCompatActivity() {
             override fun onResponse(call: Call<ApiResponse<UserProfileDto>>, response: Response<ApiResponse<UserProfileDto>>) {
                 if (response.isSuccessful && response.body()?.data != null) {
                     val updatedProfile = response.body()?.data!!
-                    // Update SessionManager with new data
+                    // Update SessionManager with new data, ensuring refreshToken is preserved
                     sessionManager.saveLoginSession(
                         userId = sessionManager.getUserId(),
                         username = updatedProfile.username,
@@ -92,6 +92,7 @@ class UserProfileActivity : AppCompatActivity() {
                         role = sessionManager.getRole(),
                         memberTier = updatedProfile.memberTier,
                         token = sessionManager.getToken(),
+                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refresh token
                         avatar = updatedProfile.avatar
                     )
                     Toast.makeText(this@UserProfileActivity, "Hồ sơ đã được cập nhật", Toast.LENGTH_SHORT).show()

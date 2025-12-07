@@ -2,8 +2,9 @@ package com.example.doan.Utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.doan.Models.JwtResponse
 
-class SessionManager(context: Context) {
+class SessionManager(private val context: Context) { // Store context as a property
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     private val editor: SharedPreferences.Editor = prefs.edit()
@@ -16,7 +17,8 @@ class SessionManager(context: Context) {
         phone: String?,
         role: String?,
         memberTier: String?,
-        token: String?,
+        token: String?, // Access Token
+        refreshToken: String?,
         avatar: String? = null
     ) {
         editor.apply {
@@ -29,18 +31,40 @@ class SessionManager(context: Context) {
             putString(KEY_ROLE, role)
             putString(KEY_MEMBER_TIER, memberTier)
             putString(KEY_TOKEN, token)
+            putString(KEY_REFRESH_TOKEN, refreshToken)
             putString(KEY_AVATAR, avatar)
             apply()
         }
     }
 
+    fun updateTokens(jwtResponse: JwtResponse) {
+        editor.apply {
+            putString(KEY_TOKEN, jwtResponse.accessToken)
+            putString(KEY_REFRESH_TOKEN, jwtResponse.refreshToken)
+            apply()
+        }
+    }
+
     fun logout() {
+        // Xóa thông tin phiên đăng nhập, nhưng giữ lại dữ liệu sinh trắc học
+        //Lấy ra các giá trị không cần xóa
+        val biometricEnrolled = KeyStoreManager.isBiometricEnrolled(context)
+
+        // Xóa tất cả
         editor.clear().apply()
+
+        //Lưu lại
+        if (biometricEnrolled) {
+            // Hacky way to keep biometric data, ideally biometric data should be in a separate pref file
+            editor.putBoolean("biometric_enabled", true).apply()
+        }
     }
 
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
+
+    fun getRefreshToken(): String? = prefs.getString(KEY_REFRESH_TOKEN, null)
 
     fun getUserId(): Int = prefs.getInt(KEY_USER_ID, -1)
 
@@ -71,6 +95,7 @@ class SessionManager(context: Context) {
     companion object {
         private const val PREF_NAME = "UTETeaPrefs"
         private const val KEY_TOKEN = "jwt_token"
+        private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USERNAME = "username"
         private const val KEY_EMAIL = "email"
