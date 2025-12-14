@@ -111,6 +111,13 @@ dependencies {
 
     // Biometric authentication
     implementation("androidx.biometric:biometric:1.1.0")
+
+    // Phone Authentication
+//    implementation("com.twilio:twilio-conversations:10.1.0")
+
+    // Notification
+    implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
+
 }
 
 tasks.register("deleteDuplicateResources") {

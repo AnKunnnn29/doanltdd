@@ -24,7 +24,8 @@ data class LoginResponse(
     @SerializedName("memberTier")
     var memberTier: String? = null,
 
-    @SerializedName("accessToken") // Sửa lại để khớp với server
+    // Sửa lại để khớp với server
+    @SerializedName("token")
     var token: String? = null, // Đây là Access Token
 
     @SerializedName("refreshToken")
