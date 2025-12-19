@@ -1,5 +1,6 @@
 package com.example.doan.Adapters
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.doan.Activities.ProductDetailActivity
 import com.example.doan.Models.Product
 import com.example.doan.R
 import java.text.NumberFormat
@@ -50,6 +52,20 @@ class ProductCarouselAdapter(private var products: List<Product>) :
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(imageView)
+            
+            // Xử lý click vào item để mở ProductDetailActivity
+            itemView.setOnClickListener {
+                val context = itemView.context
+                val intent = Intent(context, ProductDetailActivity::class.java).apply {
+                    putExtra("PRODUCT_ID", product.id)
+                    putExtra("PRODUCT_NAME", product.name)
+                    putExtra("PRODUCT_PRICE", product.price)
+                    putExtra("PRODUCT_DESC", product.description)
+                    putExtra("PRODUCT_IMAGE", product.imageUrl)
+                    putExtra("CATEGORY_NAME", product.category)
+                }
+                context.startActivity(intent)
+            }
         }
     }
 }

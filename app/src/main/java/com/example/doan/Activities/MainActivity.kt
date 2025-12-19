@@ -15,21 +15,33 @@ import com.example.doan.Fragments.AccountFragment
 import com.example.doan.Fragments.HomeFragment
 import com.example.doan.Fragments.MenuFragment
 import com.example.doan.Fragments.StoreFragment
+import com.example.doan.Models.ApiResponse
+import com.example.doan.Models.Category
+import com.example.doan.Models.Drink
+import com.example.doan.Models.Product
+import com.example.doan.Models.Store
 import com.example.doan.Network.AuthInterceptor
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.DataCache
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
-
-    // TÁC DỤNG: Activity chính của ứng dụng, quản lý BottomNavigationView và các Fragment chính.
 
     private var selectedItemId = R.id.nav_home
     private lateinit var bottomNavigationView: BottomNavigationView
     
-    // FIX C4: BroadcastReceiver để xử lý token expired
+    // Cache các Fragment để tái sử dụng
+    private var homeFragment: HomeFragment? = null
+    private var menuFragment: MenuFragment? = null
+    private var storeFragment: StoreFragment? = null
+    private var accountFragment: AccountFragment? = null
+    
     private val tokenExpiredReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.w(TAG, "Token expired broadcast received")
@@ -61,12 +73,16 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
             if (savedInstanceState == null) {
                 // Tải HomeFragment làm màn hình mặc định khi ứng dụng khởi động.
-                loadFragment(HomeFragment(), false)
+                homeFragment = HomeFragment()
+                loadFragment(homeFragment!!, false)
             }
             
             handleIntent(intent)
             
-            // FIX C4: Đăng ký broadcast receiver cho token expired
+            // Preload dữ liệu trong background
+            preloadData()
+            
+            // Đăng ký broadcast receiver cho token expired
             LocalBroadcastManager.getInstance(this).registerReceiver(
                 tokenExpiredReceiver,
                 IntentFilter(AuthInterceptor.ACTION_TOKEN_EXPIRED)
@@ -167,32 +183,38 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // TÁC DỤNG: Xử lý sự kiện khi người dùng nhấn vào một mục trên BottomNavigationView.
-        
         // Ngăn không cho tải lại fragment nếu người dùng nhấn vào tab đang được chọn.
         if (item.itemId == selectedItemId && item.itemId != R.id.nav_cart) {
             return false
         }
 
-        var fragment: Fragment? = null
-
-        when (item.itemId) {
-            R.id.nav_home -> fragment = HomeFragment()
-            R.id.nav_order -> fragment = MenuFragment() // YÊU CẦU: Tab "Order" giờ sẽ hiển thị trang "Thực đơn".
-            R.id.nav_store -> fragment = StoreFragment()
-            R.id.nav_account -> fragment = AccountFragment()
+        val fragment: Fragment? = when (item.itemId) {
+            R.id.nav_home -> {
+                if (homeFragment == null) homeFragment = HomeFragment()
+                homeFragment
+            }
+            R.id.nav_order -> {
+                if (menuFragment == null) menuFragment = MenuFragment()
+                menuFragment
+            }
+            R.id.nav_store -> {
+                if (storeFragment == null) storeFragment = StoreFragment()
+                storeFragment
+            }
+            R.id.nav_account -> {
+                if (accountFragment == null) accountFragment = AccountFragment()
+                accountFragment
+            }
             R.id.nav_cart -> {
-                // Lấy orderType từ SharedPreferences
                 val prefs = getSharedPreferences("UTETeaPrefs", Context.MODE_PRIVATE)
                 val orderType = prefs.getString("orderType", "pickup") ?: "pickup"
-                
-                Log.d("MainActivity", "Opening cart with orderType: $orderType")
                 
                 startActivity(Intent(this, CartActivity::class.java).apply {
                     putExtra("orderType", orderType)
                 })
-                return false // Chỉ mở Activity, không thay đổi fragment.
+                return false
             }
+            else -> null
         }
 
         fragment?.let {
@@ -201,6 +223,83 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             return true
         }
         return false
+    }
+    
+    private fun preloadData() {
+        // Preload categories
+        if (DataCache.categories == null) {
+            RetrofitClient.getInstance(this).apiService.getCategories()
+                .enqueue(object : Callback<ApiResponse<List<Category>>> {
+                    override fun onResponse(call: Call<ApiResponse<List<Category>>>, response: Response<ApiResponse<List<Category>>>) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            val categories = response.body()?.data ?: listOf()
+                            val allCategory = Category(id = -1, name = "Tất cả")
+                            val fullCategoryList = mutableListOf(allCategory).apply { addAll(categories) }
+                            DataCache.categories = fullCategoryList
+                            Log.d(TAG, "Preloaded ${categories.size} categories")
+                        }
+                    }
+                    override fun onFailure(call: Call<ApiResponse<List<Category>>>, t: Throwable) {
+                        Log.e(TAG, "Failed to preload categories", t)
+                    }
+                })
+        }
+        
+        // Preload products
+        if (DataCache.products == null) {
+            RetrofitClient.getInstance(this).apiService.getDrinks()
+                .enqueue(object : Callback<ApiResponse<List<Drink>>> {
+                    override fun onResponse(call: Call<ApiResponse<List<Drink>>>, response: Response<ApiResponse<List<Drink>>>) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            val drinks = response.body()?.data ?: emptyList()
+                            val baseUrl = RetrofitClient.getBaseUrl()
+                            val rootUrl = baseUrl.replace("/api/", "").removeSuffix("/")
+
+                            val products = drinks.map { drink ->
+                                var imageUrl = drink.imageUrl
+                                if (imageUrl != null && !imageUrl.startsWith("http")) {
+                                    if (!imageUrl.startsWith("/")) imageUrl = "/$imageUrl"
+                                    imageUrl = rootUrl + imageUrl
+                                }
+                                Product(
+                                    id = drink.id,
+                                    name = drink.name,
+                                    description = drink.description ?: "",
+                                    price = drink.basePrice,
+                                    category = drink.categoryName ?: "",
+                                    categoryId = drink.categoryId,
+                                    imageUrl = imageUrl,
+                                    isAvailable = drink.isActive
+                                ).apply {
+                                    sizes = drink.sizes
+                                    toppings = drink.toppings
+                                }
+                            }
+                            DataCache.products = products
+                            Log.d(TAG, "Preloaded ${products.size} products")
+                        }
+                    }
+                    override fun onFailure(call: Call<ApiResponse<List<Drink>>>, t: Throwable) {
+                        Log.e(TAG, "Failed to preload products", t)
+                    }
+                })
+        }
+        
+        // Preload stores
+        if (DataCache.stores == null) {
+            RetrofitClient.getInstance(this).apiService.getStores()
+                .enqueue(object : Callback<ApiResponse<List<Store>>> {
+                    override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            DataCache.stores = response.body()?.data ?: emptyList()
+                            Log.d(TAG, "Preloaded ${DataCache.stores?.size} stores")
+                        }
+                    }
+                    override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                        Log.e(TAG, "Failed to preload stores", t)
+                    }
+                })
+        }
     }
 
     private fun loadFragment(fragment: Fragment, animate: Boolean) {

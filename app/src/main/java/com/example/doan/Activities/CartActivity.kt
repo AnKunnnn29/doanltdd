@@ -220,21 +220,20 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
     
     private fun loadStores() {
+        // Kiểm tra cache trước
+        val cachedStores = com.example.doan.Utils.DataCache.stores
+        if (!cachedStores.isNullOrEmpty()) {
+            setupStoreSpinner(cachedStores)
+            return
+        }
+        
+        // Nếu không có cache, gọi API
         RetrofitClient.getInstance(this).apiService.getStores().enqueue(object : Callback<ApiResponse<List<Store>>> {
             override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
                 if (response.isSuccessful && response.body()?.success == true) {
-                    storeList.clear()
-                    storeList.addAll(response.body()?.data ?: emptyList())
-                    
-                    // Setup Store Spinner
-                    val storeNames = storeList.map { it.storeName ?: "Chi nhánh ${it.id}" }
-                    val storeAdapter = ArrayAdapter(this@CartActivity, android.R.layout.simple_spinner_dropdown_item, storeNames)
-                    spinnerStore.adapter = storeAdapter
-                    
-                    // Chọn chi nhánh đầu tiên mặc định
-                    if (storeList.isNotEmpty()) {
-                        selectedStoreId = storeList[0].id
-                    }
+                    val stores = response.body()?.data ?: emptyList()
+                    com.example.doan.Utils.DataCache.stores = stores
+                    setupStoreSpinner(stores)
                 }
             }
 
@@ -243,6 +242,21 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 Toast.makeText(this@CartActivity, "Không thể tải danh sách chi nhánh", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+    
+    private fun setupStoreSpinner(stores: List<Store>) {
+        storeList.clear()
+        storeList.addAll(stores)
+        
+        // Setup Store Spinner
+        val storeNames = storeList.map { it.storeName ?: "Chi nhánh ${it.id}" }
+        val storeAdapter = ArrayAdapter(this@CartActivity, android.R.layout.simple_spinner_dropdown_item, storeNames)
+        spinnerStore.adapter = storeAdapter
+        
+        // Chọn chi nhánh đầu tiên mặc định
+        if (storeList.isNotEmpty()) {
+            selectedStoreId = storeList[0].id
+        }
     }
 
     private fun loadCart() {

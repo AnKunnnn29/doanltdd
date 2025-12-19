@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Adapters.StoreAdapter
@@ -22,6 +23,7 @@ import com.example.doan.Network.RetrofitClient
 import com.example.doan.Network.RetrofitClientMaps
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.LoadingDialog
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -33,6 +35,9 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -49,6 +54,7 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     private lateinit var tvDistance: TextView
     private lateinit var btnSetDefaultBranch: MaterialButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var loadingDialog: LoadingDialog
     
     // Zoom controls
     private lateinit var btnZoomIn: ImageButton
@@ -61,6 +67,9 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     private var branches: List<Branch> = emptyList()
     private var stores: List<Store> = emptyList()
     private var selectedBranch: Branch? = null
+    
+    // Cache cho địa chỉ đã geocode
+    private val geocodeCache = mutableMapOf<String, LatLng?>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +86,8 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         return try {
             val view = inflater.inflate(R.layout.fragment_store, container, false)
 
+            loadingDialog = LoadingDialog(requireContext())
+            
             initViews(view)
             setupMap()
             setupListeners()
@@ -182,10 +193,39 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun loadBranches() {
-        progressBar.visibility = View.VISIBLE
-        RetrofitClient.getInstance(requireContext()).apiService.getStores().enqueue(object : Callback<ApiResponse<List<Store>>> {
+        // Kiểm tra cache trước
+        val cachedStores = DataCache.stores
+        if (!cachedStores.isNullOrEmpty()) {
+            stores = cachedStores
+            storeAdapter.updateStores(stores)
+            
+            branches = stores.map { store ->
+                Branch(
+                    id = store.id,
+                    branchName = store.storeName,
+                    address = store.address
+                )
+            }
+            DataCache.branches = branches
+            
+            // Geocode nếu chưa có trong cache
+            if (geocodeCache.isEmpty()) {
+                loadingDialog.show("Đang xác định vị trí...")
+                geocodeAllBranchesAsync()
+            } else {
+                displayBranchesOnMap()
+            }
+            return
+        }
+        
+        loadingDialog.show("Đang tải cửa hàng...")
+        
+        val ctx = context ?: return
+        
+        RetrofitClient.getInstance(ctx).apiService.getStores().enqueue(object : Callback<ApiResponse<List<Store>>> {
             override fun onResponse(call: Call<ApiResponse<List<Store>>>, response: Response<ApiResponse<List<Store>>>) {
-                progressBar.visibility = View.GONE
+                if (!isAdded) return
+                
                 if (response.isSuccessful && response.body()?.success == true) {
                     stores = response.body()?.data ?: emptyList()
                     
@@ -199,24 +239,65 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                         )
                     }
                     DataCache.branches = branches
+                    DataCache.stores = stores
                     
                     if (branches.isEmpty()) {
+                        loadingDialog.dismiss()
                         Toast.makeText(context, "Không có cửa hàng nào", Toast.LENGTH_SHORT).show()
                     } else {
-                        displayBranchesOnMap()
+                        loadingDialog.setMessage("Đang xác định vị trí...")
+                        geocodeAllBranchesAsync()
                     }
                 } else {
+                    loadingDialog.dismiss()
                     Log.e(TAG, "API response not successful: ${response.code()}")
                     Toast.makeText(context, "Không thể tải danh sách cửa hàng", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
-                progressBar.visibility = View.GONE
+                if (!isAdded) return
+                loadingDialog.dismiss()
                 Log.e(TAG, "Error fetching stores", t)
                 Toast.makeText(context, "Lỗi kết nối server: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+    
+    private fun geocodeAllBranchesAsync() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            loadingDialog.setMessage("Đang xác định vị trí...")
+            
+            // Geocode tất cả địa chỉ trên IO thread
+            withContext(Dispatchers.IO) {
+                for (branch in branches) {
+                    val address = branch.address ?: continue
+                    if (!geocodeCache.containsKey(address)) {
+                        geocodeCache[address] = getLatLngFromAddressSync(address)
+                    }
+                }
+            }
+            
+            // Cập nhật UI trên main thread
+            loadingDialog.dismiss()
+            displayBranchesOnMap()
+        }
+    }
+    
+    private fun getLatLngFromAddressSync(strAddress: String): LatLng? {
+        if (strAddress.isBlank()) return null
+        
+        try {
+            val coder = Geocoder(requireContext(), Locale.getDefault())
+            val addressList = coder.getFromLocationName(strAddress, 1)
+            if (!addressList.isNullOrEmpty()) {
+                val location = addressList[0]
+                return LatLng(location.latitude, location.longitude)
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "Geocode error for: $strAddress", e)
+        }
+        return null
     }
 
     private fun displayBranchesOnMap() {
@@ -236,7 +317,8 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             var hasBranches = false
 
             for (branch in branches) {
-                val branchLocation = getLatLngFromAddress(branch.address ?: "")
+                // Sử dụng cache thay vì geocode lại
+                val branchLocation = geocodeCache[branch.address ?: ""]
                 
                 if (branchLocation != null) {
                     val marker = googleMap.addMarker(
@@ -270,47 +352,57 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun searchAddress(address: String) {
-        progressBar.visibility = View.VISIBLE
-        Thread {
-            val location = getLatLngFromAddress(address)
-            activity?.runOnUiThread {
-                progressBar.visibility = View.GONE
-                if (location != null) {
-                    userLocation = location
-                    map?.let { googleMap ->
-                        displayBranchesOnMap()
-                        recalculateDistances()
-                    }
-                } else {
-                    Toast.makeText(context, "Không tìm thấy địa chỉ này", Toast.LENGTH_SHORT).show()
-                }
+        loadingDialog.show("Đang tìm kiếm...")
+        
+        viewLifecycleOwner.lifecycleScope.launch {
+            val location = withContext(Dispatchers.IO) {
+                getLatLngFromAddressSync(address)
             }
-        }.start()
+            
+            loadingDialog.dismiss()
+            
+            if (location != null) {
+                userLocation = location
+                geocodeCache[address] = location
+                displayBranchesOnMap()
+                recalculateDistances()
+            } else {
+                Toast.makeText(context, "Không tìm thấy địa chỉ này", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun getLatLngFromAddress(strAddress: String): LatLng? {
-        val coder = Geocoder(requireContext(), Locale.getDefault())
-        try {
-            val addressList = coder.getFromLocationName(strAddress, 1)
-            if (!addressList.isNullOrEmpty()) {
-                val location = addressList[0]
-                return LatLng(location.latitude, location.longitude)
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
+        // Kiểm tra cache trước
+        if (geocodeCache.containsKey(strAddress)) {
+            return geocodeCache[strAddress]
         }
         return null
     }
 
     private fun onBranchListClick(branch: Branch) {
-        // Center map on branch
-        val branchLocation = getLatLngFromAddress(branch.address ?: "")
+        // Lấy từ cache
+        val branchLocation = geocodeCache[branch.address ?: ""]
         if (branchLocation != null) {
             map?.animateCamera(CameraUpdateFactory.newLatLngZoom(branchLocation, 16f))
-            // Show info
             onBranchMarkerClick(branch)
         } else {
-            Toast.makeText(context, "Không xác định được vị trí cửa hàng này", Toast.LENGTH_SHORT).show()
+            // Nếu chưa có trong cache, geocode async
+            loadingDialog.show("Đang xác định vị trí...")
+            viewLifecycleOwner.lifecycleScope.launch {
+                val location = withContext(Dispatchers.IO) {
+                    getLatLngFromAddressSync(branch.address ?: "")
+                }
+                loadingDialog.dismiss()
+                
+                if (location != null) {
+                    geocodeCache[branch.address ?: ""] = location
+                    map?.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 16f))
+                    onBranchMarkerClick(branch)
+                } else {
+                    Toast.makeText(context, "Không xác định được vị trí cửa hàng này", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -320,12 +412,11 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         tvBranchAddress.text = branch.address
         
         if (userLocation != null) {
-            val branchLoc = getLatLngFromAddress(branch.address ?: "")
+            val branchLoc = geocodeCache[branch.address ?: ""]
             if (branchLoc != null) {
-                // Call Google Matrix API
                 calculateDistanceWithMatrixApi(userLocation!!, branchLoc)
             } else {
-                 tvDistance.visibility = View.GONE
+                tvDistance.visibility = View.GONE
             }
         } else {
             tvDistance.text = "Nhập địa chỉ để xem khoảng cách"

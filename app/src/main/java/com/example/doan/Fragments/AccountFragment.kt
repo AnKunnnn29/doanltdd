@@ -27,6 +27,8 @@ import com.example.doan.Models.UserProfileDto
 import com.example.doan.Network.ApiService
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.LoadingDialog
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -44,6 +46,7 @@ class AccountFragment : Fragment() {
 
     private lateinit var sessionManager: SessionManager
     private lateinit var apiService: ApiService
+    private lateinit var loadingDialog: LoadingDialog
     private lateinit var profileNameText: TextView
     private lateinit var profileEmailText: TextView
     private lateinit var userDetailOption: RelativeLayout
@@ -70,6 +73,7 @@ class AccountFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
         apiService = RetrofitClient.getInstance(requireContext()).apiService
+        loadingDialog = LoadingDialog(requireContext())
 
         // Gán các view từ layout.
         profileNameText = view.findViewById(R.id.profile_name)
@@ -125,11 +129,16 @@ class AccountFragment : Fragment() {
     }
 
     private fun deleteAccount() {
+        loadingDialog.show("Đang xóa tài khoản...")
+        
         apiService.deleteAccount().enqueue(object : Callback<ApiResponse<String>> {
             override fun onResponse(
                 call: Call<ApiResponse<String>>,
                 response: Response<ApiResponse<String>>
             ) {
+                if (!isAdded) return
+                loadingDialog.dismiss()
+                
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Tài khoản đã được xóa thành công.", Toast.LENGTH_SHORT).show()
                     performLogout()
@@ -139,6 +148,8 @@ class AccountFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
+                if (!isAdded) return
+                loadingDialog.dismiss()
                 Toast.makeText(requireContext(), "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
@@ -195,6 +206,8 @@ class AccountFragment : Fragment() {
             return
         }
 
+        loadingDialog.show("Đang tải ảnh lên...")
+
         val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
@@ -203,32 +216,41 @@ class AccountFragment : Fragment() {
                 call: Call<ApiResponse<UserProfileDto>>,
                 response: Response<ApiResponse<UserProfileDto>>
             ) {
+                if (!isAdded) return
+                loadingDialog.dismiss()
+                
                 if (response.isSuccessful && response.body()?.data != null) {
                     val userProfile = response.body()?.data!!
+                    
+                    // Cập nhật cache
+                    DataCache.userProfile = userProfile
+                    
                     sessionManager.saveLoginSession(
                         userId = userProfile.id?.toInt() ?: -1,
                         username = userProfile.username,
                         email = userProfile.email,
                         fullName = userProfile.fullName,
                         phone = userProfile.phone,
-                        role = sessionManager.getRole(), // Giữ role cũ
+                        role = sessionManager.getRole(),
                         memberTier = userProfile.memberTier,
                         token = sessionManager.getToken(),
-                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refresh token
+                        refreshToken = sessionManager.getRefreshToken(),
                         avatar = userProfile.avatar
                     )
 
                     Glide.with(this@AccountFragment)
                         .load(userProfile.avatar)
                         .into(profileImage)
-                    Toast.makeText(requireContext(), "Avatar updated successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Cập nhật ảnh đại diện thành công", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(requireContext(), "Failed to upload avatar", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Cập nhật ảnh đại diện thất bại", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
-                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                if (!isAdded) return
+                loadingDialog.dismiss()
+                Toast.makeText(requireContext(), "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -262,14 +284,32 @@ class AccountFragment : Fragment() {
 
     private fun fetchAndShowUserDetails() {
         Log.d("AccountFragment", "Fetching user details")
+        
+        // Kiểm tra cache trước
+        val cachedProfile = DataCache.userProfile
+        if (cachedProfile != null) {
+            showUserDetailDialog(cachedProfile)
+            // Vẫn refresh data trong background
+            refreshUserProfile()
+            return
+        }
+
+        loadingDialog.show("Đang tải thông tin...")
 
         apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
             override fun onResponse(
                 call: Call<ApiResponse<UserProfileDto>>,
                 response: Response<ApiResponse<UserProfileDto>>
             ) {
+                if (!isAdded) return
+                loadingDialog.dismiss()
+                
                 if (response.isSuccessful && response.body()?.data != null) {
                     val profile = response.body()!!.data!!
+                    
+                    // Lưu vào cache
+                    DataCache.userProfile = profile
+                    
                     showUserDetailDialog(profile)
 
                     sessionManager.saveLoginSession(
@@ -281,7 +321,7 @@ class AccountFragment : Fragment() {
                         role = sessionManager.getRole(),
                         memberTier = profile.memberTier,
                         token = sessionManager.getToken(),
-                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refresh token
+                        refreshToken = sessionManager.getRefreshToken(),
                         avatar = profile.avatar
                     )
                 } else {
@@ -290,7 +330,46 @@ class AccountFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
+                if (!isAdded) return
+                loadingDialog.dismiss()
                 Toast.makeText(requireContext(), "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+    
+    private fun refreshUserProfile() {
+        apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
+            override fun onResponse(
+                call: Call<ApiResponse<UserProfileDto>>,
+                response: Response<ApiResponse<UserProfileDto>>
+            ) {
+                if (!isAdded) return
+                
+                if (response.isSuccessful && response.body()?.data != null) {
+                    val profile = response.body()!!.data!!
+                    DataCache.userProfile = profile
+                    
+                    sessionManager.saveLoginSession(
+                        userId = profile.id?.toInt() ?: -1,
+                        username = profile.username,
+                        email = profile.email,
+                        fullName = profile.fullName,
+                        phone = profile.phone,
+                        role = sessionManager.getRole(),
+                        memberTier = profile.memberTier,
+                        token = sessionManager.getToken(),
+                        refreshToken = sessionManager.getRefreshToken(),
+                        avatar = profile.avatar
+                    )
+                    
+                    // Cập nhật UI
+                    profileNameText.text = profile.fullName
+                    profileEmailText.text = profile.email
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
+                Log.e("AccountFragment", "Failed to refresh profile", t)
             }
         })
     }
@@ -316,6 +395,9 @@ class AccountFragment : Fragment() {
 
     private fun performLogout() {
         sessionManager.logout()
+        
+        // Xóa cache khi logout
+        DataCache.clearAll()
 
         val intent = Intent(requireContext(), LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
