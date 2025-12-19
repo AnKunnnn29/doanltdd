@@ -96,6 +96,101 @@
                 android:paddingEnd="16dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
+            <!-- Delivery and Pickup Options -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:weightSum="2">
+
+                <!-- Delivery Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/delivery_card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp">
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            app:lottie_rawRes="@raw/food_delivery_driver"
+                            app:lottie_autoPlay="true"
+                            app:lottie_loop="true"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Giao hàng"
+                            android:layout_marginTop="8dp"
+                            android:textStyle="bold"
+                            android:textColor="@color/wine_dark_background"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Pickup Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/pickup_card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp">
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            app:lottie_rawRes="@raw/supermarketcart"
+                            app:lottie_autoPlay="true"
+                            app:lottie_loop="true"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lấy tận nơi"
+                            android:layout_marginTop="8dp"
+                            android:textStyle="bold"
+                            android:textColor="@color/wine_dark_background"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Khung giờ áp dụng đặt hàng từ 7:00 - 21:30"
+                android:gravity="center"
+                android:layout_marginBottom="24dp"
+                android:textColor="@color/wine_neutral_dark"
+                android:textSize="12sp"/>
+
             <!-- Mục 2: Best Seller -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

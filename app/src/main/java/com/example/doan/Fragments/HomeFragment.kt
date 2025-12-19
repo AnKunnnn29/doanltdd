@@ -2,6 +2,7 @@ package com.example.doan.Fragments
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +26,7 @@ import com.example.doan.R
 import com.example.doan.Utils.DataCache
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.card.MaterialCardView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -35,6 +38,8 @@ class HomeFragment : Fragment() {
     private lateinit var forYouRecyclerView: RecyclerView
     private lateinit var userNameTextView: TextView
     private lateinit var profileImageView: ImageView
+    private lateinit var deliveryCard: MaterialCardView
+    private lateinit var pickupCard: MaterialCardView
 
     private lateinit var promotionAdapter: PromotionAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -52,6 +57,7 @@ class HomeFragment : Fragment() {
         setupRecyclerViews()
         loadData()
         setupViewAllButtons(view)
+        setupDeliveryPickupButtons()
 
         return view
     }
@@ -62,6 +68,8 @@ class HomeFragment : Fragment() {
         promotionsRecyclerView = view.findViewById(R.id.promotions_recycler_view)
         bestSellerRecyclerView = view.findViewById(R.id.best_seller_recycler_view)
         forYouRecyclerView = view.findViewById(R.id.for_you_recycler_view)
+        deliveryCard = view.findViewById(R.id.delivery_card)
+        pickupCard = view.findViewById(R.id.pickup_card)
     }
 
     private fun setupHeader() {
@@ -140,6 +148,41 @@ class HomeFragment : Fragment() {
             // Nếu cache đã có dữ liệu, hiển thị ngay.
             displayProductsFromCache()
         }
+    }
+
+    private fun setupDeliveryPickupButtons() {
+        deliveryCard.setOnClickListener {
+            navigateToMenuWithOrderType("delivery")
+        }
+
+        pickupCard.setOnClickListener {
+            navigateToMenuWithOrderType("pickup")
+        }
+    }
+
+    private fun navigateToMenuWithOrderType(orderType: String) {
+        // Lưu orderType vào SharedPreferences
+        val prefs = requireContext().getSharedPreferences("UTETeaPrefs", android.content.Context.MODE_PRIVATE)
+        prefs.edit().putString("orderType", orderType).apply()
+        
+        Log.d("HomeFragment", "Saved orderType to SharedPreferences: $orderType")
+        
+        // Tạo MenuFragment mới với orderType
+        val menuFragment = MenuFragment().apply {
+            arguments = Bundle().apply {
+                putString("orderType", orderType)
+            }
+        }
+        
+        // Thay thế fragment và cập nhật BottomNavigationView
+        parentFragmentManager.beginTransaction().apply {
+            replace(R.id.content_container, menuFragment)
+            commit()
+        }
+        
+        // Cập nhật BottomNavigationView để hiển thị tab nav_order được chọn
+        val bottomNav = activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNav?.selectedItemId = R.id.nav_order
     }
     
     // Helper method in PromotionAdapter to update data

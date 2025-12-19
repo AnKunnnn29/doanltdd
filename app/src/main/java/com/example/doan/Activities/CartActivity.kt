@@ -101,14 +101,37 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         tvDiscountAmount = findViewById(R.id.tv_discount_amount)
         tvFinalPrice = findViewById(R.id.tv_final_price)
         
+        val orderType = intent.getStringExtra("orderType")
+        Log.d("CartActivity", "Received orderType: $orderType")
+        
+        if (orderType == "delivery") {
+            Log.d("CartActivity", "Setting delivery mode")
+            rbDelivery.isChecked = true
+            selectedDeliveryType = "DELIVERY"
+            llDeliveryAddress.visibility = View.VISIBLE
+        } else {
+            Log.d("CartActivity", "Setting pickup mode")
+            rbPickup.isChecked = true
+            selectedDeliveryType = "PICKUP"
+            llDeliveryAddress.visibility = View.GONE
+        }
+
         // Setup Payment Method Spinner
         val paymentAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, paymentMethods)
         spinnerPaymentMethod.adapter = paymentAdapter
         
-        // Load stores từ API
+        // Load stores from API
         loadStores()
         
-        findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar_cart).setNavigationOnClickListener { finish() }
+        findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar_cart).setNavigationOnClickListener { 
+            // Quay lại MainActivity với tab home được chọn
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("SELECTED_ITEM", R.id.nav_home)
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun setupRecyclerView() {

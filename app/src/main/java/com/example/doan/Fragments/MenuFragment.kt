@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -36,21 +37,29 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private lateinit var productRecyclerView: RecyclerView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var searchSuggestionRecyclerView: RecyclerView
-    
+
     private lateinit var productAdapter: ProductAdapter
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var searchSuggestionAdapter: SearchSuggestionAdapter
-    
+
     private lateinit var searchView: SearchView
     private lateinit var btnFilterPrice: ImageView
     private lateinit var btnClearFilter: ImageView
 
     private val currentProductList = mutableListOf<Product>()
     private var selectedCategoryId = -1
-    
+    private var orderType: String? = null
+
     // Các biến trạng thái cho bộ lọc.
     private var currentSearchQuery = ""
     private var isPriceAscending: Boolean? = null // null: không sắp xếp, true: tăng dần, false: giảm dần
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            orderType = it.getString("orderType")
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -59,6 +68,12 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     ): View? {
         return try {
             val view = inflater.inflate(R.layout.fragment_menu, container, false)
+
+            // Lưu orderType vào SharedPreferences khi context đã sẵn sàng
+            if (orderType != null) {
+                val prefs = requireContext().getSharedPreferences("UTETeaPrefs", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putString("orderType", orderType).apply()
+            }
 
             initViews(view)
             setupRecyclerViews()
@@ -94,7 +109,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         categoryRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         categoryAdapter = CategoryAdapter(DataCache.categories ?: listOf(), this)
         categoryRecyclerView.adapter = categoryAdapter
-        
+
         searchSuggestionRecyclerView.layoutManager = LinearLayoutManager(context)
         searchSuggestionAdapter = SearchSuggestionAdapter(emptyList()) { product ->
             navigateToProductDetail(product)
@@ -113,35 +128,35 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 currentSearchQuery = newText ?: ""
-                
+
                 if (currentSearchQuery.isNotEmpty()) {
                     updateSearchSuggestions(currentSearchQuery)
                 } else {
                     searchSuggestionRecyclerView.visibility = View.GONE
                 }
-                
+
                 applyFilters()
-                
+
                 return true
             }
         })
-        
+
         searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 searchSuggestionRecyclerView.visibility = View.GONE
             }
         }
     }
-    
+
     private fun updateSearchSuggestions(query: String) {
         // TÁC DỤNG: Cập nhật danh sách gợi ý tìm kiếm dựa trên từ khóa.
         val allProducts = DataCache.products ?: return
         val normalizedQuery = removeAccents(query.lowercase())
-        
-        val suggestions = allProducts.filter { 
+
+        val suggestions = allProducts.filter {
             removeAccents(it.name?.lowercase() ?: "").contains(normalizedQuery)
         }.take(5)
-        
+
         if (suggestions.isNotEmpty()) {
             searchSuggestionAdapter.updateSuggestions(suggestions)
             searchSuggestionRecyclerView.visibility = View.VISIBLE
@@ -158,16 +173,16 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
                 true -> false
                 false -> null
             }
-            
+
             updateFilterIcon()
             applyFilters()
         }
-        
+
         btnClearFilter.setOnClickListener {
             resetFilters()
         }
     }
-    
+
     private fun updateFilterIcon() {
         // TÁC DỤNG: Cập nhật icon của nút lọc giá.
         val iconRes = when (isPriceAscending) {
@@ -176,26 +191,26 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
             null -> R.drawable.ic_sort
         }
         btnFilterPrice.setImageResource(iconRes)
-        
+
         val tintColor = if (isPriceAscending != null) R.color.wine_primary else R.color.wine_neutral_dark
         btnFilterPrice.setColorFilter(resources.getColor(tintColor, null))
     }
-    
+
     private fun resetFilters() {
         // TÁC DỤNG: Xóa tất cả các bộ lọc và quay về trạng thái ban đầu.
         isPriceAscending = null
         currentSearchQuery = ""
         selectedCategoryId = -1
-        
+
         searchView.setQuery("", false)
         searchView.clearFocus()
         searchSuggestionRecyclerView.visibility = View.GONE
-        
+
         updateFilterIcon()
-        
+
         val categories = DataCache.categories ?: listOf()
         categoryAdapter.updateCategories(categories)
-        
+
         applyFilters()
     }
 
@@ -222,7 +237,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
                 filteredList.sortedByDescending { it.price }
             }
         }
-        
+
         val isFiltered = selectedCategoryId != -1 || currentSearchQuery.isNotEmpty() || isPriceAscending != null
         btnClearFilter.visibility = if (isFiltered) View.VISIBLE else View.GONE
 
@@ -230,7 +245,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         currentProductList.addAll(filteredList)
         productAdapter.notifyDataSetChanged()
     }
-    
+
     private fun removeAccents(str: String?): String {
         // TÁC DỤNG: Loại bỏ dấu tiếng Việt khỏi chuỗi để tìm kiếm không phân biệt dấu.
         if (str == null) return ""
@@ -251,7 +266,9 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
     private fun loadCategories() {
         // TÁC DỤNG: Tải danh sách danh mục từ API.
-        RetrofitClient.getInstance(requireContext()).apiService.getCategories()
+        val context = context ?: return // Kiểm tra context trước khi sử dụng
+        
+        RetrofitClient.getInstance(context).apiService.getCategories()
             .enqueue(object : Callback<ApiResponse<List<Category>>> {
                 override fun onResponse(call: Call<ApiResponse<List<Category>>>, response: Response<ApiResponse<List<Category>>>) {
                     if (response.isSuccessful && response.body()?.success == true) {
@@ -274,7 +291,9 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
     private fun loadAllProducts() {
         // TÁC DỤNG: Tải toàn bộ sản phẩm từ API.
-        RetrofitClient.getInstance(requireContext()).apiService.getDrinks()
+        val context = context ?: return // Kiểm tra context trước khi sử dụng
+        
+        RetrofitClient.getInstance(context).apiService.getDrinks()
             .enqueue(object : Callback<ApiResponse<List<Drink>>> {
                 override fun onResponse(call: Call<ApiResponse<List<Drink>>>, response: Response<ApiResponse<List<Drink>>>) {
                     if (response.isSuccessful && response.body()?.success == true) {
@@ -338,9 +357,8 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         selectedCategoryId = category.id
         applyFilters()
     }
-    
+
     private fun navigateToProductDetail(product: Product) {
-        // TÁC DỤNG: Điều hướng đến màn hình chi tiết sản phẩm.
         val intent = Intent(context, ProductDetailActivity::class.java).apply {
             putExtra("PRODUCT_ID", product.id)
             putExtra("PRODUCT_NAME", product.name)
@@ -348,7 +366,15 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
             putExtra("PRODUCT_DESC", product.description)
             putExtra("PRODUCT_IMAGE", product.imageUrl)
             putExtra("CATEGORY_NAME", product.category)
+            putExtra("orderType", orderType) // Pass the order type to the detail screen
         }
         startActivity(intent)
+    }
+
+    private fun navigateToCheckout() {
+        val bundle = Bundle().apply {
+            putString("orderType", orderType)
+        }
+        findNavController().navigate(R.id.nav_cart, bundle)
     }
 }

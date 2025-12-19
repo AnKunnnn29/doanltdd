@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.LoadingDialog
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
 import retrofit2.Call
@@ -35,6 +36,8 @@ class ProductDetailActivity : AppCompatActivity() {
     private lateinit var spinnerSize: Spinner
     private lateinit var layoutToppings: LinearLayout
     private lateinit var tvToppingLabel: TextView
+    
+    private lateinit var loadingDialog: LoadingDialog
 
     private var productId: Int = -1
     private var product: Drink? = null
@@ -54,6 +57,8 @@ class ProductDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_product_detail_new)
 
+        loadingDialog = LoadingDialog(this)
+        
         initViews()
         getIntentData()
         setupListeners()
@@ -112,10 +117,14 @@ class ProductDetailActivity : AppCompatActivity() {
     }
 
     private fun loadProductDetails() {
+        loadingDialog.show("Đang tải sản phẩm...")
+        
         // FIX C5: Lưu reference để có thể cancel
         loadProductCall = RetrofitClient.getInstance(this).apiService.getDrinks()
         loadProductCall?.enqueue(object : Callback<ApiResponse<List<Drink>>> {
             override fun onResponse(call: Call<ApiResponse<List<Drink>>>, response: Response<ApiResponse<List<Drink>>>) {
+                loadingDialog.dismiss()
+                
                 // FIX C5: Kiểm tra Activity còn tồn tại không
                 if (isFinishing || isDestroyed) {
                     Log.d(TAG, "Activity destroyed, ignoring response")
@@ -145,6 +154,8 @@ class ProductDetailActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<ApiResponse<List<Drink>>>, t: Throwable) {
+                loadingDialog.dismiss()
+                
                 // FIX C5: Kiểm tra Activity còn tồn tại không
                 if (isFinishing || isDestroyed) {
                     Log.d(TAG, "Activity destroyed, ignoring failure")
@@ -254,6 +265,8 @@ class ProductDetailActivity : AppCompatActivity() {
             return
         }
 
+        loadingDialog.show("Đang thêm vào giỏ hàng...")
+
         val request = AddToCartRequest(
             drinkId = productId.toLong(),
             sizeId = selectedSize?.id?.toLong() ?: 0L,
@@ -267,12 +280,20 @@ class ProductDetailActivity : AppCompatActivity() {
         addToCartCall = RetrofitClient.getInstance(this).apiService.addToCart(request)
         addToCartCall?.enqueue(object : Callback<ApiResponse<Cart>> {
             override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
+                loadingDialog.dismiss()
+                
                 // FIX C5: Kiểm tra Activity còn tồn tại không
                 if (isFinishing || isDestroyed) return
                 
                 if (response.isSuccessful && response.body()?.success == true) {
                     if (goToCart) {
-                        startActivity(Intent(this@ProductDetailActivity, CartActivity::class.java))
+                        // Lấy orderType từ SharedPreferences
+                        val prefs = getSharedPreferences("UTETeaPrefs", MODE_PRIVATE)
+                        val orderType = prefs.getString("orderType", "pickup") ?: "pickup"
+                        
+                        startActivity(Intent(this@ProductDetailActivity, CartActivity::class.java).apply {
+                            putExtra("orderType", orderType)
+                        })
                         finish()
                     } else {
                         showSuccessDialog()
@@ -289,6 +310,8 @@ class ProductDetailActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
+                loadingDialog.dismiss()
+                
                 // FIX C5: Kiểm tra Activity còn tồn tại không
                 if (isFinishing || isDestroyed) return
                 
@@ -310,7 +333,13 @@ class ProductDetailActivity : AppCompatActivity() {
             .setTitle("Thành công")
             .setMessage("Đã thêm món vào giỏ hàng")
             .setPositiveButton("Đến giỏ hàng") { _, _ ->
-                startActivity(Intent(this, CartActivity::class.java))
+                // Lấy orderType từ SharedPreferences
+                val prefs = getSharedPreferences("UTETeaPrefs", MODE_PRIVATE)
+                val orderType = prefs.getString("orderType", "pickup") ?: "pickup"
+                
+                startActivity(Intent(this, CartActivity::class.java).apply {
+                    putExtra("orderType", orderType)
+                })
                 finish()
             }
             .setNegativeButton("Tiếp tục mua") { d, _ -> d.dismiss() }

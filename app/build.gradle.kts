@@ -118,6 +118,9 @@ dependencies {
     // Notification
     implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
 
+    implementation ("com.airbnb.android:lottie:+")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
 }
 
 tasks.register("deleteDuplicateResources") {

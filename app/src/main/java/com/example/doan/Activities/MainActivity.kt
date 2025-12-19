@@ -182,7 +182,15 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             R.id.nav_store -> fragment = StoreFragment()
             R.id.nav_account -> fragment = AccountFragment()
             R.id.nav_cart -> {
-                startActivity(Intent(this, CartActivity::class.java))
+                // Lấy orderType từ SharedPreferences
+                val prefs = getSharedPreferences("UTETeaPrefs", Context.MODE_PRIVATE)
+                val orderType = prefs.getString("orderType", "pickup") ?: "pickup"
+                
+                Log.d("MainActivity", "Opening cart with orderType: $orderType")
+                
+                startActivity(Intent(this, CartActivity::class.java).apply {
+                    putExtra("orderType", orderType)
+                })
                 return false // Chỉ mở Activity, không thay đổi fragment.
             }
         }
