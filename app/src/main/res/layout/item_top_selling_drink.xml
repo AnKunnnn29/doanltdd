@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/wine_neutral_light">
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@color/wine_neutral_light"
+    app:rippleColor="@color/wine_neutral_light">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,27 +16,40 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- Rank -->
-        <TextView
-            android:id="@+id/tv_rank"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:gravity="center"
-            android:text="#1"
-            android:textColor="@color/wine_primary"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:background="@drawable/rounded_spinner_background"/>
+        <!-- Rank Badge -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/wine_primary">
+
+            <TextView
+                android:id="@+id/tv_rank"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="#1"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Drink Image -->
-        <ImageView
-            android:id="@+id/iv_drink"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:layout_marginStart="12dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_image_placeholder"
-            android:background="@drawable/rounded_spinner_background"/>
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/iv_drink"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image_placeholder" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Drink Info -->
         <LinearLayout
@@ -51,19 +65,19 @@
                 android:layout_height="wrap_content"
                 android:text="Trà Sữa Trân Châu"
                 android:textColor="@color/wine_dark_background"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end"/>
+                android:ellipsize="end" />
 
             <TextView
                 android:id="@+id/tv_quantity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="150 ly"
+                android:text="150 ly đã bán"
                 android:textColor="@color/wine_neutral_dark"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp"/>
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
 
         </LinearLayout>
 
@@ -72,11 +86,10 @@
             android:id="@+id/tv_revenue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1,500,000 VNĐ"
+            android:text="1.5M"
             android:textColor="@color/wine_primary"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginStart="8dp"/>
+            android:textStyle="bold" />
 
     </LinearLayout>
 

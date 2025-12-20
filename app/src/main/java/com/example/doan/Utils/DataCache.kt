@@ -14,6 +14,7 @@ object DataCache {
     var stores: List<Store>? = null
     var userProfile: UserProfileDto? = null
     var orderHistory: List<Order>? = null
+    var cartItemCount: Int? = null
 
     fun clearAll() {
         branches = null
@@ -22,5 +23,6 @@ object DataCache {
         stores = null
         userProfile = null
         orderHistory = null
+        cartItemCount = null
     }
 }

@@ -4,114 +4,265 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="@color/wine_light_surface"
+    app:rippleColor="@color/wine_neutral_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical">
 
-        <!-- Avatar -->
-        <TextView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:text="👤"
-            android:textSize="40sp"
-            android:gravity="center"
-            android:background="@color/background"
-            android:layout_marginEnd="16dp" />
-
-        <!-- User Info -->
+        <!-- Main Content -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
 
+            <!-- Avatar with Status Indicator -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_avatar"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/wine_primary">
+
+                    <TextView
+                        android:id="@+id/tv_avatar_initial"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="U"
+                        android:textColor="@color/white"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:gravity="center" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Status Indicator -->
+                <View
+                    android:id="@+id/status_indicator"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_status_indicator" />
+            </FrameLayout>
+
+            <!-- User Info -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:layout_weight="1"
+                android:layout_marginStart="14dp"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tv_user_name"
-                    android:layout_width="0dp"
+                <!-- Name & Role Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="User Name"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_user_role"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:id="@+id/tv_user_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="User Name"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_user_role"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="USER"
+                        android:textSize="10sp"
+                        app:chipMinHeight="24dp"
+                        app:chipCornerRadius="12dp"
+                        app:chipStartPadding="8dp"
+                        app:chipEndPadding="8dp"
+                        style="@style/Widget.Material3.Chip.Assist" />
+                </LinearLayout>
+
+                <!-- Contact Info -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="USER"
-                    android:textSize="10sp"
-                    app:chipBackgroundColor="@color/primary"
-                    app:chipMinHeight="24dp"
-                    style="@style/Widget.Material3.Chip.Assist" />
+                    android:layout_marginTop="6dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@android:drawable/ic_menu_call"
+                        app:tint="@color/wine_neutral_dark" />
+
+                    <TextView
+                        android:id="@+id/tv_user_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="0123456789"
+                        android:textColor="@color/wine_neutral_dark"
+                        android:textSize="13sp" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="12dp"
+                        android:layout_marginHorizontal="10dp"
+                        android:background="@color/wine_neutral_light" />
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@android:drawable/ic_dialog_email"
+                        app:tint="@color/wine_neutral_dark" />
+
+                    <TextView
+                        android:id="@+id/tv_user_email"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="email@example.com"
+                        android:textColor="@color/wine_neutral_dark"
+                        android:textSize="13sp"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+                </LinearLayout>
+
+                <!-- Join Date & Orders -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/wine_neutral_light">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📅"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:id="@+id/tv_user_created"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:text="01/01/2024"
+                                android:textColor="@color/wine_neutral_dark"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_order_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#E8F5E9">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🛒"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:id="@+id/tv_order_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:text="0 đơn"
+                                android:textColor="@color/success"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/tv_user_phone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="📞 0123456789"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/tv_user_email"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="📧 email@example.com"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/tv_user_created"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="🕒 Tham gia: 01/01/2024"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Actions -->
+        <!-- Action Buttons -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="12dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_view_user"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chi tiết"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="Xem chi tiết"
                 android:textSize="12sp"
-                app:cornerRadius="8dp"
+                android:textAllCaps="false"
+                app:icon="@android:drawable/ic_menu_view"
+                app:iconSize="16dp"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:cornerRadius="12dp"
                 style="@style/Widget.Material3.Button.TonalButton" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_toggle_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Khóa"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="Khóa tài khoản"
                 android:textSize="12sp"
-                app:cornerRadius="8dp"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_lock"
+                app:iconSize="16dp"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/wine_neutral_dark"
                 style="@style/Widget.Material3.Button.OutlinedButton" />
         </LinearLayout>
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

@@ -1,86 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wine_neutral_light"
+    android:background="@color/wine_primary"
     tools:context=".Activities.ManagerActivity">
-    <com.google.android.material.card.MaterialCardView
+
+    <!-- Header cố định -->
+    <LinearLayout
         android:id="@+id/manager_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="0dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/wine_primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_alignParentTop="true"
+        android:background="@color/wine_primary"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="20dp"
+        android:gravity="center_vertical">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="16dp"
-            android:gravity="center_vertical">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:text="Houjicha"
+                android:textColor="@color/wine_light_surface"
+                android:textSize="14sp"
+                android:alpha="0.9" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Houjicha Manager"
-                    android:textColor="@color/wine_light_surface"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
+            <TextView
+                android:id="@+id/manager_user_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manager Dashboard"
+                android:textColor="@color/wine_light_surface"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/manager_user_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Hi, Manager"
-                    android:textColor="@color/wine_light_surface"
-                    android:textSize="14sp"
-                    android:alpha="0.9" />
-            </LinearLayout>
-
-            <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@android:drawable/ic_popup_reminder"
-                android:contentDescription="Notifications"
-                app:tint="@color/wine_light_surface" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 
+        <ImageView
+            android:id="@+id/btn_notifications"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_popup_reminder"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Notifications"
+            app:tint="@color/wine_light_surface" />
+
+    </LinearLayout>
+
+    <!-- Content container với nền trắng bo góc -->
     <FrameLayout
         android:id="@+id/manager_content_container"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/wine_light_surface"
-        app:layout_constraintBottom_toTopOf="@+id/manager_bottom_navigation"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/manager_header" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/manager_header"
+        android:layout_above="@id/manager_bottom_navigation"
+        android:background="@drawable/bg_arc_top_white"
+        android:clipToPadding="false" />
 
+    <!-- Bottom Navigation cố định -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/manager_bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:background="@color/wine_light_surface"
-        android:elevation="8dp"
+        android:elevation="16dp"
         app:itemIconTint="@color/bottom_nav_selector"
         app:itemTextColor="@color/bottom_nav_selector"
         app:itemActiveIndicatorStyle="@style/App.Widget.BottomNavigationView.ActiveIndicator"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:itemRippleColor="@color/wine_neutral_light"
+        app:labelVisibilityMode="labeled"
         app:menu="@menu/manager_bottom_nav_menu" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

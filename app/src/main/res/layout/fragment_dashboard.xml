@@ -3,47 +3,92 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wine_neutral_light"
-    android:fillViewport="true">
+    android:background="@android:color/transparent"
+    android:fillViewport="true"
+    android:clipToPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="100dp">
 
-        <!-- Header -->
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Header với animation -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="THỐNG KÊ DOANH THU"
-            android:textColor="@color/wine_dark_background"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
 
-        <!-- Total Revenue Card -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Thống Kê Doanh Thu"
+                android:textColor="@color/wine_dark_background"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_today"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hôm nay"
+                app:chipBackgroundColor="@color/wine_primary"
+                android:textColor="@color/white"
+                app:chipCornerRadius="20dp"
+                style="@style/Widget.Material3.Chip.Assist" />
+        </LinearLayout>
+
+        <!-- Total Revenue Card với gradient -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_total_revenue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
             app:cardBackgroundColor="@color/wine_primary">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="24dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💰 Tổng Doanh Thu"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    android:alpha="0.9"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#40FFFFFF">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="💰"
+                            android:textSize="24sp"
+                            android:gravity="center" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="Tổng Doanh Thu"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:alpha="0.9" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tv_total_revenue"
@@ -51,29 +96,57 @@
                     android:layout_height="wrap_content"
                     android:text="0 VNĐ"
                     android:textColor="@color/white"
-                    android:textSize="28sp"
+                    android:textSize="32sp"
                     android:textStyle="bold"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="16dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tv_revenue_change"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="↑ +12.5%"
+                        android:textColor="#90EE90"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="so với hôm qua"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:alpha="0.7" />
+                </LinearLayout>
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Stats Row -->
+        <!-- Stats Row với animation stagger -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="20dp">
 
             <!-- Total Orders -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_total_orders"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/wine_light_surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -82,27 +155,38 @@
                     android:padding="16dp"
                     android:gravity="center">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📋"
-                        android:textSize="24sp"/>
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#E3F2FD">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="📋"
+                            android:textSize="20sp"
+                            android:gravity="center" />
+                    </com.google.android.material.card.MaterialCardView>
 
                     <TextView
                         android:id="@+id/tv_total_orders"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
                         android:text="0"
                         android:textColor="@color/wine_dark_background"
-                        android:textSize="20sp"
-                        android:textStyle="bold"/>
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
                         android:text="Tổng đơn"
                         android:textColor="@color/wine_neutral_dark"
-                        android:textSize="12sp"/>
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -110,12 +194,14 @@
 
             <!-- Pending Orders -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_pending_orders"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/wine_light_surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -124,27 +210,38 @@
                     android:padding="16dp"
                     android:gravity="center">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⏳"
-                        android:textSize="24sp"/>
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#FFF3E0">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="⏳"
+                            android:textSize="20sp"
+                            android:gravity="center" />
+                    </com.google.android.material.card.MaterialCardView>
 
                     <TextView
                         android:id="@+id/tv_pending_orders"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
                         android:text="0"
                         android:textColor="@color/wine_accent_gold"
-                        android:textSize="20sp"
-                        android:textStyle="bold"/>
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
                         android:text="Chờ xử lý"
                         android:textColor="@color/wine_neutral_dark"
-                        android:textSize="12sp"/>
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -154,56 +251,67 @@
 
         <!-- Revenue Chart Card -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_chart"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp">
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/wine_light_surface">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="📊 Biểu Đồ Doanh Thu"
-                    android:textColor="@color/wine_dark_background"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp"/>
-
-                <RadioGroup
-                    android:id="@+id/rg_chart_type"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="12dp">
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
 
-                    <RadioButton
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📊 Biểu Đồ Doanh Thu"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/rg_chart_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/rb_daily"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="7 Ngày"
-                        android:checked="true"/>
+                        android:checked="true"
+                        style="@style/Widget.Material3.Chip.Filter" />
 
-                    <RadioButton
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/rb_monthly"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="6 Tháng"/>
+                        android:text="6 Tháng"
+                        style="@style/Widget.Material3.Chip.Filter" />
 
-                </RadioGroup>
+                </com.google.android.material.chip.ChipGroup>
 
                 <!-- Chart -->
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/chart_revenue"
                     android:layout_width="match_parent"
-                    android:layout_height="250dp"/>
+                    android:layout_height="220dp" />
 
             </LinearLayout>
 
@@ -211,31 +319,51 @@
 
         <!-- Top Selling Drinks -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_top_selling"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/wine_light_surface">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🏆 Top Sản Phẩm Bán Chạy"
-                    android:textColor="@color/wine_dark_background"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🏆 Top Sản Phẩm Bán Chạy"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_view_all_top"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Xem tất cả"
+                        android:textColor="@color/wine_primary"
+                        android:textSize="14sp"
+                        android:padding="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless" />
+                </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_top_selling"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"/>
+                    android:nestedScrollingEnabled="false" />
 
                 <TextView
                     android:id="@+id/tv_no_data"
@@ -245,8 +373,8 @@
                     android:textColor="@color/wine_neutral_dark"
                     android:textSize="14sp"
                     android:gravity="center"
-                    android:padding="20dp"
-                    android:visibility="gone"/>
+                    android:padding="24dp"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
@@ -259,7 +387,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="32dp"
-            android:visibility="gone"/>
+            android:indeterminateTint="@color/wine_primary"
+            android:visibility="gone" />
 
     </LinearLayout>
 

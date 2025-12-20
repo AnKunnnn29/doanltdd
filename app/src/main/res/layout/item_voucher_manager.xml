@@ -3,9 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardElevation="4dp"
-    app:cardCornerRadius="8dp">
+    android:layout_marginBottom="12dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="16dp"
+    app:cardBackgroundColor="@color/wine_light_surface"
+    app:rippleColor="@color/wine_neutral_light">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,71 +15,135 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/tv_voucher_code"
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FCE4EC">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="🎟️"
+                    android:textSize="22sp"
+                    android:gravity="center" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="SUMMER2024"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/wine_primary" />
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
 
-            <Switch
+                <TextView
+                    android:id="@+id/tv_voucher_code"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SUMMER2024"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/wine_primary" />
+
+                <TextView
+                    android:id="@+id/tv_voucher_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Giảm giá mùa hè"
+                    android:textSize="13sp"
+                    android:textColor="@color/wine_neutral_dark" />
+            </LinearLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/switch_voucher_active"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:thumbTint="@color/wine_primary"
+                app:trackTint="@color/wine_neutral_light" />
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_voucher_description"
+        <!-- Divider -->
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Giảm giá mùa hè"
-            android:textSize="14sp" />
+            android:layout_height="1dp"
+            android:layout_marginVertical="12dp"
+            android:background="@color/wine_neutral_light" />
 
-        <TextView
-            android:id="@+id/tv_discount_info"
+        <!-- Info Row -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Giảm 20%"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/tv_min_order"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Đơn tối thiểu: 100,000 VNĐ"
-            android:textSize="14sp" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_usage_info"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Đã dùng: 10/100"
-            android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/tv_discount_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Giảm 20%"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/wine_dark_background" />
+
+                <TextView
+                    android:id="@+id/tv_min_order"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Đơn tối thiểu: 100,000đ"
+                    android:textSize="12sp"
+                    android:textColor="@color/wine_neutral_dark" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <TextView
+                    android:id="@+id/tv_usage_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="10/100"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/wine_dark_background" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Đã sử dụng"
+                    android:textSize="11sp"
+                    android:textColor="@color/wine_neutral_dark" />
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tv_dates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Từ 01/06/2024 đến 31/08/2024"
+            android:layout_marginTop="8dp"
+            android:text="📅 01/06/2024 - 31/08/2024"
             android:textSize="12sp"
-            android:textColor="@android:color/darker_gray" />
+            android:textColor="@color/wine_neutral_dark" />
 
+        <!-- Action Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,20 +151,28 @@
             android:orientation="horizontal"
             android:gravity="end">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_edit_voucher"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
                 android:text="Sửa"
-                style="@style/Widget.Material3.Button.TextButton" />
+                android:textSize="12sp"
+                android:textAllCaps="false"
+                app:cornerRadius="18dp"
+                style="@style/Widget.Material3.Button.TonalButton" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_delete_voucher"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
                 android:text="Xóa"
-                android:textColor="@color/design_default_color_error"
-                style="@style/Widget.Material3.Button.TextButton" />
+                android:textSize="12sp"
+                android:textAllCaps="false"
+                android:textColor="@color/error"
+                app:cornerRadius="18dp"
+                app:strokeColor="@color/error"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
 
         </LinearLayout>
 

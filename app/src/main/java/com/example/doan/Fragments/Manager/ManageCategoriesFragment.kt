@@ -5,18 +5,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.view.animation.DecelerateInterpolator
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.doan.Adapters.ManagerCategoryAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Category
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -27,6 +31,9 @@ class ManageCategoriesFragment : Fragment() {
     private lateinit var adapter: ManagerCategoryAdapter
     private lateinit var btnAddCategory: MaterialButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var headerLayout: View
+    private lateinit var searchCard: MaterialCardView
     private val categoryList = mutableListOf<Category>()
 
     override fun onCreateView(
@@ -39,8 +46,12 @@ class ManageCategoriesFragment : Fragment() {
         rvCategories = view.findViewById(R.id.rv_categories)
         btnAddCategory = view.findViewById(R.id.btn_add_category)
         progressBar = view.findViewById(R.id.progress_bar)
+        swipeRefresh = view.findViewById(R.id.swipe_refresh)
+        headerLayout = view.findViewById(R.id.header_layout)
+        searchCard = view.findViewById(R.id.search_card)
         
         rvCategories.layoutManager = LinearLayoutManager(context)
+        rvCategories.layoutAnimation = AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_fall_down)
 
         adapter = ManagerCategoryAdapter(requireContext(), categoryList, object : ManagerCategoryAdapter.OnCategoryActionListener {
             override fun onEditClick(category: Category) {
@@ -57,9 +68,32 @@ class ManageCategoriesFragment : Fragment() {
             showAddCategoryDialog()
         }
 
+        // Setup swipe refresh
+        swipeRefresh.setColorSchemeResources(R.color.wine_primary)
+        swipeRefresh.setOnRefreshListener {
+            loadCategories()
+        }
+
+        // Animate views
+        animateViewsIn()
+
         loadCategories()
 
         return view
+    }
+
+    private fun animateViewsIn() {
+        listOf(headerLayout, searchCard).forEachIndexed { index, view ->
+            view.alpha = 0f
+            view.translationY = -30f
+            view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(350)
+                .setStartDelay((index * 80).toLong())
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
     }
 
     private fun loadCategories() {
@@ -71,11 +105,13 @@ class ManageCategoriesFragment : Fragment() {
                     response: Response<ApiResponse<List<Category>>>
                 ) {
                     showLoading(false)
+                    swipeRefresh.isRefreshing = false
                     if (response.isSuccessful && response.body()?.success == true) {
                         response.body()?.data?.let { categories ->
                             categoryList.clear()
                             categoryList.addAll(categories)
                             adapter.updateList(categoryList)
+                            rvCategories.scheduleLayoutAnimation()
                         }
                     } else {
                         Toast.makeText(context, "Không thể tải danh sách danh mục", Toast.LENGTH_SHORT).show()
@@ -84,6 +120,7 @@ class ManageCategoriesFragment : Fragment() {
 
                 override fun onFailure(call: Call<ApiResponse<List<Category>>>, t: Throwable) {
                     showLoading(false)
+                    swipeRefresh.isRefreshing = false
                     Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })

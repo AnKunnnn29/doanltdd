@@ -18,7 +18,24 @@
             android:background="@color/wine_primary"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:title="Giỏ hàng"
-            app:titleTextColor="@color/white" />
+            app:titleTextColor="@color/white">
+
+            <!-- Icon lịch sử đơn hàng -->
+            <ImageView
+                android:id="@+id/btn_order_history"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="Lịch sử đơn hàng"
+                android:focusable="true"
+                android:padding="8dp"
+                android:src="@drawable/ic_order_history"
+                app:tint="@color/white" />
+
+        </androidx.appcompat.widget.Toolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 

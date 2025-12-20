@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- TÁC DỤNG TỔNG THỂ: Layout cho màn hình Thực đơn, nơi hiển thị toàn bộ sản phẩm và các bộ lọc. -->
-<!-- YÊU CẦU: Chuyển toàn bộ nội dung của trang Home cũ sang đây. -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/wine_primary"
+    android:fitsSystemWindows="true"
     tools:context=".Fragments.MenuFragment">
 
-    <!-- TÁC DỤNG: Thanh header của màn hình Thực đơn. -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar_menu"
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header_menu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/wine_primary"
+        android:orientation="vertical"
+        android:paddingTop="8dp"
         android:paddingBottom="16dp">
 
+        <!-- Title Row -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="?attr/actionBarSize"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="12dp">
 
             <TextView
                 android:id="@+id/menu_title"
@@ -31,18 +32,74 @@
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:text="Thực đơn"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textColor="@color/wine_light_surface"
+                android:textColor="@color/white"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
-        </RelativeLayout>
-    </com.google.android.material.appbar.AppBarLayout>
+            <!-- Cart Button -->
+            <FrameLayout
+                android:id="@+id/btn_cart_menu"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true">
 
-    <!-- TÁC DỤNG: Khối nội dung chính có thể cuộn, với nền trắng bo góc. -->
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Giỏ hàng"
+                    android:src="@drawable/ic_shopping_cart"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/cart_badge_menu"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@drawable/bg_badge"
+                    android:gravity="center"
+                    android:text="0"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+        </RelativeLayout>
+
+        <!-- Search Bar -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search_view_menu"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@color/white"
+                app:iconifiedByDefault="false"
+                app:queryBackground="@android:color/transparent"
+                app:queryHint="Tìm kiếm đồ uống..." />
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+    <!-- Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/app_bar_menu"
+        android:layout_below="@id/header_menu"
         android:background="@drawable/bg_arc_top_white"
         android:fillViewport="true">
 
@@ -51,58 +108,37 @@
             android:layout_height="wrap_content"
             android:clipToPadding="false"
             android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingTop="32dp"
-            android:paddingEnd="16dp"
+            android:paddingTop="20dp"
             android:paddingBottom="16dp">
 
-            <!-- TÁC DỤNG: Thanh tìm kiếm sản phẩm. -->
+            <!-- Search Suggestions (hidden by default) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_search_suggestions_menu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_rounded_white"
+                android:elevation="4dp"
+                android:visibility="gone"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+            <!-- Categories Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:orientation="vertical">
 
-                <androidx.appcompat.widget.SearchView
-                    android:id="@+id/search_view_menu"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/search_background"
-                    app:iconifiedByDefault="false"
-                    app:queryHint="Tìm kiếm đồ uống..." />
-
-                <!-- Danh sách gợi ý tìm kiếm (ẩn ban đầu). -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_search_suggestions_menu"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="@color/white"
-                    android:elevation="4dp"
-                    android:visibility="gone"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-            </LinearLayout>
-            
-            <!-- TÁC DỤNG: Tiêu đề cho mục danh mục. -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Danh mục"
-                android:textColor="@color/wine_dark_background"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <!-- TÁC DỤNG: Thẻ chứa danh sách các danh mục. -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="#F0F0F0">
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="🍵 Danh mục"
+                    android:textColor="@color/wine_dark_background"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/category_recycler_view_menu"
@@ -110,68 +146,116 @@
                     android:layout_height="wrap_content"
                     android:clipToPadding="false"
                     android:orientation="horizontal"
-                    android:padding="8dp"
+                    android:paddingHorizontal="12dp"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-            </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
-
-            <!-- TÁC DỤNG: Tiêu đề và các nút lọc cho danh sách sản phẩm. -->
-            <RelativeLayout
+            <!-- Products Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
 
-                <TextView
-                    android:id="@+id/section_title_menu"
-                    android:layout_width="wrap_content"
+                <!-- Section Header with Filters -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="Tất cả sản phẩm"
-                    android:textColor="@color/wine_dark_background"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    tools:ignore="HardcodedText" />
+                    android:layout_marginBottom="12dp">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:id="@+id/section_title_menu"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="🥤 Tất cả sản phẩm"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <!-- Filter Price Button -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="8dp"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="@color/wine_neutral_light"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:orientation="horizontal"
+                                android:paddingHorizontal="12dp">
+
+                                <ImageView
+                                    android:id="@+id/btn_filter_price_menu"
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="Lọc theo giá"
+                                    android:src="@drawable/ic_sort"
+                                    app:tint="@color/wine_neutral_dark" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:text="Giá"
+                                    android:textColor="@color/wine_neutral_dark"
+                                    android:textSize="12sp" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Clear Filter Button -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/card_clear_filter"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:visibility="gone"
+                            app:cardBackgroundColor="#FFEBEE"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp">
+
+                            <ImageView
+                                android:id="@+id/btn_clear_filter_menu"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="Xóa lọc"
+                                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                                app:tint="@color/error" />
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+                <!-- Products Grid -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/product_recycler_view_menu"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:nestedScrollingEnabled="false"
+                    android:paddingBottom="80dp"
+                    tools:listitem="@layout/list_item_product" />
 
-                    <ImageView
-                        android:id="@+id/btn_filter_price_menu"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="Lọc theo giá"
-                        android:padding="4dp"
-                        android:src="@drawable/ic_sort"
-                        app:tint="@color/wine_primary" />
+            </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/btn_clear_filter_menu"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:contentDescription="Xóa lọc"
-                        android:padding="4dp"
-                        android:src="@android:drawable/ic_menu_close_clear_cancel"
-                        android:visibility="gone"
-                        app:tint="@color/wine_neutral_dark" />
-
-                </LinearLayout>
-
-            </RelativeLayout>
-
-            <!-- TÁC DỤNG: Danh sách hiển thị toàn bộ sản phẩm. -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/product_recycler_view_menu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingBottom="80dp"
-                tools:listitem="@layout/list_item_product" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

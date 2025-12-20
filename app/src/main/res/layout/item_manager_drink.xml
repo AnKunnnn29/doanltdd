@@ -3,31 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp">
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/wine_light_surface"
+    app:rippleColor="@color/wine_neutral_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="12dp"
+        android:gravity="center_vertical">
 
         <!-- Product Image -->
-        <ImageView
-            android:id="@+id/img_drink"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:scaleType="centerCrop"
-            android:background="@color/white"
-            android:contentDescription="Drink Image" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/img_drink"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="@color/wine_neutral_light"
+                android:contentDescription="Drink Image" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Product Info -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="14dp"
             android:orientation="vertical">
 
             <TextView
@@ -35,8 +45,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Tên món"
-                android:textColor="@color/black"
-                android:textSize="16sp"
+                android:textColor="@color/wine_dark_background"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:maxLines="2"
                 android:ellipsize="end" />
@@ -47,16 +57,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Danh mục"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="@color/wine_neutral_dark"
                 android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/tv_drink_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:text="0 đ"
-                android:textColor="@color/orange"
+                android:textColor="@color/wine_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -65,27 +75,45 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:gravity="center">
 
-            <ImageButton
-                android:id="@+id/btn_edit"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_edit"
-                android:contentDescription="Edit"
-                app:tint="@color/orange" />
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#E3F2FD">
 
-            <ImageButton
-                android:id="@+id/btn_delete"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_delete"
-                android:contentDescription="Delete"
-                app:tint="@android:color/holo_red_dark" />
+                <ImageButton
+                    android:id="@+id/btn_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_edit"
+                    android:contentDescription="Edit"
+                    android:padding="8dp"
+                    app:tint="@color/info" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFEBEE">
+
+                <ImageButton
+                    android:id="@+id/btn_delete"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_delete"
+                    android:contentDescription="Delete"
+                    android:padding="8dp"
+                    app:tint="@color/error" />
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
     </LinearLayout>

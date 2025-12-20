@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -13,13 +14,14 @@ import com.example.doan.Activities.LoginActivity
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.chip.Chip
 
 class ManagerSettingsFragment : Fragment() {
 
     private lateinit var sessionManager: SessionManager
     private lateinit var tvManagerName: TextView
     private lateinit var tvManagerPhone: TextView
-    private lateinit var tvManagerRole: TextView
+    private lateinit var tvManagerRole: Chip
     private lateinit var cardProfile: MaterialCardView
     private lateinit var cardStore: MaterialCardView
     private lateinit var cardUsers: MaterialCardView
@@ -52,7 +54,25 @@ class ManagerSettingsFragment : Fragment() {
         // Setup listeners
         setupListeners()
 
+        // Animate cards
+        animateCardsIn()
+
         return view
+    }
+
+    private fun animateCardsIn() {
+        val cards = listOf(cardProfile, cardStore, cardUsers, cardVouchers, cardLogout)
+        cards.forEachIndexed { index, card ->
+            card.alpha = 0f
+            card.translationX = -50f
+            card.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration(350)
+                .setStartDelay((index * 60).toLong())
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
     }
 
     private fun loadManagerInfo() {

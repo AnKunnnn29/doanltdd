@@ -85,7 +85,12 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
     private fun loadFragment(fragment: Fragment, animate: Boolean) {
         supportFragmentManager.beginTransaction().apply {
             if (animate) {
-                setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                setCustomAnimations(
+                    R.anim.fade_in,
+                    R.anim.fade_out,
+                    R.anim.fade_in,
+                    R.anim.fade_out
+                )
             }
             replace(R.id.manager_content_container, fragment)
             commit()

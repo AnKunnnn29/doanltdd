@@ -11,8 +11,7 @@
         android:id="@+id/content_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/wine_primary"
-        android:layout_above="@id/bottom_navigation" />
+        android:background="@color/wine_primary" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
@@ -20,6 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/white"
+        app:elevation="8dp"
         app:itemIconTint="@color/bottom_nav_selector"
         app:itemRippleColor="@color/wine_neutral_light"
         app:itemTextColor="@color/bottom_nav_selector"

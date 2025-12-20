@@ -14,6 +14,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.doan.Fragments.AccountFragment
 import com.example.doan.Fragments.HomeFragment
 import com.example.doan.Fragments.MenuFragment
+import com.example.doan.Fragments.OrderFragment
 import com.example.doan.Fragments.StoreFragment
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Category
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     // Cache các Fragment để tái sử dụng
     private var homeFragment: HomeFragment? = null
     private var menuFragment: MenuFragment? = null
+    private var orderFragment: OrderFragment? = null
     private var storeFragment: StoreFragment? = null
     private var accountFragment: AccountFragment? = null
     
@@ -134,6 +136,14 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         val navToItem = intent?.getIntExtra("SELECTED_ITEM", -1)
         if (navToItem != null && navToItem != -1) {
             bottomNavigationView.selectedItemId = navToItem
+        }
+        
+        // Xử lý điều hướng đến OrderFragment (lịch sử đơn hàng)
+        val navigateTo = intent?.getStringExtra("NAVIGATE_TO")
+        if (navigateTo == "ORDER_HISTORY") {
+            if (orderFragment == null) orderFragment = OrderFragment()
+            loadFragment(orderFragment!!, true)
+            // Không chọn tab nào vì OrderFragment không có trong bottom nav
         }
     }
 

@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -127,6 +128,16 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             // Quay lại MainActivity với tab home được chọn
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("SELECTED_ITEM", R.id.nav_home)
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(intent)
+            finish()
+        }
+        
+        // Click vào icon lịch sử đơn hàng
+        findViewById<ImageView>(R.id.btn_order_history).setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("NAVIGATE_TO", "ORDER_HISTORY")
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             startActivity(intent)

@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/wine_primary"
+    android:fitsSystemWindows="true"
     tools:context=".Fragments.HomeFragment">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -12,51 +13,123 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/wine_primary"
-        android:paddingBottom="16dp">
+        android:paddingTop="8dp"
+        android:paddingBottom="20dp"
+        app:elevation="0dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="?attr/actionBarSize"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingStart="16dp"
             android:paddingEnd="16dp">
 
+            <!-- Avatar với viền và chữ cái đầu -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/avatar_card"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp"
+                app:strokeColor="@color/wine_light_surface"
+                app:strokeWidth="2dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/wine_accent">
+
+                    <TextView
+                        android:id="@+id/avatar_initial"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="G"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/profile_image_home"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="User Profile"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Greeting và tên user -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/greeting_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Welcome,"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
-                    android:textColor="@color/wine_light_surface" />
+                    android:text="Chào buổi sáng ☀️"
+                    android:textColor="#B0FFFFFF"
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/user_name_home"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="@color/wine_light_surface"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
                     android:textStyle="bold"
-                    tools:text="Guest" />
-
+                    tools:text="Nguyễn Văn A" />
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/profile_image_home"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:contentDescription="User Profile"
-                android:src="@drawable/ic_profile"
-                app:tint="@color/wine_light_surface" />
+            <!-- Notification và Cart icons -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-        </RelativeLayout>
+                <!-- Cart Button với badge -->
+                <FrameLayout
+                    android:id="@+id/cart_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Giỏ hàng"
+                        android:src="@drawable/ic_shopping_cart"
+                        app:tint="@color/white" />
+
+                    <TextView
+                        android:id="@+id/cart_badge"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:background="@drawable/bg_badge"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="@color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+        </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -64,37 +137,44 @@
         android:layout_height="match_parent"
         android:layout_below="@id/app_bar_home"
         android:background="@drawable/bg_arc_top_white"
-        android:fillViewport="true">
+        android:overScrollMode="never">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
             android:orientation="vertical"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp">
+            android:paddingTop="20dp"
+            android:paddingBottom="80dp">
 
-            <!-- Mục 1: Ưu đãi cho bạn -->
-            <TextView
+            <!-- Banner Carousel Section -->
+            <FrameLayout
+                android:id="@+id/banner_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:text="Ưu đãi cho bạn"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/promotions_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:clipToPadding="false"
-                android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/banner_viewpager"
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    android:layout_marginHorizontal="16dp"
+                    android:clipToPadding="false"
+                    android:clipChildren="false" />
+
+                <!-- Indicator Dots -->
+                <LinearLayout
+                    android:id="@+id/indicator_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_indicator_container"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:orientation="horizontal" />
+
+            </FrameLayout>
 
             <!-- Delivery and Pickup Options -->
             <LinearLayout
@@ -198,6 +278,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -219,7 +300,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
-                            android:text="Best Seller"
+                            android:text="🔥 Best Seller"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold" />
 
@@ -254,6 +335,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -275,7 +357,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
-                            android:text="Dành cho bạn"
+                            android:text="💝 Dành cho bạn"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold" />
 

@@ -6,7 +6,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -14,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.doan.Activities.CartActivity
 import com.example.doan.Activities.ProductDetailActivity
 import com.example.doan.Adapters.CategoryAdapter
 import com.example.doan.Adapters.ProductAdapter
@@ -25,6 +29,7 @@ import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.google.android.material.card.MaterialCardView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,6 +50,9 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private lateinit var searchView: SearchView
     private lateinit var btnFilterPrice: ImageView
     private lateinit var btnClearFilter: ImageView
+    private lateinit var cardClearFilter: MaterialCardView
+    private lateinit var btnCartMenu: FrameLayout
+    private lateinit var cartBadgeMenu: TextView
 
     private val currentProductList = mutableListOf<Product>()
     private var selectedCategoryId = -1
@@ -98,6 +106,16 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         searchView = view.findViewById(R.id.search_view_menu)
         btnFilterPrice = view.findViewById(R.id.btn_filter_price_menu)
         btnClearFilter = view.findViewById(R.id.btn_clear_filter_menu)
+        cardClearFilter = view.findViewById(R.id.card_clear_filter)
+        btnCartMenu = view.findViewById(R.id.btn_cart_menu)
+        cartBadgeMenu = view.findViewById(R.id.cart_badge_menu)
+        
+        // Setup cart button
+        btnCartMenu.setOnClickListener {
+            startActivity(Intent(context, CartActivity::class.java).apply {
+                putExtra("orderType", orderType)
+            })
+        }
     }
 
     private fun setupRecyclerViews() {
@@ -105,6 +123,11 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         productRecyclerView.layoutManager = GridLayoutManager(context, 2)
         productAdapter = ProductAdapter(currentProductList)
         productRecyclerView.adapter = productAdapter
+        
+        // Add animation to product list
+        productRecyclerView.layoutAnimation = AnimationUtils.loadLayoutAnimation(
+            context, R.anim.layout_animation_fall_down
+        )
 
         categoryRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         categoryAdapter = CategoryAdapter(DataCache.categories ?: listOf(), this)
@@ -178,6 +201,10 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
             applyFilters()
         }
 
+        cardClearFilter.setOnClickListener {
+            resetFilters()
+        }
+        
         btnClearFilter.setOnClickListener {
             resetFilters()
         }
@@ -239,11 +266,14 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         }
 
         val isFiltered = selectedCategoryId != -1 || currentSearchQuery.isNotEmpty() || isPriceAscending != null
-        btnClearFilter.visibility = if (isFiltered) View.VISIBLE else View.GONE
+        cardClearFilter.visibility = if (isFiltered) View.VISIBLE else View.GONE
 
         currentProductList.clear()
         currentProductList.addAll(filteredList)
         productAdapter.notifyDataSetChanged()
+        
+        // Play animation when filter changes
+        productRecyclerView.scheduleLayoutAnimation()
     }
 
     private fun removeAccents(str: String?): String {

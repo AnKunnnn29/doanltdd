@@ -13,5 +13,6 @@ data class User(
     var active: Boolean = true,
     var isBlocked: Boolean = false,
     var createdAt: String? = null,
-    var updatedAt: String? = null
+    var updatedAt: String? = null,
+    var orderCount: Int? = null
 )

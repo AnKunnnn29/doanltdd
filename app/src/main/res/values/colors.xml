@@ -52,6 +52,8 @@
 
     <color name="wine_primary">#931923</color>
 
+    <color name="wine_accent">#B8293A</color>
+
     <color name="wine_dark_background">#121212</color>
 
     <color name="wine_light_surface">#FFFFFF</color>
