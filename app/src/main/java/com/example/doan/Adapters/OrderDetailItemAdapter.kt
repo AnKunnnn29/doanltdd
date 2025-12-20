@@ -67,7 +67,7 @@ class OrderDetailItemAdapter(
             }
 
             // Toppings
-            val toppingsStr = item.toppings?.joinToString(", ") { it.name ?: "" } ?: ""
+            val toppingsStr = item.toppings?.joinToString(", ") { it.toppingName ?: "" } ?: ""
             if (toppingsStr.isNotEmpty()) {
                 tvToppings.text = "Topping: $toppingsStr"
                 tvToppings.visibility = View.VISIBLE

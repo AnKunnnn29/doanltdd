@@ -5,23 +5,43 @@ import java.io.Serializable
 
 data class OrderItem(
     @SerializedName("id")
-    val id: Int,
+    val id: Int = 0,
 
-    @SerializedName("drink_name")
+    @SerializedName("drinkName")
     val drinkName: String? = null,
 
-    @SerializedName("drink_image")
+    @SerializedName("drinkImage")
     val drinkImage: String? = null,
 
     @SerializedName("quantity")
     val quantity: Int = 0,
 
-    @SerializedName("price")
-    val price: Double = 0.0,
+    @SerializedName("itemPrice")
+    val itemPrice: Double = 0.0,
 
-    @SerializedName("size_name")
+    @SerializedName("sizeName")
     val sizeName: String? = null,
 
+    @SerializedName("note")
+    val note: String? = null,
+
     @SerializedName("toppings")
-    val toppings: List<Topping>? = null
-) : Serializable
+    val toppings: List<OrderItemTopping>? = null
+) : Serializable {
+    // Backward compatibility
+    val price: Double get() = itemPrice
+}
+
+data class OrderItemTopping(
+    @SerializedName("id")
+    val id: Int = 0,
+    
+    @SerializedName("toppingName")
+    val toppingName: String? = null,
+    
+    @SerializedName("price")
+    val price: Double = 0.0
+) : Serializable {
+    // Backward compatibility
+    val name: String? get() = toppingName
+}
