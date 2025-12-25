@@ -322,16 +322,25 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
     }
     
+    // FIX Medium #14: Improved null handling in calculateDiscount
     private fun calculateDiscount(totalPrice: Double) {
         val voucher = appliedVoucher ?: return
         
-        val discountValue = voucher.discountValue?.toDouble() ?: 0.0
+        // Early return if discountValue is null
+        val discountValue = voucher.discountValue?.toDouble()
+        if (discountValue == null || discountValue <= 0) {
+            discountAmount = 0.0
+            tvDiscountAmount.text = "0 VNĐ"
+            tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", totalPrice)
+            return
+        }
         
         discountAmount = if (voucher.discountType == "PERCENT") {
             val discount = totalPrice * discountValue / 100
             // Apply max discount if exists
-            if (voucher.maxDiscountAmount != null) {
-                minOf(discount, voucher.maxDiscountAmount?.toDouble() ?: discount)
+            val maxDiscount = voucher.maxDiscountAmount?.toDouble()
+            if (maxDiscount != null && maxDiscount > 0) {
+                minOf(discount, maxDiscount)
             } else {
                 discount
             }

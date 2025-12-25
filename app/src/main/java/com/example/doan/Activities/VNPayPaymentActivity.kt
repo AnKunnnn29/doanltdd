@@ -9,6 +9,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.example.doan.R
 
@@ -32,6 +33,7 @@ class VNPayPaymentActivity : AppCompatActivity() {
 
         initViews()
         setupWebView()
+        setupBackPressHandler()
         loadPaymentUrl()
     }
 
@@ -79,6 +81,20 @@ class VNPayPaymentActivity : AppCompatActivity() {
                 return false
             }
         }
+    }
+    
+    // FIX Low #17: Sử dụng OnBackPressedCallback thay vì deprecated onBackPressed()
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     private fun loadPaymentUrl() {
@@ -128,13 +144,5 @@ class VNPayPaymentActivity : AppCompatActivity() {
 
     private fun navigateToOrderFailed() {
         finish()
-    }
-
-    override fun onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack()
-        } else {
-            super.onBackPressed()
-        }
     }
 }

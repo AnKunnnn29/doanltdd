@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -49,12 +50,34 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.manager_bottom_navigation)
         bottomNavigationView.setOnItemSelectedListener(this)
 
+        // Setup back press handler using OnBackPressedCallback (API 33+)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                showLogoutConfirmation()
+            }
+        })
+
         // Load default fragment
         if (savedInstanceState == null) {
             loadFragment(DashboardFragment(), false)
         } else {
             selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_manager_dashboard)
         }
+    }
+
+    private fun showLogoutConfirmation() {
+        AlertDialog.Builder(this)
+            .setTitle("Đăng xuất")
+            .setMessage("Bạn có muốn đăng xuất?")
+            .setPositiveButton("Có") { _, _ ->
+                sessionManager.logout()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
+            .setNegativeButton("Không") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -96,26 +119,6 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
             commit()
         }
     }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        // Logout confirmation
-        AlertDialog.Builder(this)
-            .setTitle("Đăng xuất")
-            .setMessage("Bạn có muốn đăng xuất?")
-            .setPositiveButton("Có") { _, _ ->
-                sessionManager.logout()
-                startActivity(Intent(this, LoginActivity::class.java))
-                finish()
-            }
-            .setNegativeButton("Không") { dialog, _ ->
-                dialog.dismiss()
-                super.onBackPressed()
-            }
-            .show()
-    }
-
-
 
     companion object {
         private const val TAG = "ManagerActivity"

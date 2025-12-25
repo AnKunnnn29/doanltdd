@@ -183,6 +183,7 @@ class DashboardFragment : Fragment() {
                     call: Call<ApiResponse<DashboardSummary>>,
                     response: Response<ApiResponse<DashboardSummary>>
                 ) {
+                    if (!isAdded) return
                     if (response.isSuccessful && response.body()?.success == true) {
                         response.body()?.data?.let { data ->
                             val currencyFormat = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
@@ -197,6 +198,7 @@ class DashboardFragment : Fragment() {
                 }
 
                 override fun onFailure(call: Call<ApiResponse<DashboardSummary>>, t: Throwable) {
+                    if (!isAdded) return
                     Log.e(TAG, "Error loading dashboard summary", t)
                     animateCardsIn()
                 }
@@ -211,6 +213,7 @@ class DashboardFragment : Fragment() {
                     call: Call<ApiResponse<RevenueStatistics>>,
                     response: Response<ApiResponse<RevenueStatistics>>
                 ) {
+                    if (!isAdded) return
                     progressBar.visibility = View.GONE
 
                     if (response.isSuccessful && response.body()?.success == true) {
@@ -223,9 +226,10 @@ class DashboardFragment : Fragment() {
                 }
 
                 override fun onFailure(call: Call<ApiResponse<RevenueStatistics>>, t: Throwable) {
+                    if (!isAdded) return
                     progressBar.visibility = View.GONE
                     Log.e(TAG, "Error loading statistics", t)
-                    Toast.makeText(context, "Không thể kết nối Server", Toast.LENGTH_SHORT).show()
+                    context?.let { Toast.makeText(it, "Không thể kết nối Server", Toast.LENGTH_SHORT).show() }
                     showNoData()
                 }
             })

@@ -50,9 +50,9 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     private lateinit var btnRefresh: MaterialButton
 
     private lateinit var adapter: ManagerOrderAdapter
-    private var allOrders = mutableListOf<Order>()
-    private var filteredOrders = mutableListOf<Order>()
-    private var storeList = mutableListOf<Store>()
+    private val allOrders = mutableListOf<Order>()
+    private val filteredOrders = mutableListOf<Order>()
+    private val storeList = mutableListOf<Store>()
     private var currentStatus: String? = null
     private var selectedStoreId: Long? = null
 
@@ -220,7 +220,8 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
 
                         if (apiResponse.success && apiResponse.data != null) {
                             val pageResponse = apiResponse.data!!
-                            allOrders = pageResponse.content?.toMutableList() ?: mutableListOf()
+                            allOrders.clear()
+                            pageResponse.content?.let { allOrders.addAll(it) }
 
                             Log.d(TAG, "Orders loaded: ${allOrders.size}")
 
@@ -361,5 +362,13 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
 
     companion object {
         private const val TAG = "ManageOrdersFragment"
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clear lists to prevent memory leak
+        allOrders.clear()
+        filteredOrders.clear()
+        storeList.clear()
     }
 }
