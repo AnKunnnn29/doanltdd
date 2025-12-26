@@ -1,6 +1,7 @@
 package com.example.doan.Activities
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -67,7 +68,13 @@ class SplashActivity : AppCompatActivity() {
             }
 
             startActivity(intent)
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            // FIX C2: Handle deprecated overridePendingTransition
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.fade_in, R.anim.fade_out)
+            } else {
+                @Suppress("DEPRECATION")
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            }
             finish()
             
         } catch (e: Exception) {

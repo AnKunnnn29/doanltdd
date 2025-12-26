@@ -1,6 +1,7 @@
 package com.example.doan.Activities
 
 import android.content.res.ColorStateList
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -46,7 +47,14 @@ class OrderDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_order_detail)
 
-        val orderFromIntent = intent.getSerializableExtra("order") as? Order
+        // FIX: Sử dụng getParcelableExtra thay vì getSerializableExtra vì Order đã đổi sang Parcelable
+        val orderFromIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("order", Order::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("order")
+        }
+        
         if (orderFromIntent == null) {
             Toast.makeText(this, "Không có thông tin đơn hàng", Toast.LENGTH_SHORT).show()
             finish()

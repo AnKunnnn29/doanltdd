@@ -47,7 +47,7 @@ class RetrofitClient private constructor(context: Context) {
         // Emulator: 10.0.2.2
         // Điện thoại thật: IP WiFi của máy (ví dụ: 192.168.1.63)
         private const val BASE_URL = "http://10.0.2.2:8080/api/"
-        
+
         @Volatile
         private var instance: RetrofitClient? = null
         

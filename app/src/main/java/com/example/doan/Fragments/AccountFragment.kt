@@ -1,7 +1,6 @@
 package com.example.doan.Fragments
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
@@ -9,7 +8,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +16,7 @@ import android.widget.Button
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
@@ -59,10 +58,22 @@ class AccountFragment : Fragment() {
     private lateinit var fabEditAvatar: FloatingActionButton
     private lateinit var deleteAccountOption: RelativeLayout
 
-    companion object {
-        private const val PICK_IMAGE_REQUEST = 1
-        private const val READ_MEDIA_IMAGES_REQUEST_CODE = 102
-        private const val READ_EXTERNAL_STORAGE_REQUEST_CODE = 101
+    // FIX C1: Use ActivityResultLauncher instead of deprecated startActivityForResult
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { uploadAvatar(it) }
+    }
+
+    // FIX C1: Use ActivityResultLauncher for permission request
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            openGallery()
+        } else {
+            Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreateView(
@@ -163,38 +174,14 @@ class AccountFragment : Fragment() {
         }
 
         if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
-            val requestCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                READ_MEDIA_IMAGES_REQUEST_CODE
-            } else {
-                READ_EXTERNAL_STORAGE_REQUEST_CODE
-            }
-            requestPermissions(arrayOf(permission), requestCode)
+            requestPermissionLauncher.launch(permission)
         } else {
             openGallery()
         }
     }
 
     private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PICK_IMAGE_REQUEST)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == READ_EXTERNAL_STORAGE_REQUEST_CODE || requestCode == READ_MEDIA_IMAGES_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openGallery()
-            } else {
-                Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data?.data != null) {
-            uploadAvatar(data.data)
-        }
+        pickImageLauncher.launch("image/*")
     }
 
     private fun uploadAvatar(imageUri: Uri?) {

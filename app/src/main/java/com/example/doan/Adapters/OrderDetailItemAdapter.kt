@@ -70,9 +70,22 @@ class OrderDetailItemAdapter(
             val currencyFormat = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
             tvPrice.text = currencyFormat.format(item.price)
 
-            // Load image using Glide
+            // Load image using Glide - FIX: Xử lý URL ảnh đầy đủ
+            val imageUrl = item.drinkImage?.let { url ->
+                if (url.startsWith("http")) {
+                    url
+                } else {
+                    // Thêm base URL nếu là relative path
+                    val baseUrl = com.example.doan.Network.RetrofitClient.getBaseUrl()
+                        .replace("/api/", "")
+                        .removeSuffix("/")
+                    val imagePath = if (url.startsWith("/")) url else "/$url"
+                    baseUrl + imagePath
+                }
+            }
+            
             Glide.with(context)
-                .load(item.drinkImage)
+                .load(imageUrl)
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(ivDrinkImage)

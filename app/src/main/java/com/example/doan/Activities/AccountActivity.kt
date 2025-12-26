@@ -1,11 +1,11 @@
 package com.example.doan.Activities
 
 import android.Manifest
-import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -13,8 +13,8 @@ import android.widget.Button
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.doan.Models.ApiResponse
@@ -33,6 +33,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.io.FileOutputStream
 
 class AccountActivity : AppCompatActivity() {
 
@@ -41,9 +42,22 @@ class AccountActivity : AppCompatActivity() {
     private lateinit var profileImage: ShapeableImageView
     private lateinit var editAvatarButton: FloatingActionButton
 
-    companion object {
-        private const val PICK_IMAGE_REQUEST = 1
-        private const val READ_EXTERNAL_STORAGE_REQUEST_CODE = 101
+    // FIX C1: Use ActivityResultLauncher instead of deprecated startActivityForResult
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { uploadAvatar(it) }
+    }
+
+    // FIX C1: Use ActivityResultLauncher for permission request
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            openGallery()
+        } else {
+            Toast.makeText(this, "Permission denied to read external storage", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,16 +77,14 @@ class AccountActivity : AppCompatActivity() {
 
         editAvatarButton.setOnClickListener {
             Log.d("AccountActivity", "Edit avatar button clicked")
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    READ_EXTERNAL_STORAGE_REQUEST_CODE
-                )
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+            
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(permission)
             } else {
                 openGallery()
             }
@@ -106,42 +118,17 @@ class AccountActivity : AppCompatActivity() {
     }
 
     private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PICK_IMAGE_REQUEST)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == READ_EXTERNAL_STORAGE_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openGallery()
-            } else {
-                Toast.makeText(this, "Permission denied to read external storage", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
-            val imageUri = data.data
-            uploadAvatar(imageUri)
-        }
+        pickImageLauncher.launch("image/*")
     }
 
     private fun uploadAvatar(imageUri: Uri?) {
         if (imageUri == null) return
 
-        val filePath = getPathFromUri(imageUri)
-        if (filePath == null) {
-            Toast.makeText(this, "Failed to get file path", Toast.LENGTH_SHORT).show()
+        val file = getFileFromUri(imageUri)
+        if (file == null) {
+            Toast.makeText(this, "Failed to create temporary file", Toast.LENGTH_SHORT).show()
             return
         }
-        val file = File(filePath)
 
         val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
@@ -151,6 +138,8 @@ class AccountActivity : AppCompatActivity() {
                 call: Call<ApiResponse<UserProfileDto>>,
                 response: Response<ApiResponse<UserProfileDto>>
             ) {
+                if (isFinishing) return
+                
                 if (response.isSuccessful && response.body()?.data != null) {
                     val userProfile = response.body()?.data!!
                     sessionManager.saveLoginSession(
@@ -162,7 +151,7 @@ class AccountActivity : AppCompatActivity() {
                         role = sessionManager.getRole(),
                         memberTier = userProfile.memberTier,
                         token = sessionManager.getToken(),
-                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refreshToken
+                        refreshToken = sessionManager.getRefreshToken(),
                         avatar = userProfile.avatar
                     )
                     Glide.with(this@AccountActivity)
@@ -175,24 +164,29 @@ class AccountActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
+                if (isFinishing) return
                 Toast.makeText(this@AccountActivity, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    private fun getPathFromUri(uri: Uri): String? {
-        val projection = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor = contentResolver.query(uri, projection, null, null, null)
-        return cursor?.use {
-            val columnIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-            it.moveToFirst()
-            it.getString(columnIndex)
+    private fun getFileFromUri(uri: Uri): File? {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val file = File(cacheDir, "temp_avatar.jpg")
+            val outputStream = FileOutputStream(file)
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+            outputStream.close()
+            file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
 
     private fun fetchAndShowUserDetails() {
-        // You can show a loading indicator here
         Log.d("AccountActivity", "Fetching user details")
         val call = apiService.getMyProfile()
         call.enqueue(object : Callback<ApiResponse<UserProfileDto>> {
@@ -200,21 +194,21 @@ class AccountActivity : AppCompatActivity() {
                 call: Call<ApiResponse<UserProfileDto>>,
                 response: Response<ApiResponse<UserProfileDto>>
             ) {
-                // Hide loading indicator
+                if (isFinishing) return
+                
                 if (response.isSuccessful && response.body()?.data != null) {
                     val userProfile = response.body()?.data!!
                     showUserDetailDialog(userProfile)
-                    // Optionally, update session manager with fresh data
                     sessionManager.saveLoginSession(
                         userId = userProfile.id?.toInt() ?: -1,
                         username = userProfile.username,
                         email = userProfile.email,
                         fullName = userProfile.fullName,
                         phone = userProfile.phone,
-                        role = sessionManager.getRole(), // Role is not in UserProfileDto, so we keep the old one
+                        role = sessionManager.getRole(),
                         memberTier = userProfile.memberTier,
                         token = sessionManager.getToken(),
-                        refreshToken = sessionManager.getRefreshToken(), // Giữ lại refreshToken
+                        refreshToken = sessionManager.getRefreshToken(),
                         avatar = userProfile.avatar
                     )
                 } else {
@@ -224,7 +218,7 @@ class AccountActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
-                // Hide loading indicator
+                if (isFinishing) return
                 Toast.makeText(this@AccountActivity, "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
                 Log.e("AccountActivity", "API call failed", t)
             }
@@ -261,7 +255,6 @@ class AccountActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh profile name and email on header in case it was changed
         val profileName = findViewById<TextView>(R.id.profile_name)
         val profileEmail = findViewById<TextView>(R.id.profile_email)
         profileName.text = sessionManager.getFullName()

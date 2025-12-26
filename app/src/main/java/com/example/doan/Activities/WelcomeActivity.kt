@@ -1,6 +1,7 @@
 package com.example.doan.Activities
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
@@ -25,7 +26,13 @@ class WelcomeActivity : AppCompatActivity() {
             loginButton.setOnClickListener {
                 try {
                     startActivity(Intent(this, LoginActivity::class.java))
-                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    // FIX C2: Handle deprecated overridePendingTransition
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.slide_in_right, R.anim.slide_out_left)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error starting LoginActivity: ${e.message}")
                 }
@@ -35,7 +42,13 @@ class WelcomeActivity : AppCompatActivity() {
             registerButton.setOnClickListener {
                 try {
                     startActivity(Intent(this, RegisterActivity::class.java))
-                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    // FIX C2: Handle deprecated overridePendingTransition
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.slide_in_right, R.anim.slide_out_left)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error starting RegisterActivity: ${e.message}")
                 }
@@ -45,7 +58,13 @@ class WelcomeActivity : AppCompatActivity() {
             guestMode.setOnClickListener {
                 try {
                     startActivity(Intent(this, MainActivity::class.java))
-                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                    // FIX C2: Handle deprecated overridePendingTransition
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.fade_in, R.anim.fade_out)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                    }
                     finish()
                 } catch (e: Exception) {
                     Log.e(TAG, "Error starting MainActivity: ${e.message}")
