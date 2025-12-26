@@ -103,6 +103,14 @@ class HomeFragment : Fragment() {
         super.onPause()
         stopAutoScroll()
     }
+    
+    /**
+     * FIX Low #17: Remove callbacks trong onDestroyView để tránh memory leak
+     */
+    override fun onDestroyView() {
+        super.onDestroyView()
+        stopAutoScroll()
+    }
 
     private fun initViews(view: View) {
         userNameTextView = view.findViewById(R.id.user_name_home)

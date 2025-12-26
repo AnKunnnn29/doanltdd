@@ -142,4 +142,70 @@ class SessionManagerTest {
         verify(mockEditor).clear()
         verify(mockEditor).apply()
     }
+    
+    // FIX Medium #11: Thêm edge case tests
+    @Test
+    fun `getFullName returns null when not set`() {
+        `when`(mockSharedPreferences.getString("full_name", null)).thenReturn(null)
+        
+        assertNull(sessionManager.getFullName())
+    }
+    
+    @Test
+    fun `getFullName returns correct name when set`() {
+        val expectedName = "Test User"
+        `when`(mockSharedPreferences.getString("full_name", null)).thenReturn(expectedName)
+        
+        assertEquals(expectedName, sessionManager.getFullName())
+    }
+    
+    @Test
+    fun `getRefreshToken returns null when not set`() {
+        `when`(mockSharedPreferences.getString("refresh_token", null)).thenReturn(null)
+        
+        assertNull(sessionManager.getRefreshToken())
+    }
+    
+    @Test
+    fun `getRefreshToken returns token when exists`() {
+        val expectedToken = "refresh_token_123"
+        `when`(mockSharedPreferences.getString("refresh_token", null)).thenReturn(expectedToken)
+        
+        assertEquals(expectedToken, sessionManager.getRefreshToken())
+    }
+    
+    @Test
+    fun `saveLoginSession with null values handles gracefully`() {
+        // Should not throw exception when called with null values
+        sessionManager.saveLoginSession(
+            userId = 1,
+            username = "testuser",
+            email = null,
+            fullName = null,
+            phone = null,
+            role = "USER",
+            memberTier = null,
+            token = "access_token",
+            refreshToken = null,
+            avatar = null
+        )
+        
+        verify(mockEditor).putBoolean("is_logged_in", true)
+        verify(mockEditor).putInt("user_id", 1)
+        verify(mockEditor).apply()
+    }
+    
+    @Test
+    fun `isAdmin returns true for ADMIN role`() {
+        `when`(mockSharedPreferences.getString("role", "USER")).thenReturn("ADMIN")
+        
+        assertTrue(sessionManager.isAdmin())
+    }
+    
+    @Test
+    fun `isAdmin returns false for USER role`() {
+        `when`(mockSharedPreferences.getString("role", "USER")).thenReturn("USER")
+        
+        assertFalse(sessionManager.isAdmin())
+    }
 }

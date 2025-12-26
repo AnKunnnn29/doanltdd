@@ -188,9 +188,10 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
             ordersRecyclerView.visibility = View.VISIBLE
         }
         
-        // Update stats
-        val pending = orders.count { it.status in listOf("PENDING", "CONFIRMED", "PREPARING", "READY", "SHIPPING") }
-        val completed = orders.count { it.status == "DELIVERED" }
+        // FIX Medium #14: Update stats với đúng status từ Backend
+        // Backend statuses: PENDING, MAKING, SHIPPING, READY, DONE, CANCELED
+        val pending = orders.count { it.status in listOf("PENDING", "MAKING", "SHIPPING", "READY") }
+        val completed = orders.count { it.status == "DONE" }
         updateStats(orders.size, pending, completed)
     }
     

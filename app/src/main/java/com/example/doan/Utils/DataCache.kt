@@ -7,15 +7,20 @@ import com.example.doan.Models.Product
 import com.example.doan.Models.Store
 import com.example.doan.Models.UserProfileDto
 
+/**
+ * FIX Low #16: Thread-safe DataCache với @Volatile annotation
+ * Đảm bảo visibility của các thay đổi giữa các threads
+ */
 object DataCache {
-    var branches: List<Branch>? = null
-    var products: List<Product>? = null
-    var categories: List<Category>? = null
-    var stores: List<Store>? = null
-    var userProfile: UserProfileDto? = null
-    var orderHistory: List<Order>? = null
-    var cartItemCount: Int? = null
+    @Volatile var branches: List<Branch>? = null
+    @Volatile var products: List<Product>? = null
+    @Volatile var categories: List<Category>? = null
+    @Volatile var stores: List<Store>? = null
+    @Volatile var userProfile: UserProfileDto? = null
+    @Volatile var orderHistory: List<Order>? = null
+    @Volatile var cartItemCount: Int? = null
 
+    @Synchronized
     fun clearAll() {
         branches = null
         products = null

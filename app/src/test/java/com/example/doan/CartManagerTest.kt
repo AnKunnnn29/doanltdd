@@ -204,4 +204,100 @@ class CartManagerTest {
         // Should be 2 different items
         assertEquals(2, cartManager.getItemCount())
     }
+    
+    // FIX Medium #10: Thêm edge case tests
+    @Test
+    fun `updateQuantity with negative index does nothing`() {
+        val product = Product(
+            id = 1,
+            name = "Test Drink",
+            description = "Test Description",
+            price = 30000.0,
+            imageUrl = "http://example.com/image.jpg"
+        )
+        
+        cartManager.addToCart(product, 1, "M", 30000.0)
+        val initialCount = cartManager.getItemCount()
+        
+        // Negative index should be ignored
+        cartManager.updateQuantity(-1, 5)
+        
+        assertEquals(initialCount, cartManager.getItemCount())
+        assertEquals(1, cartManager.getCartItems()[0].quantity)
+    }
+    
+    @Test
+    fun `removeItem with out of bounds index does nothing`() {
+        val product = Product(
+            id = 1,
+            name = "Test Drink",
+            description = "Test Description",
+            price = 30000.0,
+            imageUrl = "http://example.com/image.jpg"
+        )
+        
+        cartManager.addToCart(product, 1, "M", 30000.0)
+        val initialCount = cartManager.getItemCount()
+        
+        // Out of bounds index should be ignored
+        cartManager.removeItem(999)
+        
+        assertEquals(initialCount, cartManager.getItemCount())
+    }
+    
+    @Test
+    fun `updateQuantity with out of bounds index does nothing`() {
+        val product = Product(
+            id = 1,
+            name = "Test Drink",
+            description = "Test Description",
+            price = 30000.0,
+            imageUrl = "http://example.com/image.jpg"
+        )
+        
+        cartManager.addToCart(product, 1, "M", 30000.0)
+        val initialCount = cartManager.getItemCount()
+        
+        // Out of bounds index should be ignored
+        cartManager.updateQuantity(999, 5)
+        
+        assertEquals(initialCount, cartManager.getItemCount())
+    }
+    
+    @Test
+    fun `removeItem with negative index does nothing`() {
+        val product = Product(
+            id = 1,
+            name = "Test Drink",
+            description = "Test Description",
+            price = 30000.0,
+            imageUrl = "http://example.com/image.jpg"
+        )
+        
+        cartManager.addToCart(product, 1, "M", 30000.0)
+        val initialCount = cartManager.getItemCount()
+        
+        // Negative index should be ignored
+        cartManager.removeItem(-1)
+        
+        assertEquals(initialCount, cartManager.getItemCount())
+    }
+    
+    @Test
+    fun `updateQuantity with negative quantity removes item`() {
+        val product = Product(
+            id = 1,
+            name = "Test Drink",
+            description = "Test Description",
+            price = 30000.0,
+            imageUrl = "http://example.com/image.jpg"
+        )
+        
+        cartManager.addToCart(product, 1, "M", 30000.0)
+        
+        // Negative quantity should remove item (same as 0)
+        cartManager.updateQuantity(0, -1)
+        
+        assertEquals(0, cartManager.getItemCount())
+    }
 }

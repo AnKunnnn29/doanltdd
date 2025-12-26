@@ -474,6 +474,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
     
     private fun createOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
+        // FIX: Thêm loading dialog để user biết app đang xử lý
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang xử lý đơn hàng...")
+        
         val orderItems = items.map { item ->
             com.example.doan.Models.OrderItemRequest(
                 drinkId = item.drinkId!!.toLong(), 
@@ -499,28 +503,33 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     val order = response.body()?.data
                     createdOrderId = order?.id?.toLong()
                     
+                    // FIX: Clear cart async (không chờ response)
+                    clearCartOnServerAsync()
+                    
                     // Kiểm tra phương thức thanh toán
                     if (paymentMethod == "VNPAY") {
                         // Tạo URL thanh toán VNPAY
-                        createVNPayPayment(createdOrderId!!)
+                        createVNPayPayment(createdOrderId!!, loadingDialog)
                     } else {
                         // COD - thanh toán khi nhận hàng
+                        loadingDialog.dismiss()
                         Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
-                        clearCartOnServer()
                         navigateToOrders()
                     }
                 } else {
+                    loadingDialog.dismiss()
                     Toast.makeText(this@CartActivity, "Đặt hàng thất bại: ${response.body()?.message}", Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
+                loadingDialog.dismiss()
                 Toast.makeText(this@CartActivity, "Lỗi: ${t.message}", Toast.LENGTH_LONG).show()
             }
         })
     }
     
-    private fun createVNPayPayment(orderId: Long) {
+    private fun createVNPayPayment(orderId: Long, loadingDialog: LoadingDialog) {
         val request = VNPayPaymentRequest(
             orderId = orderId,
             orderInfo = "Thanh toan don hang $orderId",
@@ -536,18 +545,21 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     if (response.isSuccessful && response.body()?.success == true) {
                         val paymentUrl = response.body()?.data?.paymentUrl
                         if (!paymentUrl.isNullOrEmpty()) {
-                            // Clear cart trước khi chuyển sang thanh toán
-                            clearCartOnServer()
+                            // FIX: Clear cart async (không chờ response)
+                            clearCartOnServerAsync()
                             
+                            loadingDialog.dismiss()
                             // Mở WebView để thanh toán
                             val intent = Intent(this@CartActivity, VNPayPaymentActivity::class.java)
                             intent.putExtra("PAYMENT_URL", paymentUrl)
                             startActivity(intent)
                             finish()
                         } else {
+                            loadingDialog.dismiss()
                             Toast.makeText(this@CartActivity, "Không thể tạo URL thanh toán", Toast.LENGTH_SHORT).show()
                         }
                     } else {
+                        loadingDialog.dismiss()
                         Toast.makeText(this@CartActivity, "Lỗi tạo thanh toán: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -568,10 +580,14 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         finish()
     }
 
-    private fun clearCartOnServer() {
+    /**
+     * FIX: Gọi async không chờ response - tránh chậm UI
+     */
+    private fun clearCartOnServerAsync() {
         val userId = SessionManager(this).getUserId()
         if (userId == -1) return
 
+        // Gọi async, không chờ response
         RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong()).enqueue(object: Callback<ApiResponse<Void>> {
             override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
                 if (!response.isSuccessful) {
@@ -583,5 +599,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 Log.e("CartActivity", "Error clearing cart on server", t)
             }
         })
+    }
+    
+    private fun clearCartOnServer() {
+        clearCartOnServerAsync()
     }
 }
