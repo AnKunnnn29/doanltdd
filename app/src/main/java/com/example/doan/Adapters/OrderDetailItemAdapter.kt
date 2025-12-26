@@ -10,12 +10,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.doan.Models.OrderItem
 import com.example.doan.R
+import com.google.android.material.button.MaterialButton
 import java.text.NumberFormat
 import java.util.Locale
 
 class OrderDetailItemAdapter(
     private val context: Context,
-    private var items: List<OrderItem>
+    private var items: List<OrderItem>,
+    private var showReviewButton: Boolean = false,
+    private var reviewedItemIds: Set<Long> = emptySet(),
+    private var onReviewClick: ((OrderItem) -> Unit)? = null
 ) : RecyclerView.Adapter<OrderDetailItemAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -34,6 +38,20 @@ class OrderDetailItemAdapter(
         this.items = newItems
         notifyDataSetChanged()
     }
+    
+    fun setShowReviewButton(show: Boolean) {
+        this.showReviewButton = show
+        notifyDataSetChanged()
+    }
+    
+    fun setReviewedItemIds(ids: Set<Long>) {
+        this.reviewedItemIds = ids
+        notifyDataSetChanged()
+    }
+    
+    fun setOnReviewClickListener(listener: (OrderItem) -> Unit) {
+        this.onReviewClick = listener
+    }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivDrinkImage: ImageView = itemView.findViewById(R.id.iv_drink_image)
@@ -43,6 +61,7 @@ class OrderDetailItemAdapter(
         private val tvSize: TextView = itemView.findViewById(R.id.tv_order_item_size)
         private val tvToppings: TextView = itemView.findViewById(R.id.tv_order_item_toppings)
         private val divider: View = itemView.findViewById(R.id.divider)
+        private val btnReview: MaterialButton = itemView.findViewById(R.id.btn_review_item)
 
         fun bind(item: OrderItem, isLastItem: Boolean) {
             tvName.text = item.drinkName
@@ -54,8 +73,8 @@ class OrderDetailItemAdapter(
             // Load image using Glide
             Glide.with(context)
                 .load(item.drinkImage)
-                .placeholder(R.drawable.ic_launcher_background) // Optional placeholder
-                .error(R.drawable.ic_launcher_background) // Optional error image
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
                 .into(ivDrinkImage)
 
             // Size
@@ -77,6 +96,25 @@ class OrderDetailItemAdapter(
 
             // Hide divider for the last item
             divider.visibility = if (isLastItem) View.GONE else View.VISIBLE
+            
+            // Review button
+            if (showReviewButton) {
+                val itemId = item.id.toLong()
+                if (reviewedItemIds.contains(itemId)) {
+                    btnReview.visibility = View.VISIBLE
+                    btnReview.text = "Đã đánh giá"
+                    btnReview.isEnabled = false
+                } else {
+                    btnReview.visibility = View.VISIBLE
+                    btnReview.text = "Đánh giá"
+                    btnReview.isEnabled = true
+                    btnReview.setOnClickListener {
+                        onReviewClick?.invoke(item)
+                    }
+                }
+            } else {
+                btnReview.visibility = View.GONE
+            }
         }
     }
 }

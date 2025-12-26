@@ -260,6 +260,25 @@ interface ApiService {
     @POST("vnpay/create-payment")
     fun createVNPayPayment(@Body request: VNPayPaymentRequest): Call<ApiResponse<VNPayPaymentResponse>>
 
+    // ==================== REVIEWS ====================
+    @POST("reviews")
+    fun createReview(@Body request: CreateReviewRequest): Call<ApiResponse<Review>>
+    
+    @GET("reviews/drink/{drinkId}")
+    fun getReviewsByDrink(@Path("drinkId") drinkId: Long): Call<ApiResponse<List<Review>>>
+    
+    @GET("reviews/drink/{drinkId}/summary")
+    fun getDrinkRatingSummary(@Path("drinkId") drinkId: Long): Call<ApiResponse<DrinkRatingSummary>>
+    
+    @GET("reviews/my-reviews")
+    fun getMyReviews(): Call<ApiResponse<List<Review>>>
+    
+    @GET("reviews/can-review/{orderItemId}")
+    fun canReviewOrderItem(@Path("orderItemId") orderItemId: Long): Call<ApiResponse<Boolean>>
+    
+    @DELETE("reviews/{reviewId}")
+    fun deleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<String>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

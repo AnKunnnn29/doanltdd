@@ -265,6 +265,8 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     }
     
     private fun geocodeAllBranchesAsync() {
+        val ctx = context ?: return
+        
         viewLifecycleOwner.lifecycleScope.launch {
             loadingDialog.setMessage("Đang xác định vị trí...")
             
@@ -273,22 +275,24 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                 for (branch in branches) {
                     val address = branch.address ?: continue
                     if (!geocodeCache.containsKey(address)) {
-                        geocodeCache[address] = getLatLngFromAddressSync(address)
+                        geocodeCache[address] = getLatLngFromAddressSync(ctx, address)
                     }
                 }
             }
             
             // Cập nhật UI trên main thread
-            loadingDialog.dismiss()
-            displayBranchesOnMap()
+            if (isAdded) {
+                loadingDialog.dismiss()
+                displayBranchesOnMap()
+            }
         }
     }
     
-    private fun getLatLngFromAddressSync(strAddress: String): LatLng? {
+    private fun getLatLngFromAddressSync(ctx: Context, strAddress: String): LatLng? {
         if (strAddress.isBlank()) return null
         
         try {
-            val coder = Geocoder(requireContext(), Locale.getDefault())
+            val coder = Geocoder(ctx, Locale.getDefault())
             val addressList = coder.getFromLocationName(strAddress, 1)
             if (!addressList.isNullOrEmpty()) {
                 val location = addressList[0]
@@ -296,6 +300,8 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             }
         } catch (e: IOException) {
             Log.e(TAG, "Geocode error for: $strAddress", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error geocoding: $strAddress", e)
         }
         return null
     }
@@ -352,13 +358,15 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun searchAddress(address: String) {
+        val ctx = context ?: return
         loadingDialog.show("Đang tìm kiếm...")
         
         viewLifecycleOwner.lifecycleScope.launch {
             val location = withContext(Dispatchers.IO) {
-                getLatLngFromAddressSync(address)
+                getLatLngFromAddressSync(ctx, address)
             }
             
+            if (!isAdded) return@launch
             loadingDialog.dismiss()
             
             if (location != null) {
@@ -388,11 +396,14 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             onBranchMarkerClick(branch)
         } else {
             // Nếu chưa có trong cache, geocode async
+            val ctx = context ?: return
             loadingDialog.show("Đang xác định vị trí...")
             viewLifecycleOwner.lifecycleScope.launch {
                 val location = withContext(Dispatchers.IO) {
-                    getLatLngFromAddressSync(branch.address ?: "")
+                    getLatLngFromAddressSync(ctx, branch.address ?: "")
                 }
+                
+                if (!isAdded) return@launch
                 loadingDialog.dismiss()
                 
                 if (location != null) {

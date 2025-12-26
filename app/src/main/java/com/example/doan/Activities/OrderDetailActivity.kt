@@ -3,18 +3,23 @@ package com.example.doan.Activities
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.CheckBox
+import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Adapters.OrderDetailItemAdapter
-import com.example.doan.Models.ApiResponse
-import com.example.doan.Models.Order
+import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
+import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,6 +38,9 @@ class OrderDetailActivity : AppCompatActivity() {
     private lateinit var tvPaymentMethod: TextView
     private lateinit var rvOrderItems: RecyclerView
     private lateinit var orderDetailItemAdapter: OrderDetailItemAdapter
+    
+    private var currentOrder: Order? = null
+    private val reviewedItemIds = mutableSetOf<Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +70,9 @@ class OrderDetailActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         orderDetailItemAdapter = OrderDetailItemAdapter(this, mutableListOf())
+        orderDetailItemAdapter.setOnReviewClickListener { orderItem ->
+            showReviewDialog(orderItem)
+        }
         rvOrderItems.layoutManager = LinearLayoutManager(this)
         rvOrderItems.adapter = orderDetailItemAdapter
     }
@@ -73,7 +84,9 @@ class OrderDetailActivity : AppCompatActivity() {
                     val order = response.body()?.data
                     if (order != null) {
                         Log.d("OrderDetailActivity", "Order data received: ${Gson().toJson(order)}")
+                        currentOrder = order
                         updateUi(order)
+                        checkReviewedItems(order)
                     } else {
                         Log.e("OrderDetailActivity", "Order data is null")
                         Toast.makeText(this@OrderDetailActivity, "Không tìm thấy chi tiết đơn hàng", Toast.LENGTH_SHORT).show()
@@ -89,6 +102,108 @@ class OrderDetailActivity : AppCompatActivity() {
                 Toast.makeText(this@OrderDetailActivity, "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+    
+    private fun checkReviewedItems(order: Order) {
+        // Chỉ hiển thị nút đánh giá khi đơn hàng đã hoàn thành
+        if (order.status != "DONE") {
+            orderDetailItemAdapter.setShowReviewButton(false)
+            return
+        }
+        
+        orderDetailItemAdapter.setShowReviewButton(true)
+        
+        // Kiểm tra từng item đã được đánh giá chưa
+        order.items?.forEach { item ->
+            val itemId = item.id.toLong()
+            RetrofitClient.getInstance(this).apiService.canReviewOrderItem(itemId)
+                .enqueue(object : Callback<ApiResponse<Boolean>> {
+                    override fun onResponse(call: Call<ApiResponse<Boolean>>, response: Response<ApiResponse<Boolean>>) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            val canReview = response.body()?.data ?: false
+                            if (!canReview) {
+                                reviewedItemIds.add(itemId)
+                                orderDetailItemAdapter.setReviewedItemIds(reviewedItemIds)
+                            }
+                        }
+                    }
+                    override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
+                        Log.e("OrderDetailActivity", "Failed to check review status", t)
+                    }
+                })
+        }
+    }
+    
+    private fun showReviewDialog(orderItem: OrderItem) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_review, null)
+        val tvDrinkName = dialogView.findViewById<TextView>(R.id.tvReviewDrinkName)
+        val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBarInput)
+        val tvRatingHint = dialogView.findViewById<TextView>(R.id.tvRatingHint)
+        val etComment = dialogView.findViewById<TextInputEditText>(R.id.etReviewComment)
+        val cbAnonymous = dialogView.findViewById<CheckBox>(R.id.cbAnonymous)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnCancelReview)
+        val btnSubmit = dialogView.findViewById<MaterialButton>(R.id.btnSubmitReview)
+        
+        tvDrinkName.text = orderItem.drinkName
+        
+        ratingBar.setOnRatingBarChangeListener { _, rating, _ ->
+            tvRatingHint.text = when (rating.toInt()) {
+                1 -> "Rất tệ"
+                2 -> "Tệ"
+                3 -> "Bình thường"
+                4 -> "Tốt"
+                5 -> "Tuyệt vời"
+                else -> ""
+            }
+        }
+        
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+        
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        
+        btnSubmit.setOnClickListener {
+            val rating = ratingBar.rating.toInt()
+            if (rating == 0) {
+                Toast.makeText(this, "Vui lòng chọn số sao đánh giá", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            val request = CreateReviewRequest(
+                orderId = currentOrder?.id?.toLong() ?: 0,
+                orderItemId = orderItem.id.toLong(),
+                rating = rating,
+                comment = etComment.text?.toString()?.trim(),
+                isAnonymous = cbAnonymous.isChecked
+            )
+            
+            submitReview(request, dialog, orderItem.id.toLong())
+        }
+        
+        dialog.show()
+    }
+    
+    private fun submitReview(request: CreateReviewRequest, dialog: AlertDialog, orderItemId: Long) {
+        RetrofitClient.getInstance(this).apiService.createReview(request)
+            .enqueue(object : Callback<ApiResponse<Review>> {
+                override fun onResponse(call: Call<ApiResponse<Review>>, response: Response<ApiResponse<Review>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        Toast.makeText(this@OrderDetailActivity, "Đánh giá thành công!", Toast.LENGTH_SHORT).show()
+                        reviewedItemIds.add(orderItemId)
+                        orderDetailItemAdapter.setReviewedItemIds(reviewedItemIds)
+                        dialog.dismiss()
+                    } else {
+                        val errorMsg = response.body()?.message ?: "Không thể gửi đánh giá"
+                        Toast.makeText(this@OrderDetailActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<Review>>, t: Throwable) {
+                    Toast.makeText(this@OrderDetailActivity, "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     private fun updateUi(order: Order) {

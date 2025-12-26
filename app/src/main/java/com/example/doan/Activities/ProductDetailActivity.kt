@@ -7,7 +7,10 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.doan.Adapters.ReviewAdapter
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
@@ -37,6 +40,16 @@ class ProductDetailActivity : AppCompatActivity() {
     private lateinit var layoutToppings: LinearLayout
     private lateinit var tvToppingLabel: TextView
     
+    // Review views
+    private lateinit var layoutRatingSummary: LinearLayout
+    private lateinit var tvAverageRating: TextView
+    private lateinit var ratingBarAverage: RatingBar
+    private lateinit var tvTotalReviews: TextView
+    private lateinit var tvNoReviews: TextView
+    private lateinit var rvReviews: RecyclerView
+    private lateinit var tvViewAllReviews: TextView
+    private lateinit var reviewAdapter: ReviewAdapter
+    
     private lateinit var loadingDialog: LoadingDialog
 
     private var productId: Int = -1
@@ -48,6 +61,8 @@ class ProductDetailActivity : AppCompatActivity() {
     // FIX C5: Lưu reference của các Retrofit calls để cancel khi Activity destroy
     private var loadProductCall: Call<ApiResponse<List<Drink>>>? = null
     private var addToCartCall: Call<ApiResponse<Cart>>? = null
+    private var loadReviewsCall: Call<ApiResponse<List<Review>>>? = null
+    private var loadRatingSummaryCall: Call<ApiResponse<DrinkRatingSummary>>? = null
 
     companion object {
         private const val TAG = "ProductDetailActivity"
@@ -62,6 +77,7 @@ class ProductDetailActivity : AppCompatActivity() {
         initViews()
         getIntentData()
         setupListeners()
+        setupReviewsRecyclerView()
         loadProductDetails()
     }
     
@@ -70,6 +86,8 @@ class ProductDetailActivity : AppCompatActivity() {
         super.onDestroy()
         loadProductCall?.cancel()
         addToCartCall?.cancel()
+        loadReviewsCall?.cancel()
+        loadRatingSummaryCall?.cancel()
         Log.d(TAG, "Cancelled pending API calls")
     }
 
@@ -91,6 +109,22 @@ class ProductDetailActivity : AppCompatActivity() {
         spinnerSize = findViewById(R.id.spinner_size)
         layoutToppings = findViewById(R.id.layout_toppings)
         tvToppingLabel = findViewById(R.id.tv_topping_label)
+        
+        // Review views
+        layoutRatingSummary = findViewById(R.id.layout_rating_summary)
+        tvAverageRating = findViewById(R.id.tv_average_rating)
+        ratingBarAverage = findViewById(R.id.rating_bar_average)
+        tvTotalReviews = findViewById(R.id.tv_total_reviews)
+        tvNoReviews = findViewById(R.id.tv_no_reviews)
+        rvReviews = findViewById(R.id.rv_reviews)
+        tvViewAllReviews = findViewById(R.id.tv_view_all_reviews)
+    }
+    
+    private fun setupReviewsRecyclerView() {
+        reviewAdapter = ReviewAdapter()
+        rvReviews.layoutManager = LinearLayoutManager(this)
+        rvReviews.adapter = reviewAdapter
+        rvReviews.isNestedScrollingEnabled = false
     }
 
     private fun getIntentData() {
@@ -137,6 +171,7 @@ class ProductDetailActivity : AppCompatActivity() {
 
                     product?.let {
                         displayProductFullDetails(it)
+                        loadReviews(productId.toLong())
                     } ?: run {
                         // FIX C2: Hiển thị lỗi cho user khi không tìm thấy sản phẩm
                         Toast.makeText(this@ProductDetailActivity, "Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show()
@@ -225,6 +260,69 @@ class ProductDetailActivity : AppCompatActivity() {
         }
 
         updateTotalPrice()
+    }
+    
+    private fun loadReviews(drinkId: Long) {
+        // Load rating summary
+        loadRatingSummaryCall = RetrofitClient.getInstance(this).apiService.getDrinkRatingSummary(drinkId)
+        loadRatingSummaryCall?.enqueue(object : Callback<ApiResponse<DrinkRatingSummary>> {
+            override fun onResponse(call: Call<ApiResponse<DrinkRatingSummary>>, response: Response<ApiResponse<DrinkRatingSummary>>) {
+                if (isFinishing || isDestroyed) return
+                
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val summary = response.body()?.data
+                    if (summary != null && summary.totalReviews > 0) {
+                        layoutRatingSummary.visibility = View.VISIBLE
+                        tvNoReviews.visibility = View.GONE
+                        
+                        tvAverageRating.text = String.format("%.1f", summary.averageRating)
+                        ratingBarAverage.rating = summary.averageRating.toFloat()
+                        tvTotalReviews.text = "(${summary.totalReviews} đánh giá)"
+                    } else {
+                        layoutRatingSummary.visibility = View.GONE
+                        tvNoReviews.visibility = View.VISIBLE
+                    }
+                }
+            }
+            
+            override fun onFailure(call: Call<ApiResponse<DrinkRatingSummary>>, t: Throwable) {
+                if (!call.isCanceled) {
+                    Log.e(TAG, "Failed to load rating summary", t)
+                }
+            }
+        })
+        
+        // Load reviews list
+        loadReviewsCall = RetrofitClient.getInstance(this).apiService.getReviewsByDrink(drinkId)
+        loadReviewsCall?.enqueue(object : Callback<ApiResponse<List<Review>>> {
+            override fun onResponse(call: Call<ApiResponse<List<Review>>>, response: Response<ApiResponse<List<Review>>>) {
+                if (isFinishing || isDestroyed) return
+                
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val reviews = response.body()?.data ?: emptyList()
+                    if (reviews.isNotEmpty()) {
+                        rvReviews.visibility = View.VISIBLE
+                        tvNoReviews.visibility = View.GONE
+                        // Chỉ hiển thị tối đa 3 đánh giá gần nhất
+                        val displayReviews = reviews.take(3)
+                        reviewAdapter.updateReviews(displayReviews)
+                        
+                        if (reviews.size > 3) {
+                            tvViewAllReviews.visibility = View.VISIBLE
+                            tvViewAllReviews.text = "Xem tất cả (${reviews.size})"
+                        }
+                    } else {
+                        rvReviews.visibility = View.GONE
+                    }
+                }
+            }
+            
+            override fun onFailure(call: Call<ApiResponse<List<Review>>>, t: Throwable) {
+                if (!call.isCanceled) {
+                    Log.e(TAG, "Failed to load reviews", t)
+                }
+            }
+        })
     }
 
     private fun setupListeners() {
