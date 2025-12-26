@@ -1,6 +1,8 @@
 package com.example.doan.Fragments
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,6 +15,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,8 +35,10 @@ import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
 import com.example.doan.Utils.SessionManager
+import com.example.doan.Utils.VoiceOrderDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -54,6 +59,7 @@ class HomeFragment : Fragment() {
     private lateinit var cartBadge: TextView
     private lateinit var deliveryCard: MaterialCardView
     private lateinit var pickupCard: MaterialCardView
+    private lateinit var fabVoiceOrder: ExtendedFloatingActionButton
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -75,6 +81,17 @@ class HomeFragment : Fragment() {
             autoScrollHandler.postDelayed(this, AUTO_SCROLL_DELAY)
         }
     }
+    
+    // Permission launcher for microphone
+    private val micPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            showVoiceOrderDialog()
+        } else {
+            Toast.makeText(context, "Cần quyền microphone để sử dụng tính năng này", Toast.LENGTH_LONG).show()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -90,6 +107,7 @@ class HomeFragment : Fragment() {
         loadData()
         setupViewAllButtons(view)
         setupDeliveryPickupButtons()
+        setupVoiceOrder()
 
         return view
     }
@@ -125,6 +143,7 @@ class HomeFragment : Fragment() {
         forYouRecyclerView = view.findViewById(R.id.for_you_recycler_view)
         deliveryCard = view.findViewById(R.id.delivery_card)
         pickupCard = view.findViewById(R.id.pickup_card)
+        fabVoiceOrder = view.findViewById(R.id.fab_voice_order)
     }
 
     private fun setupHeader() {
@@ -444,5 +463,97 @@ class HomeFragment : Fragment() {
 
     companion object {
         private const val AUTO_SCROLL_DELAY = 4000L // 4 seconds
+    }
+    
+    // ==================== Voice Order ====================
+    
+    private fun setupVoiceOrder() {
+        fabVoiceOrder.setOnClickListener {
+            checkMicPermissionAndShowDialog()
+        }
+    }
+    
+    private fun checkMicPermissionAndShowDialog() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                showVoiceOrderDialog()
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO) -> {
+                Toast.makeText(
+                    context,
+                    "Cần quyền microphone để đặt hàng bằng giọng nói",
+                    Toast.LENGTH_LONG
+                ).show()
+                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+            else -> {
+                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
+    
+    private fun showVoiceOrderDialog() {
+        // Đảm bảo đã load products
+        if (DataCache.products.isNullOrEmpty()) {
+            Toast.makeText(context, "Đang tải sản phẩm, vui lòng thử lại...", Toast.LENGTH_SHORT).show()
+            loadAllProducts()
+            return
+        }
+        
+        VoiceOrderDialog(requireContext()) { product, quantity, sizeName ->
+            // Callback khi user confirm order
+            addToCartFromVoice(product, quantity, sizeName)
+        }.show()
+    }
+    
+    private fun addToCartFromVoice(product: Product, quantity: Int, sizeName: String) {
+        val sessionManager = SessionManager(requireContext())
+        if (!sessionManager.isLoggedIn()) {
+            Toast.makeText(context, "Vui lòng đăng nhập để thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Tìm sizeId từ sizeName - default to 0 if not found
+        val sizeId = product.sizes?.find { it.sizeName == sizeName }?.id?.toLong() ?: 0L
+        
+        val request = com.example.doan.Models.AddToCartRequest(
+            drinkId = product.id.toLong(),
+            sizeId = sizeId,
+            quantity = quantity,
+            toppingIds = emptyList(),
+            note = ""
+        )
+        
+        // API addToCart không cần userId - lấy từ JWT token
+        RetrofitClient.getInstance(requireContext()).apiService.addToCart(request)
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.Cart>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.Cart>>,
+                    response: Response<ApiResponse<com.example.doan.Models.Cart>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        Toast.makeText(
+                            context,
+                            "Da them $quantity ${product.name} (Size $sizeName) vao gio!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        
+                        // Update cart badge
+                        val cartItems = response.body()?.data?.items?.size ?: 0
+                        DataCache.cartItemCount = cartItems
+                        updateCartBadge()
+                    } else {
+                        Toast.makeText(context, "Khong the them vao gio hang", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.Cart>>, t: Throwable) {
+                    Log.e("HomeFragment", "Error adding to cart", t)
+                    Toast.makeText(context, "Loi ket noi", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 }

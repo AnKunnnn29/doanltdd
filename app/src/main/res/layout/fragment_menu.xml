@@ -73,7 +73,7 @@
 
         </RelativeLayout>
 
-        <!-- Search Bar -->
+        <!-- Search Bar with Voice -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -82,14 +82,35 @@
             app:cardElevation="0dp"
             app:strokeWidth="0dp">
 
-            <androidx.appcompat.widget.SearchView
-                android:id="@+id/search_view_menu"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="@color/white"
-                app:iconifiedByDefault="false"
-                app:queryBackground="@android:color/transparent"
-                app:queryHint="Tìm kiếm đồ uống..." />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.SearchView
+                    android:id="@+id/search_view_menu"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    app:iconifiedByDefault="false"
+                    app:queryBackground="@android:color/transparent"
+                    app:queryHint="Tim kiem do uong..." />
+
+                <!-- Voice Search Button -->
+                <ImageView
+                    android:id="@+id/btn_voice_search"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Tim kiem bang giong noi"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_mic"
+                    app:tint="@color/wine_primary" />
+
+            </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 

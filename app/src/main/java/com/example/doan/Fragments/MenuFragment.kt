@@ -1,6 +1,8 @@
 package com.example.doan.Fragments
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,7 +13,9 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -29,6 +33,7 @@ import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.VoiceSearchHelper
 import com.google.android.material.card.MaterialCardView
 import retrofit2.Call
 import retrofit2.Callback
@@ -53,14 +58,27 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private lateinit var cardClearFilter: MaterialCardView
     private lateinit var btnCartMenu: FrameLayout
     private lateinit var cartBadgeMenu: TextView
+    private lateinit var btnVoiceSearch: ImageView
 
     private val currentProductList = mutableListOf<Product>()
     private var selectedCategoryId = -1
     private var orderType: String? = null
+    private var voiceSearchHelper: VoiceSearchHelper? = null
 
-    // Các biến trạng thái cho bộ lọc.
+    // Cac bien trang thai cho bo loc.
     private var currentSearchQuery = ""
-    private var isPriceAscending: Boolean? = null // null: không sắp xếp, true: tăng dần, false: giảm dần
+    private var isPriceAscending: Boolean? = null // null: khong sap xep, true: tang dan, false: giam dan
+    
+    // Permission launcher for microphone
+    private val micPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startVoiceSearch()
+        } else {
+            Toast.makeText(context, "Can quyen microphone de tim kiem bang giong noi", Toast.LENGTH_LONG).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,7 +117,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     }
 
     private fun initViews(view: View) {
-        // TÁC DỤNG: Gán các biến view với các ID từ layout XML.
+        // TAC DUNG: Gan cac bien view voi cac ID tu layout XML.
         productRecyclerView = view.findViewById(R.id.product_recycler_view_menu)
         categoryRecyclerView = view.findViewById(R.id.category_recycler_view_menu)
         searchSuggestionRecyclerView = view.findViewById(R.id.recycler_search_suggestions_menu)
@@ -109,12 +127,18 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         cardClearFilter = view.findViewById(R.id.card_clear_filter)
         btnCartMenu = view.findViewById(R.id.btn_cart_menu)
         cartBadgeMenu = view.findViewById(R.id.cart_badge_menu)
+        btnVoiceSearch = view.findViewById(R.id.btn_voice_search)
         
         // Setup cart button
         btnCartMenu.setOnClickListener {
             startActivity(Intent(context, CartActivity::class.java).apply {
                 putExtra("orderType", orderType)
             })
+        }
+        
+        // Setup voice search button
+        btnVoiceSearch.setOnClickListener {
+            checkMicPermissionAndStartVoiceSearch()
         }
     }
 
@@ -406,5 +430,49 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
             putString("orderType", orderType)
         }
         findNavController().navigate(R.id.nav_cart, bundle)
+    }
+    
+    // ==================== Voice Search ====================
+    
+    private fun checkMicPermissionAndStartVoiceSearch() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                startVoiceSearch()
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO) -> {
+                Toast.makeText(
+                    context,
+                    "Can quyen microphone de tim kiem bang giong noi",
+                    Toast.LENGTH_LONG
+                ).show()
+                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+            else -> {
+                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
+    
+    private fun startVoiceSearch() {
+        voiceSearchHelper?.destroy()
+        voiceSearchHelper = VoiceSearchHelper(requireContext()) { searchText ->
+            // Callback khi nhan duoc ket qua voice
+            searchView.setQuery(searchText, true)
+            Toast.makeText(context, "Tim kiem: $searchText", Toast.LENGTH_SHORT).show()
+        }
+        voiceSearchHelper?.startListening()
+        
+        // Hien thi trang thai dang nghe
+        Toast.makeText(context, "Dang nghe... Hay noi ten do uong", Toast.LENGTH_SHORT).show()
+        btnVoiceSearch.setColorFilter(ContextCompat.getColor(requireContext(), R.color.success))
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        voiceSearchHelper?.destroy()
+        voiceSearchHelper = null
     }
 }
