@@ -26,6 +26,7 @@ import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import com.example.doan.Activities.AccountActivity
 import com.example.doan.Activities.CartActivity
+import com.example.doan.Activities.ChatbotActivity
 import com.example.doan.Adapters.BannerAdapter
 import com.example.doan.Adapters.ProductCarouselAdapter
 import com.example.doan.Models.ApiResponse
@@ -60,6 +61,7 @@ class HomeFragment : Fragment() {
     private lateinit var deliveryCard: MaterialCardView
     private lateinit var pickupCard: MaterialCardView
     private lateinit var fabVoiceOrder: ExtendedFloatingActionButton
+    private lateinit var fabChatbot: ExtendedFloatingActionButton
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -144,6 +146,7 @@ class HomeFragment : Fragment() {
         deliveryCard = view.findViewById(R.id.delivery_card)
         pickupCard = view.findViewById(R.id.pickup_card)
         fabVoiceOrder = view.findViewById(R.id.fab_voice_order)
+        fabChatbot = view.findViewById(R.id.fab_chatbot)
     }
 
     private fun setupHeader() {
@@ -470,6 +473,10 @@ class HomeFragment : Fragment() {
     private fun setupVoiceOrder() {
         fabVoiceOrder.setOnClickListener {
             checkMicPermissionAndShowDialog()
+        }
+        
+        fabChatbot.setOnClickListener {
+            startActivity(Intent(context, ChatbotActivity::class.java))
         }
     }
     

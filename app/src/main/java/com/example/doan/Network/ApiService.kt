@@ -8,6 +8,10 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    // ==================== CHATBOT ====================
+    @POST("chatbot/message")
+    fun sendChatMessage(@Body request: ChatRequest): Call<ApiResponse<ChatResponse>>
+
     // ==================== USER PROFILE ====================
     @GET("me")
     fun getMyProfile(): Call<ApiResponse<UserProfileDto>>
