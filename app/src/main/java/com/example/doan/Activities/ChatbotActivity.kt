@@ -36,6 +36,13 @@ class ChatbotActivity : AppCompatActivity() {
     private lateinit var chipStore: Chip
     private lateinit var chipOrder: Chip
     private lateinit var chipHelp: Chip
+    
+    // Mood chips
+    private lateinit var chipMood: Chip
+    private lateinit var chipTired: Chip
+    private lateinit var chipHappy: Chip
+    private lateinit var chipHotWeather: Chip
+    private lateinit var chipEnergy: Chip
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +69,13 @@ class ChatbotActivity : AppCompatActivity() {
         chipStore = findViewById(R.id.chipStore)
         chipOrder = findViewById(R.id.chipOrder)
         chipHelp = findViewById(R.id.chipHelp)
+        
+        // Mood chips
+        chipMood = findViewById(R.id.chipMood)
+        chipTired = findViewById(R.id.chipTired)
+        chipHappy = findViewById(R.id.chipHappy)
+        chipHotWeather = findViewById(R.id.chipHotWeather)
+        chipEnergy = findViewById(R.id.chipEnergy)
     }
 
     private fun setupToolbar() {
@@ -97,6 +111,14 @@ class ChatbotActivity : AppCompatActivity() {
     }
     
     private fun setupSuggestionChips() {
+        // Mood chips
+        chipMood.setOnClickListener { sendQuickMessage("Hôm nay bạn thế nào?") }
+        chipTired.setOnClickListener { sendQuickMessage("Tôi đang mệt mỏi") }
+        chipHappy.setOnClickListener { sendQuickMessage("Tôi đang vui") }
+        chipHotWeather.setOnClickListener { sendQuickMessage("Trời nóng quá") }
+        chipEnergy.setOnClickListener { sendQuickMessage("Tôi cần năng lượng") }
+        
+        // Regular chips
         chipMenu.setOnClickListener { sendQuickMessage("Xem menu") }
         chipHot.setOnClickListener { sendQuickMessage("Món nào bán chạy?") }
         chipPromo.setOnClickListener { sendQuickMessage("Có khuyến mãi gì không?") }
@@ -119,7 +141,8 @@ class ChatbotActivity : AppCompatActivity() {
                     "🎁 Xem khuyến mãi/voucher\n" +
                     "📍 Tìm cửa hàng\n" +
                     "📦 Kiểm tra đơn hàng\n\n" +
-                    "Hãy chọn gợi ý bên dưới hoặc nhập câu hỏi! 😊",
+                    "💭 **Đặc biệt:** Hãy cho tôi biết tâm trạng của bạn, tôi sẽ gợi ý đồ uống phù hợp!\n\n" +
+                    "Chọn gợi ý bên dưới hoặc nhập câu hỏi! 😊",
             isUser = false
         )
         chatAdapter.addMessage(welcomeMessage)

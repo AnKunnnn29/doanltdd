@@ -57,6 +57,56 @@
                 app:chipSpacingHorizontal="8dp">
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMood"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💭 Tâm trạng"
+                    app:chipBackgroundColor="#FFF3E0"
+                    app:chipStrokeColor="#FF9800"
+                    app:chipStrokeWidth="1dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTired"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="😴 Mệt mỏi"
+                    app:chipBackgroundColor="#E3F2FD"
+                    app:chipStrokeColor="#2196F3"
+                    app:chipStrokeWidth="1dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipHappy"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="😊 Vui vẻ"
+                    app:chipBackgroundColor="#E8F5E9"
+                    app:chipStrokeColor="#4CAF50"
+                    app:chipStrokeWidth="1dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipHotWeather"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🥵 Trời nóng"
+                    app:chipBackgroundColor="#FFEBEE"
+                    app:chipStrokeColor="#F44336"
+                    app:chipStrokeWidth="1dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipEnergy"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚡ Cần năng lượng"
+                    app:chipBackgroundColor="#FFF8E1"
+                    app:chipStrokeColor="#FFC107"
+                    app:chipStrokeWidth="1dp" />
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/chipMenu"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
