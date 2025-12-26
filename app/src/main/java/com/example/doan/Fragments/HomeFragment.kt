@@ -27,6 +27,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.doan.Activities.AccountActivity
 import com.example.doan.Activities.CartActivity
 import com.example.doan.Activities.ChatbotActivity
+import com.example.doan.Activities.SpinWheelActivity
 import com.example.doan.Adapters.BannerAdapter
 import com.example.doan.Adapters.ProductCarouselAdapter
 import com.example.doan.Models.ApiResponse
@@ -62,6 +63,7 @@ class HomeFragment : Fragment() {
     private lateinit var pickupCard: MaterialCardView
     private lateinit var fabVoiceOrder: ExtendedFloatingActionButton
     private lateinit var fabChatbot: ExtendedFloatingActionButton
+    private lateinit var fabSpinWheel: ExtendedFloatingActionButton
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -147,6 +149,7 @@ class HomeFragment : Fragment() {
         pickupCard = view.findViewById(R.id.pickup_card)
         fabVoiceOrder = view.findViewById(R.id.fab_voice_order)
         fabChatbot = view.findViewById(R.id.fab_chatbot)
+        fabSpinWheel = view.findViewById(R.id.fab_spin_wheel)
     }
 
     private fun setupHeader() {
@@ -477,6 +480,15 @@ class HomeFragment : Fragment() {
         
         fabChatbot.setOnClickListener {
             startActivity(Intent(context, ChatbotActivity::class.java))
+        }
+        
+        fabSpinWheel.setOnClickListener {
+            val sessionManager = SessionManager(requireContext())
+            if (!sessionManager.isLoggedIn()) {
+                Toast.makeText(context, "Vui lòng đăng nhập để tham gia vòng quay", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            startActivity(Intent(context, SpinWheelActivity::class.java))
         }
     }
     

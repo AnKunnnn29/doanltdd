@@ -279,6 +279,19 @@ interface ApiService {
     @DELETE("reviews/{reviewId}")
     fun deleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<String>>
 
+    // ==================== LOYALTY / SPIN WHEEL ====================
+    @GET("loyalty/points")
+    fun getUserPoints(): Call<ApiResponse<UserPointsDto>>
+    
+    @POST("loyalty/spin")
+    fun spinWheel(): Call<ApiResponse<SpinWheelResponse>>
+    
+    @GET("loyalty/rewards")
+    fun getAvailableRewards(): Call<ApiResponse<List<SpinRewardDto>>>
+    
+    @GET("loyalty/voucher/validate")
+    fun validateSpinVoucher(@Query("code") code: String): Call<ApiResponse<SpinRewardDto>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

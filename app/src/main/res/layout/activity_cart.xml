@@ -226,6 +226,17 @@
                         android:background="@drawable/rounded_spinner_background"
                         android:textSize="14sp"/>
 
+                    <ImageView
+                        android:id="@+id/btn_clear_voucher"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="4dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_close"
+                        android:contentDescription="Xóa voucher"
+                        android:visibility="gone"
+                        app:tint="@color/wine_neutral_dark"/>
+
                     <Button
                         android:id="@+id/btn_apply_voucher"
                         android:layout_width="wrap_content"
