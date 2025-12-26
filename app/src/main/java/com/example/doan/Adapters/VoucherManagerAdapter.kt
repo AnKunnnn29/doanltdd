@@ -4,11 +4,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Switch
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Models.Voucher
 import com.example.doan.R
+import com.google.android.material.materialswitch.MaterialSwitch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,7 +41,8 @@ class VoucherManagerAdapter(
         private val tvMinOrder: TextView = itemView.findViewById(R.id.tv_min_order)
         private val tvUsage: TextView = itemView.findViewById(R.id.tv_usage_info)
         private val tvDates: TextView = itemView.findViewById(R.id.tv_dates)
-        private val switchActive: Switch = itemView.findViewById(R.id.switch_voucher_active)
+        // FIX: Đổi từ Switch sang MaterialSwitch
+        private val switchActive: MaterialSwitch = itemView.findViewById(R.id.switch_voucher_active)
         private val btnEdit: Button = itemView.findViewById(R.id.btn_edit_voucher)
         private val btnDelete: Button = itemView.findViewById(R.id.btn_delete_voucher)
 
