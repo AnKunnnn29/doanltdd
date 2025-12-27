@@ -149,6 +149,11 @@
             android:name=".Activities.SpinWheelActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.VietQRActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
 
     </application>
 

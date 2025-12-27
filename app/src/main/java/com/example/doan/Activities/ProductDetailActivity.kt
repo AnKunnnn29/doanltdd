@@ -362,6 +362,11 @@ class ProductDetailActivity : AppCompatActivity() {
             startActivity(Intent(this, LoginActivity::class.java))
             return
         }
+        
+        // Debug: Log token info
+        Log.d("ProductDetailActivity", "Adding to cart - Token exists: ${session.getToken() != null}")
+        Log.d("ProductDetailActivity", "Adding to cart - Token length: ${session.getToken()?.length ?: 0}")
+        Log.d("ProductDetailActivity", "Adding to cart - User ID: ${session.getUserId()}")
 
         loadingDialog.show("Đang thêm vào giỏ hàng...")
 

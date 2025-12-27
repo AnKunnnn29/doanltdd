@@ -69,7 +69,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var storeList = mutableListOf<Store>()
     private var selectedStoreId: Int? = null
     private var selectedDeliveryType: String = "PICKUP" // Mặc định là đến lấy
-    private val paymentMethods = listOf("COD", "VNPAY")
+    private val paymentMethods = listOf("COD", "VNPAY", "VIETQR")
     private var appliedVoucher: com.example.doan.Models.Voucher? = null
     private var appliedSpinVoucher: com.example.doan.Models.SpinRewardDto? = null
     private var discountAmount: Double = 0.0
@@ -681,6 +681,14 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             return
         }
         
+        // Nếu là VIETQR, chuyển sang màn hình VietQR
+        if (paymentMethod == "VIETQR") {
+            val totalAmount = calculateFinalAmount(items)
+            loadingDialog.dismiss()
+            navigateToVietQRPayment(totalAmount, items, request)
+            return
+        }
+        
         // COD - Tạo đơn hàng ngay
         Log.d("CartActivity", "Creating COD order with spinVoucherCode: ${appliedSpinVoucher?.voucherCode}")
         
@@ -805,6 +813,30 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
         startActivity(intent)
         finish()
+    }
+    
+    private fun navigateToVietQRPayment(totalAmount: Long, items: List<CartItem>, orderRequest: CreateOrderRequest) {
+        // Convert cart items to order summary items
+        val orderSummaryItems = items.map { item ->
+            com.example.doan.Models.OrderSummaryItem(
+                drinkName = item.drinkName ?: "Đồ uống",
+                sizeName = item.sizeName ?: "M",
+                quantity = item.quantity ?: 1,
+                unitPrice = item.unitPrice ?: 0.0,
+                toppings = item.toppings?.mapNotNull { it.toppingName } ?: emptyList()
+            )
+        }
+        
+        val intent = Intent(this, VietQRActivity::class.java).apply {
+            putExtra("ORDER_ID", System.currentTimeMillis())
+            putExtra("TOTAL_AMOUNT", totalAmount.toDouble())
+            putExtra("ORDER_REQUEST", com.google.gson.Gson().toJson(orderRequest))
+            putExtra("ORDER_ITEMS", com.google.gson.Gson().toJson(orderSummaryItems))
+            putExtra("VOUCHER_CODE", appliedVoucher?.code)
+            putExtra("SPIN_VOUCHER_CODE", appliedSpinVoucher?.voucherCode)
+        }
+        startActivity(intent)
+        // Không finish() để user có thể quay lại khi hủy thanh toán
     }
 
     /**
