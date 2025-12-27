@@ -259,6 +259,15 @@ interface ApiService {
     // ==================== VNPAY PAYMENT ====================
     @POST("vnpay/create-payment")
     fun createVNPayPayment(@Body request: VNPayPaymentRequest): Call<ApiResponse<VNPayPaymentResponse>>
+    
+    @POST("vnpay/create-payment-amount")
+    fun createVNPayPaymentWithAmount(
+        @Query("amount") amount: Long,
+        @Query("orderInfo") orderInfo: String
+    ): Call<ApiResponse<VNPayPaymentResponse>>
+    
+    @POST("vnpay/create-order-after-payment")
+    fun createOrderAfterPayment(@Body request: CreateOrderRequest): Call<ApiResponse<Order>>
 
     // ==================== REVIEWS ====================
     @POST("reviews")

@@ -650,7 +650,6 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
     
     private fun createOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
-        // FIX: Thêm loading dialog để user biết app đang xử lý
         val loadingDialog = LoadingDialog(this)
         loadingDialog.show("Đang xử lý đơn hàng...")
         
@@ -667,39 +666,34 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         val request = CreateOrderRequest(
             storeId = storeId.toLong(),
             items = orderItems,
-            type = selectedDeliveryType, // PICKUP hoặc DELIVERY
+            type = selectedDeliveryType,
             paymentMethod = paymentMethod,
-            address = deliveryAddress, // Địa chỉ giao hàng (null nếu PICKUP)
-            promotionCode = appliedVoucher?.code, // Mã voucher thường nếu có
-            spinVoucherCode = appliedSpinVoucher?.voucherCode // Mã voucher spin nếu có
+            address = deliveryAddress,
+            promotionCode = appliedVoucher?.code,
+            spinVoucherCode = appliedSpinVoucher?.voucherCode
         )
         
-        Log.d("CartActivity", "Creating order with spinVoucherCode: ${appliedSpinVoucher?.voucherCode}")
-
+        // Nếu là VNPAY, tạo payment URL trước, KHÔNG tạo đơn hàng
+        if (paymentMethod == "VNPAY") {
+            // Tính tổng tiền để tạo payment URL
+            val totalAmount = calculateFinalAmount(items)
+            createVNPayPaymentFirst(totalAmount, request, loadingDialog)
+            return
+        }
+        
+        // COD - Tạo đơn hàng ngay
+        Log.d("CartActivity", "Creating COD order with spinVoucherCode: ${appliedSpinVoucher?.voucherCode}")
+        
         RetrofitClient.getInstance(this).apiService.createOrder(request).enqueue(object: Callback<ApiResponse<Order>> {
             override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
                 if(response.isSuccessful && response.body()?.success == true) {
-                    val order = response.body()?.data
-                    Log.d("CartActivity", "Order created successfully, voucher should be marked as used")
-                    createdOrderId = order?.id?.toLong()
-                    
-                    // FIX: Clear cart async (không chờ response)
                     clearCartOnServerAsync()
-                    
-                    // Clear voucher đã áp dụng (vì đã được sử dụng)
                     appliedVoucher = null
                     appliedSpinVoucher = null
                     
-                    // Kiểm tra phương thức thanh toán
-                    if (paymentMethod == "VNPAY") {
-                        // Tạo URL thanh toán VNPAY
-                        createVNPayPayment(createdOrderId!!, loadingDialog)
-                    } else {
-                        // COD - thanh toán khi nhận hàng
-                        loadingDialog.dismiss()
-                        Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
-                        navigateToOrders()
-                    }
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+                    navigateToOrders()
                 } else {
                     loadingDialog.dismiss()
                     Toast.makeText(this@CartActivity, "Đặt hàng thất bại: ${response.body()?.message}", Toast.LENGTH_LONG).show()
@@ -711,6 +705,57 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 Toast.makeText(this@CartActivity, "Lỗi: ${t.message}", Toast.LENGTH_LONG).show()
             }
         })
+    }
+    
+    private fun calculateFinalAmount(items: List<CartItem>): Long {
+        val total = items.sumOf { (it.unitPrice ?: 0.0) * (it.quantity ?: 1) }
+        val finalAmount = maxOf(0.0, total - discountAmount)
+        return finalAmount.toLong()
+    }
+    
+    private fun createVNPayPaymentFirst(amount: Long, orderRequest: CreateOrderRequest, loadingDialog: LoadingDialog) {
+        // Tạo payment URL với amount, không cần orderId
+        val request = VNPayPaymentRequest(
+            orderId = 0, // Sẽ được xử lý ở backend
+            orderInfo = "Thanh toan UTE Tea",
+            ipAddress = "127.0.0.1"
+        )
+        
+        RetrofitClient.getInstance(this).apiService.createVNPayPaymentWithAmount(amount, request.orderInfo ?: "")
+            .enqueue(object : Callback<ApiResponse<VNPayPaymentResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<VNPayPaymentResponse>>,
+                    response: Response<ApiResponse<VNPayPaymentResponse>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val paymentUrl = response.body()?.data?.paymentUrl
+                        if (!paymentUrl.isNullOrEmpty()) {
+                            loadingDialog.dismiss()
+                            
+                            // Mở WebView để thanh toán, truyền thêm orderRequest để tạo đơn sau
+                            val intent = Intent(this@CartActivity, VNPayPaymentActivity::class.java)
+                            intent.putExtra("PAYMENT_URL", paymentUrl)
+                            intent.putExtra("ORDER_REQUEST", com.google.gson.Gson().toJson(orderRequest))
+                            intent.putExtra("VOUCHER_CODE", appliedVoucher?.code)
+                            intent.putExtra("SPIN_VOUCHER_CODE", appliedSpinVoucher?.voucherCode)
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            loadingDialog.dismiss()
+                            Toast.makeText(this@CartActivity, "Không thể tạo URL thanh toán", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        loadingDialog.dismiss()
+                        Toast.makeText(this@CartActivity, "Lỗi tạo thanh toán: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<VNPayPaymentResponse>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Log.e("CartActivity", "Error creating VNPAY payment", t)
+                    Toast.makeText(this@CartActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
     
     private fun createVNPayPayment(orderId: Long, loadingDialog: LoadingDialog) {
@@ -729,11 +774,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     if (response.isSuccessful && response.body()?.success == true) {
                         val paymentUrl = response.body()?.data?.paymentUrl
                         if (!paymentUrl.isNullOrEmpty()) {
-                            // FIX: Clear cart async (không chờ response)
                             clearCartOnServerAsync()
                             
                             loadingDialog.dismiss()
-                            // Mở WebView để thanh toán
                             val intent = Intent(this@CartActivity, VNPayPaymentActivity::class.java)
                             intent.putExtra("PAYMENT_URL", paymentUrl)
                             startActivity(intent)
