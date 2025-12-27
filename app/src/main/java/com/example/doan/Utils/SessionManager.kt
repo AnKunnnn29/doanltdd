@@ -92,6 +92,8 @@ class SessionManager(private val context: Context) { // Store context as a prope
 
     fun isManager(): Boolean = getRole() == "MANAGER"
 
+    fun isAdmin(): Boolean = getRole() == "ADMIN"
+
     companion object {
         private const val PREF_NAME = "UTETeaPrefs"
         private const val KEY_TOKEN = "jwt_token"
