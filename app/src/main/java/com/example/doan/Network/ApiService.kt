@@ -227,6 +227,25 @@ interface ApiService {
         @Query("months") months: Int = 6
     ): Call<ApiResponse<RevenueStatistics>>
 
+    // ==================== MANAGER FORECAST APIs ====================
+    @GET("manager/forecast")
+    fun getFullForecast(): Call<ApiResponse<ForecastDto>>
+    
+    @GET("manager/forecast/revenue")
+    fun getRevenueForecast(): Call<ApiResponse<RevenueForecast>>
+    
+    @GET("manager/forecast/peak-hours")
+    fun getPeakHours(): Call<ApiResponse<List<PeakHourAnalysis>>>
+    
+    @GET("manager/forecast/low-stock")
+    fun getLowStockWarnings(): Call<ApiResponse<List<LowStockWarning>>>
+    
+    @GET("manager/forecast/staffing")
+    fun getStaffingRecommendations(): Call<ApiResponse<List<StaffingRecommendation>>>
+    
+    @GET("manager/forecast/overload")
+    fun getOverloadWarnings(): Call<ApiResponse<List<OverloadWarning>>>
+
     @GET("manager/orders")
     fun getManagerOrders(
         @Query("status") status: String?,
