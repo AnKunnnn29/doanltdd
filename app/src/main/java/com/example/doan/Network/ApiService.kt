@@ -396,6 +396,24 @@ interface ApiService {
     @DELETE("group-orders/{id}")
     fun cancelGroupOrder(@Path("id") id: Long): Call<ApiResponse<Void>>
 
+    // ==================== GROUP CHAT (CHAT NHÓM) ====================
+    @POST("group-orders/{groupOrderId}/chat")
+    fun sendGroupChatMessage(
+        @Path("groupOrderId") groupOrderId: Long,
+        @Body request: SendGroupChatRequest
+    ): Call<ApiResponse<GroupChatMessageDto>>
+    
+    @GET("group-orders/{groupOrderId}/chat")
+    fun getGroupChatHistory(
+        @Path("groupOrderId") groupOrderId: Long
+    ): Call<ApiResponse<List<GroupChatMessageDto>>>
+    
+    @GET("group-orders/{groupOrderId}/chat/recent")
+    fun getRecentGroupChatMessages(
+        @Path("groupOrderId") groupOrderId: Long,
+        @Query("limit") limit: Int = 50
+    ): Call<ApiResponse<List<GroupChatMessageDto>>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

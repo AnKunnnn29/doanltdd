@@ -187,6 +187,12 @@
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
         
+        <!-- Group Chat Activity -->
+        <activity
+            android:name=".Activities.GroupChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
         <!-- Member Tier Activity -->
         <activity
             android:name=".Activities.MemberTierActivity"
