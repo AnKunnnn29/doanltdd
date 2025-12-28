@@ -8,6 +8,10 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    // ==================== NOTIFICATIONS ====================
+    @POST("notifications/send")
+    fun sendCustomNotification(@Body request: NotificationRequestDto): Call<ApiResponse<String>>
+
     // ==================== CHATBOT ====================
     @POST("chatbot/message")
     fun sendChatMessage(@Body request: ChatRequest): Call<ApiResponse<ChatResponse>>
@@ -196,7 +200,10 @@ interface ApiService {
     fun getAllPromotions(): Call<ApiResponse<List<Voucher>>>
     
     @POST("promotions/manager")
-    fun createPromotion(@Body request: CreateVoucherRequest): Call<ApiResponse<Voucher>>
+    fun createPromotion(
+        @Body request: CreateVoucherRequest,
+        @Query("sendNotification") sendNotification: Boolean
+    ): Call<ApiResponse<Voucher>>
     
     @PUT("promotions/manager/{id}")
     fun updatePromotion(

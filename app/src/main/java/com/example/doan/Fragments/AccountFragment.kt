@@ -146,7 +146,7 @@ class AccountFragment : Fragment() {
 
     private fun deleteAccount() {
         loadingDialog.show("Đang xóa tài khoản...")
-        
+
         apiService.deleteAccount().enqueue(object : Callback<ApiResponse<String>> {
             override fun onResponse(
                 call: Call<ApiResponse<String>>,
@@ -154,7 +154,7 @@ class AccountFragment : Fragment() {
             ) {
                 if (!isAdded) return
                 loadingDialog.dismiss()
-                
+
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Tài khoản đã được xóa thành công.", Toast.LENGTH_SHORT).show()
                     performLogout()
@@ -210,13 +210,13 @@ class AccountFragment : Fragment() {
             ) {
                 if (!isAdded) return
                 loadingDialog.dismiss()
-                
+
                 if (response.isSuccessful && response.body()?.data != null) {
                     val userProfile = response.body()?.data!!
-                    
+
                     // Cập nhật cache
                     DataCache.userProfile = userProfile
-                    
+
                     sessionManager.saveLoginSession(
                         userId = userProfile.id?.toInt() ?: -1,
                         username = userProfile.username,
@@ -276,7 +276,7 @@ class AccountFragment : Fragment() {
 
     private fun fetchAndShowUserDetails() {
         Log.d("AccountFragment", "Fetching user details")
-        
+
         // Kiểm tra cache trước
         val cachedProfile = DataCache.userProfile
         if (cachedProfile != null) {
@@ -295,13 +295,13 @@ class AccountFragment : Fragment() {
             ) {
                 if (!isAdded) return
                 loadingDialog.dismiss()
-                
+
                 if (response.isSuccessful && response.body()?.data != null) {
                     val profile = response.body()!!.data!!
-                    
+
                     // Lưu vào cache
                     DataCache.userProfile = profile
-                    
+
                     showUserDetailDialog(profile)
 
                     sessionManager.saveLoginSession(
@@ -328,7 +328,7 @@ class AccountFragment : Fragment() {
             }
         })
     }
-    
+
     private fun refreshUserProfile() {
         apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
             override fun onResponse(
@@ -336,11 +336,11 @@ class AccountFragment : Fragment() {
                 response: Response<ApiResponse<UserProfileDto>>
             ) {
                 if (!isAdded) return
-                
+
                 if (response.isSuccessful && response.body()?.data != null) {
                     val profile = response.body()!!.data!!
                     DataCache.userProfile = profile
-                    
+
                     sessionManager.saveLoginSession(
                         userId = profile.id?.toInt() ?: -1,
                         username = profile.username,
@@ -353,7 +353,7 @@ class AccountFragment : Fragment() {
                         refreshToken = sessionManager.getRefreshToken(),
                         avatar = profile.avatar
                     )
-                    
+
                     // Cập nhật UI
                     profileNameText.text = profile.fullName
                     profileEmailText.text = profile.email
@@ -387,7 +387,7 @@ class AccountFragment : Fragment() {
 
     private fun performLogout() {
         sessionManager.logout()
-        
+
         // Xóa cache khi logout
         DataCache.clearAll()
 

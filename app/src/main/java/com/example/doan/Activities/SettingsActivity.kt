@@ -15,11 +15,13 @@ import com.example.doan.Utils.KeyStoreManager
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.materialswitch.MaterialSwitch
+import com.onesignal.OneSignal
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var switchDarkMode: MaterialSwitch
     private lateinit var switchBiometric: MaterialSwitch
+    private lateinit var switchNotifications: MaterialSwitch
     private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,9 +35,10 @@ class SettingsActivity : AppCompatActivity() {
             onBackPressedDispatcher.onBackPressed()
         }
 
+        val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+
         // Dark Mode
         switchDarkMode = findViewById(R.id.switch_dark_mode)
-        val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
         val isDarkMode = sharedPreferences.getBoolean("dark_mode", false)
         switchDarkMode.isChecked = isDarkMode
         switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
@@ -59,18 +62,31 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        // Notifications
+        switchNotifications = findViewById(R.id.switch_notifications)
+        val areNotificationsEnabled = sharedPreferences.getBoolean("notifications_enabled", true)
+        switchNotifications.isChecked = areNotificationsEnabled
+
+        // Đồng bộ trạng thái với OneSignal khi activity được tạo
+        if (areNotificationsEnabled) {
+            OneSignal.User.pushSubscription.optIn()
+        } else {
+            OneSignal.User.pushSubscription.optOut()
+        }
+
+        switchNotifications.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                OneSignal.User.pushSubscription.optIn()
+                Toast.makeText(this, "Thông báo đẩy đã được bật", Toast.LENGTH_SHORT).show()
+            } else {
+                OneSignal.User.pushSubscription.optOut()
+                Toast.makeText(this, "Thông báo đẩy đã được tắt", Toast.LENGTH_SHORT).show()
+            }
+            sharedPreferences.edit().putBoolean("notifications_enabled", isChecked).apply()
+        }
 
         findViewById<TextView>(R.id.tv_about).setOnClickListener {
             showAboutDialog()
-        }
-
-        val notificationsSwitch = findViewById<MaterialSwitch>(R.id.switch_notifications)
-        notificationsSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                Toast.makeText(this, "Thông báo đẩy đã được bật", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Thông báo đẩy đã được tắt", Toast.LENGTH_SHORT).show()
-            }
         }
 
         findViewById<TextView>(R.id.tv_terms_of_use).setOnClickListener {
