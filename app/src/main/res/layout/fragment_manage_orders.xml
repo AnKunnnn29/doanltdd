@@ -32,6 +32,16 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
+            <!-- Realtime Connection Status -->
+            <TextView
+                android:id="@+id/tv_connection_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="○ Offline"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="11sp"
+                android:layout_marginEnd="12dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_refresh"
                 android:layout_width="44dp"

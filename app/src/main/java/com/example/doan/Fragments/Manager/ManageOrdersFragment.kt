@@ -1,6 +1,7 @@
 package com.example.doan.Fragments.Manager
 
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -24,6 +25,7 @@ import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Order
 import com.example.doan.Models.PageResponse
 import com.example.doan.Models.Store
+import com.example.doan.Network.OrderWebSocketManager
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -48,6 +50,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     private lateinit var tvMakingCount: TextView
     private lateinit var tvDoneCount: TextView
     private lateinit var btnRefresh: MaterialButton
+    private var tvConnectionStatus: TextView? = null
 
     private lateinit var adapter: ManagerOrderAdapter
     private val allOrders = mutableListOf<Order>()
@@ -56,6 +59,10 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     private val storeList = mutableListOf<Store>()
     private var currentStatus: String? = null
     private var selectedStoreId: Long? = null
+    
+    // WebSocket Manager
+    private lateinit var webSocketManager: OrderWebSocketManager
+    private var notificationSound: MediaPlayer? = null
     
     // Pagination
     private val PAGE_SIZE = 15
@@ -73,11 +80,109 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         initViews(view)
         setupRecyclerView()
         setupListeners()
+        setupWebSocket()
         animateViewsIn()
         loadStores()
         loadOrders()
 
         return view
+    }
+    
+    private fun setupWebSocket() {
+        webSocketManager = OrderWebSocketManager.getInstance()
+        
+        // Set listener for new orders
+        webSocketManager.setOnNewOrderListener { newOrder ->
+            activity?.runOnUiThread {
+                handleNewOrder(newOrder)
+            }
+        }
+        
+        // Set listener for status updates
+        webSocketManager.setOnStatusUpdateListener { updatedOrder ->
+            activity?.runOnUiThread {
+                handleOrderStatusUpdate(updatedOrder)
+            }
+        }
+        
+        // Set listener for connection state
+        webSocketManager.setOnConnectionListener { connected ->
+            activity?.runOnUiThread {
+                updateConnectionStatus(connected)
+            }
+        }
+        
+        // Connect to WebSocket
+        val baseUrl = RetrofitClient.getBaseUrl()
+        webSocketManager.connect(baseUrl)
+    }
+    
+    private fun handleNewOrder(newOrder: Order) {
+        Log.d(TAG, "New order received via WebSocket: #${newOrder.id}")
+        
+        // Check if order matches current filter (store)
+        if (selectedStoreId != null && newOrder.storeId != selectedStoreId) {
+            Log.d(TAG, "Order doesn't match selected store, ignoring")
+            return
+        }
+        
+        // Check if order already exists
+        val existingIndex = allOrders.indexOfFirst { it.id == newOrder.id }
+        if (existingIndex >= 0) {
+            Log.d(TAG, "Order already exists, updating")
+            allOrders[existingIndex] = newOrder
+        } else {
+            // Add new order to the beginning
+            allOrders.add(0, newOrder)
+            
+            // Play notification sound
+            playNotificationSound()
+            
+            // Show toast
+            Toast.makeText(
+                context,
+                "🔔 Đơn hàng mới #${newOrder.id}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        
+        // Refresh display
+        updateStats()
+        applyFilters()
+    }
+    
+    private fun handleOrderStatusUpdate(updatedOrder: Order) {
+        Log.d(TAG, "Order status update via WebSocket: #${updatedOrder.id} -> ${updatedOrder.status}")
+        
+        // Find and update the order
+        val index = allOrders.indexOfFirst { it.id == updatedOrder.id }
+        if (index >= 0) {
+            allOrders[index] = updatedOrder
+            updateStats()
+            applyFilters()
+        }
+    }
+    
+    private fun updateConnectionStatus(connected: Boolean) {
+        tvConnectionStatus?.apply {
+            if (connected) {
+                text = "● Realtime"
+                setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
+            } else {
+                text = "○ Offline"
+                setTextColor(resources.getColor(android.R.color.holo_red_dark, null))
+            }
+        }
+    }
+    
+    private fun playNotificationSound() {
+        try {
+            notificationSound?.release()
+            notificationSound = MediaPlayer.create(context, android.provider.Settings.System.DEFAULT_NOTIFICATION_URI)
+            notificationSound?.start()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error playing notification sound: ${e.message}")
+        }
     }
 
     private fun initViews(view: View) {
@@ -93,6 +198,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         tvMakingCount = view.findViewById(R.id.tv_making_count)
         tvDoneCount = view.findViewById(R.id.tv_done_count)
         btnRefresh = view.findViewById(R.id.btn_refresh)
+        tvConnectionStatus = view.findViewById(R.id.tv_connection_status)
     }
 
     private fun setupRecyclerView() {
@@ -451,5 +557,16 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         filteredOrders.clear()
         displayedOrders.clear()
         storeList.clear()
+        
+        // Release notification sound
+        notificationSound?.release()
+        notificationSound = null
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Reconnect WebSocket if needed
+        val baseUrl = RetrofitClient.getBaseUrl()
+        webSocketManager.reconnectIfNeeded(baseUrl)
     }
 }

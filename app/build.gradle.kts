@@ -73,11 +73,19 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+    
+    // Lifecycle for app foreground/background detection
+    implementation("androidx.lifecycle:lifecycle-process:2.7.0")
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.retrofit2:converter-scalars:2.9.0") // Added this line
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    
+    // STOMP WebSocket client for realtime order updates
+    implementation("com.github.NaikSoftware:StompProtocolAndroid:1.6.6")
+    implementation("io.reactivex.rxjava2:rxjava:2.2.21")
+    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
