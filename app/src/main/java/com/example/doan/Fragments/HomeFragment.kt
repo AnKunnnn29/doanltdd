@@ -29,6 +29,7 @@ import com.example.doan.Activities.CartActivity
 import com.example.doan.Activities.ChatbotActivity
 import com.example.doan.Activities.CreateGroupOrderActivity
 import com.example.doan.Activities.JoinGroupOrderActivity
+import com.example.doan.Activities.LiveChatActivity
 import com.example.doan.Activities.SpinWheelActivity
 import com.example.doan.Adapters.BannerAdapter
 import com.example.doan.Adapters.ProductCarouselAdapter
@@ -61,6 +62,7 @@ class HomeFragment : Fragment() {
     private lateinit var avatarCard: MaterialCardView
     private lateinit var cartButton: FrameLayout
     private lateinit var cartBadge: TextView
+    private lateinit var liveChatButton: FrameLayout
     private lateinit var deliveryCard: MaterialCardView
     private lateinit var pickupCard: MaterialCardView
     private lateinit var fabVoiceOrder: ExtendedFloatingActionButton
@@ -144,6 +146,7 @@ class HomeFragment : Fragment() {
         avatarCard = view.findViewById(R.id.avatar_card)
         cartButton = view.findViewById(R.id.cart_button)
         cartBadge = view.findViewById(R.id.cart_badge)
+        liveChatButton = view.findViewById(R.id.live_chat_button)
         bannerViewPager = view.findViewById(R.id.banner_viewpager)
         indicatorLayout = view.findViewById(R.id.indicator_layout)
         bestSellerRecyclerView = view.findViewById(R.id.best_seller_recycler_view)
@@ -182,6 +185,11 @@ class HomeFragment : Fragment() {
         // Cart button click
         cartButton.setOnClickListener {
             startActivity(Intent(context, CartActivity::class.java))
+        }
+
+        // Live Chat button click
+        liveChatButton.setOnClickListener {
+            startActivity(Intent(context, LiveChatActivity::class.java))
         }
 
         // Update cart badge

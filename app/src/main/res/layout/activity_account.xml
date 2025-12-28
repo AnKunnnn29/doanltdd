@@ -1,32 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- TÁC DỤNG TỔNG THỂ: Layout cho màn hình Tài khoản (AccountFragment). -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wine_light_surface"
-    tools:context=".Fragments.AccountFragment">
+    android:background="@color/wine_primary"
+    tools:context=".Activities.AccountActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appbar_layout"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/wine_primary"
-        android:fitsSystemWindows="true">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:contentScrim="@color/wine_primary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            android:orientation="vertical">
 
+            <!-- TÁC DỤNG: Phần header hiển thị ảnh đại diện, tên và email của người dùng. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:paddingTop="48dp"
-                android:paddingBottom="32dp">
+                android:padding="32dp">
 
                 <RelativeLayout
                     android:layout_width="wrap_content"
@@ -48,16 +45,18 @@
                         android:layout_height="wrap_content"
                         android:layout_alignEnd="@id/profile_image"
                         android:layout_alignBottom="@id/profile_image"
+                        android:src="@android:drawable/ic_menu_camera"
+                        app:fabSize="mini"
+                        app:tint="@android:color/white"
+                        app:backgroundTint="@color/wine_primary"
                         android:layout_marginEnd="-15dp"
                         android:layout_marginBottom="-15dp"
-                        android:contentDescription="Edit Avatar"
-                        android:src="@android:drawable/ic_menu_camera"
-                        app:backgroundTint="@color/wine_primary"
-                        app:borderWidth="0dp"
                         app:elevation="2dp"
-                        app:fabSize="mini"
-                        app:tint="@android:color/white" />
+                        app:borderWidth="0dp"
+                        android:contentDescription="Edit Avatar"/>
+
                 </RelativeLayout>
+
 
                 <TextView
                     android:id="@+id/profile_name"
@@ -78,42 +77,22 @@
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="@color/wine_light_surface"
                     tools:text="thanhan@example.com" />
+
             </LinearLayout>
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin" />
-
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
+            <!-- TÁC DỤNG: Thẻ chứa các tùy chọn menu cho người dùng. -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/wine_neutral_light">
+                android:backgroundTint="@color/wine_light_surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                    <!-- User Detail -->
+                    <!-- Tùy chọn: Xem chi tiết người dùng -->
                     <RelativeLayout
                         android:id="@+id/user_detail_option"
                         android:layout_width="match_parent"
@@ -130,7 +109,7 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
                             android:src="@android:drawable/ic_dialog_info"
-                            app:tint="?attr/colorOnSurface" />
+                            app:tint="@color/wine_dark_background" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -154,7 +133,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
-                    <!-- Order History -->
+                    <!-- Tùy chọn: Xem lịch sử đơn hàng -->
                     <RelativeLayout
                         android:id="@+id/order_history_option"
                         android:layout_width="match_parent"
@@ -171,7 +150,7 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
                             android:src="@android:drawable/ic_menu_recent_history"
-                            app:tint="?attr/colorOnSurface" />
+                            app:tint="@color/wine_dark_background" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -195,7 +174,48 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
-                    <!-- Edit Profile -->
+                    <!-- Tùy chọn: Hạng thành viên -->
+                    <RelativeLayout
+                        android:id="@+id/member_tier_option"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:id="@+id/icon_member_tier"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_tier_gold"
+                            app:tint="@color/wine_dark_background" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="16dp"
+                            android:layout_toEndOf="@id/icon_member_tier"
+                            android:text="Hạng thành viên"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_arrow_forward" />
+
+                    </RelativeLayout>
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <!-- Tùy chọn: Chỉnh sửa hồ sơ -->
                     <RelativeLayout
                         android:id="@+id/profile_option"
                         android:layout_width="match_parent"
@@ -212,7 +232,7 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
                             android:src="@android:drawable/ic_menu_edit"
-                            app:tint="?attr/colorOnSurface" />
+                            app:tint="@color/wine_dark_background" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -235,8 +255,7 @@
                     <com.google.android.material.divider.MaterialDivider
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
-
-                    <!-- Change Password -->
+                    <!-- Tùy chọn: Đổi mật khẩu -->
                     <RelativeLayout
                         android:id="@+id/change_password_option"
                         android:layout_width="match_parent"
@@ -253,7 +272,7 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
                             android:src="@android:drawable/ic_lock_idle_lock"
-                            app:tint="?attr/colorOnSurface" />
+                            app:tint="@color/wine_dark_background" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -277,7 +296,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
-                    <!-- Settings -->
+                    <!-- Tùy chọn: Cài đặt -->
                     <RelativeLayout
                         android:id="@+id/settings_option"
                         android:layout_width="match_parent"
@@ -294,7 +313,7 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
                             android:src="@android:drawable/ic_menu_manage"
-                            app:tint="?attr/colorOnSurface" />
+                            app:tint="@color/wine_dark_background" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -312,60 +331,60 @@
                             android:layout_centerVertical="true"
                             android:src="@drawable/ic_arrow_forward" />
                     </RelativeLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- Dangerous Actions -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:cardBackgroundColor="@color/wine_light_surface"
-                app:strokeColor="#D32F2F"
-                app:strokeWidth="1dp"
-                app:cardCornerRadius="16dp">
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
+                    <!-- Tùy chọn: Xóa tài khoản -->
+                    <RelativeLayout
                         android:id="@+id/delete_account_option"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:text="Xóa tài khoản"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        android:textColor="#D32F2F"
-                        android:textStyle="bold" />
+                        android:padding="16dp">
 
-                    <com.google.android.material.divider.MaterialDivider
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        <ImageView
+                            android:id="@+id/icon_delete_account"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:src="@android:drawable/ic_menu_delete"
+                            app:tint="@android:color/holo_red_dark" />
 
-                    <TextView
-                        android:id="@+id/logout_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:text="Đăng xuất"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        android:textColor="#D32F2F"
-                        android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="16dp"
+                            android:layout_toEndOf="@id/icon_delete_account"
+                            android:text="Xóa Tài Khoản"
+                            android:textColor="@android:color/holo_red_dark"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                    </RelativeLayout>
 
                 </LinearLayout>
+
             </com.google.android.material.card.MaterialCardView>
 
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+            <!-- TÁC DỤNG: Nút đăng xuất. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/logout_button"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:padding="16dp"
+                android:text="Đăng xuất"
+                android:textColor="@color/wine_light_surface"
+                app:strokeColor="@color/wine_light_surface" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        </LinearLayout>
+
+    </ScrollView>
+
+</RelativeLayout>

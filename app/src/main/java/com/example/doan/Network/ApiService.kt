@@ -16,6 +16,29 @@ interface ApiService {
     @POST("chatbot/message")
     fun sendChatMessage(@Body request: ChatRequest): Call<ApiResponse<ChatResponse>>
 
+    // ==================== LIVE CHAT ====================
+    @POST("chat/conversations")
+    fun startLiveConversation(@Body request: StartConversationRequest): Call<ApiResponse<LiveConversation>>
+    
+    @POST("chat/messages")
+    fun sendLiveMessage(@Body request: SendLiveMessageRequest): Call<ApiResponse<LiveMessage>>
+    
+    @GET("chat/conversations/my")
+    fun getMyConversations(): Call<ApiResponse<List<ConversationListItem>>>
+    
+    @GET("chat/conversations/{id}")
+    fun getConversation(@Path("id") id: Long): Call<ApiResponse<LiveConversation>>
+    
+    @POST("chat/conversations/{id}/close")
+    fun closeConversation(@Path("id") id: Long): Call<ApiResponse<LiveConversation>>
+    
+    // Manager Live Chat APIs
+    @GET("chat/manager/conversations")
+    fun getManagerConversations(): Call<ApiResponse<List<ConversationListItem>>>
+    
+    @GET("chat/manager/conversations/waiting-count")
+    fun getWaitingConversationsCount(): Call<ApiResponse<Long>>
+
     // ==================== USER PROFILE ====================
     @GET("me")
     fun getMyProfile(): Call<ApiResponse<UserProfileDto>>
@@ -307,6 +330,16 @@ interface ApiService {
     
     @GET("loyalty/voucher/validate")
     fun validateSpinVoucher(@Query("code") code: String): Call<ApiResponse<SpinRewardDto>>
+    
+    // Member Tier Benefits
+    @GET("loyalty/tier/benefits")
+    fun getTierBenefits(): Call<ApiResponse<MemberTierBenefitsDto>>
+    
+    @POST("loyalty/tier/check-upgrade")
+    fun checkTierUpgrade(): Call<ApiResponse<MemberTierBenefitsDto>>
+    
+    @GET("loyalty/tier/preview-discount")
+    fun previewTierDiscount(@Query("orderTotal") orderTotal: Double): Call<ApiResponse<TierDiscountPreview>>
 
     // ==================== GROUP ORDER (ĐẶT HÀNG NHÓM) ====================
     @POST("group-orders")
@@ -369,6 +402,24 @@ interface ApiService {
     
     @DELETE("group-orders/{id}")
     fun cancelGroupOrder(@Path("id") id: Long): Call<ApiResponse<Void>>
+
+    // ==================== GROUP CHAT (CHAT NHÓM) ====================
+    @POST("group-orders/{groupOrderId}/chat")
+    fun sendGroupChatMessage(
+        @Path("groupOrderId") groupOrderId: Long,
+        @Body request: SendGroupChatRequest
+    ): Call<ApiResponse<GroupChatMessageDto>>
+    
+    @GET("group-orders/{groupOrderId}/chat")
+    fun getGroupChatHistory(
+        @Path("groupOrderId") groupOrderId: Long
+    ): Call<ApiResponse<List<GroupChatMessageDto>>>
+    
+    @GET("group-orders/{groupOrderId}/chat/recent")
+    fun getRecentGroupChatMessages(
+        @Path("groupOrderId") groupOrderId: Long,
+        @Query("limit") limit: Int = 50
+    ): Call<ApiResponse<List<GroupChatMessageDto>>>
 
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")

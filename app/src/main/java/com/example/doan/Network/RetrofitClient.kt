@@ -44,9 +44,9 @@ class RetrofitClient private constructor(context: Context) {
     
     companion object {
         // ✅ URL Production trên Railway
-        private const val BASE_URL = "https://utetea-backend-production.up.railway.app/api/"
-        // private const val BASE_URL = "http://10.0.2.2:8080/api/"
-        // private const val BASE_URL = "https://backend-app-ngwy.onrender.com//api/"  render
+         //private const val BASE_URL = "https://utetea-backend-production.up.railway.app/api/"
+         private const val BASE_URL = "http://10.0.2.2:8080/api/"
+        // private const val BASE_URL = "https://backend-app-ngwy.onrender.com/api/"  render
 
         @Volatile
         private var instance: RetrofitClient? = null

@@ -95,6 +95,25 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
+                <!-- Live Chat Button -->
+                <FrameLayout
+                    android:id="@+id/live_chat_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Chat hỗ trợ"
+                        android:src="@drawable/ic_support_agent"
+                        app:tint="@color/white" />
+                </FrameLayout>
+
                 <!-- Cart Button với badge -->
                 <FrameLayout
                     android:id="@+id/cart_button"

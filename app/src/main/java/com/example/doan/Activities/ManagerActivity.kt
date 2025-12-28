@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.doan.Fragments.Manager.DashboardFragment
 import com.example.doan.Fragments.Manager.ManageCategoriesFragment
+import com.example.doan.Fragments.Manager.ManageChatsFragment
 import com.example.doan.Fragments.Manager.ManageDrinksFragment
 import com.example.doan.Fragments.Manager.ManageOrdersFragment
 import com.example.doan.Fragments.Manager.ManagerSettingsFragment
@@ -92,7 +93,7 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
             R.id.nav_manager_dashboard -> DashboardFragment()
             R.id.nav_manager_drinks -> ManageDrinksFragment()
             R.id.nav_manager_orders -> ManageOrdersFragment()
-            R.id.nav_manager_categories -> ManageCategoriesFragment()
+            R.id.nav_manager_chats -> ManageChatsFragment()
             R.id.nav_manager_settings -> ManagerSettingsFragment()
             else -> null
         }

@@ -48,6 +48,7 @@ class GroupOrderActivity : AppCompatActivity() {
     private lateinit var btnCheckout: Button
     private lateinit var btnLeave: Button
     private lateinit var btnCancel: Button
+    private lateinit var btnChat: Button
     private lateinit var llHostActions: LinearLayout
 
     private lateinit var memberAdapter: GroupOrderMemberAdapter
@@ -98,6 +99,7 @@ class GroupOrderActivity : AppCompatActivity() {
         btnCheckout = findViewById(R.id.btn_checkout)
         btnLeave = findViewById(R.id.btn_leave)
         btnCancel = findViewById(R.id.btn_cancel)
+        btnChat = findViewById(R.id.btn_chat)
         llHostActions = findViewById(R.id.ll_host_actions)
 
         // Setup RecyclerViews
@@ -112,6 +114,7 @@ class GroupOrderActivity : AppCompatActivity() {
         btnCheckout.setOnClickListener { showCheckoutDialog() }
         btnLeave.setOnClickListener { confirmLeave() }
         btnCancel.setOnClickListener { confirmCancel() }
+        btnChat.setOnClickListener { openGroupChat() }
         
         // Host có thể click vào store name để thay đổi
         tvStoreName.setOnClickListener { 
@@ -379,6 +382,16 @@ class GroupOrderActivity : AppCompatActivity() {
     
     companion object {
         private const val REQUEST_ADD_ITEM = 100
+    }
+    
+    private fun openGroupChat() {
+        val order = groupOrder ?: return
+        val intent = Intent(this, GroupChatActivity::class.java).apply {
+            putExtra(GroupChatActivity.EXTRA_GROUP_ORDER_ID, groupOrderId)
+            putExtra(GroupChatActivity.EXTRA_GROUP_NAME, order.name ?: "Chat nhóm")
+            putExtra(GroupChatActivity.EXTRA_MEMBER_COUNT, order.currentMemberCount ?: 0)
+        }
+        startActivity(intent)
     }
 
     private fun toggleLock() {
