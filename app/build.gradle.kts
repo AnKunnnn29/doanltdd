@@ -131,7 +131,8 @@ dependencies {
 //    implementation("com.twilio:twilio-conversations:10.1.0")
 
     // Notification
-    implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
+    implementation("com.onesignal:core:5.4.1")
+    implementation("com.onesignal:notifications:5.4.1")
 
     implementation ("com.airbnb.android:lottie:+")
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")

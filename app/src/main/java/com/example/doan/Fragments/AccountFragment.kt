@@ -29,7 +29,6 @@ import com.example.doan.R
 import com.example.doan.Utils.DataCache
 import com.example.doan.Utils.LoadingDialog
 import com.example.doan.Utils.SessionManager
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.imageview.ShapeableImageView
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -53,19 +52,17 @@ class AccountFragment : Fragment() {
     private lateinit var profileOption: RelativeLayout
     private lateinit var changePasswordOption: RelativeLayout
     private lateinit var settingsOption: RelativeLayout
-    private lateinit var logoutButton: MaterialButton
+    private lateinit var logoutButton: TextView
     private lateinit var profileImage: ShapeableImageView
     private lateinit var fabEditAvatar: FloatingActionButton
-    private lateinit var deleteAccountOption: RelativeLayout
+    private lateinit var deleteAccountOption: TextView
 
-    // FIX C1: Use ActivityResultLauncher instead of deprecated startActivityForResult
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { uploadAvatar(it) }
     }
 
-    // FIX C1: Use ActivityResultLauncher for permission request
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -86,20 +83,25 @@ class AccountFragment : Fragment() {
         apiService = RetrofitClient.getInstance(requireContext()).apiService
         loadingDialog = LoadingDialog(requireContext())
 
-        // Gán các view từ layout.
         profileNameText = view.findViewById(R.id.profile_name)
         profileEmailText = view.findViewById(R.id.profile_email)
         profileImage = view.findViewById(R.id.profile_image)
         fabEditAvatar = view.findViewById(R.id.fab_edit_avatar)
+
         userDetailOption = view.findViewById(R.id.user_detail_option)
         orderHistoryOption = view.findViewById(R.id.order_history_option)
         profileOption = view.findViewById(R.id.profile_option)
         changePasswordOption = view.findViewById(R.id.change_password_option)
         settingsOption = view.findViewById(R.id.settings_option)
-        logoutButton = view.findViewById(R.id.logout_button)
         deleteAccountOption = view.findViewById(R.id.delete_account_option)
+        logoutButton = view.findViewById(R.id.logout_button)
 
-        // Thiết lập sự kiện click.
+        setupClickListeners()
+
+        return view
+    }
+
+    private fun setupClickListeners() {
         fabEditAvatar.setOnClickListener { openGalleryWithPermission() }
         userDetailOption.setOnClickListener { fetchAndShowUserDetails() }
         orderHistoryOption.setOnClickListener {
@@ -117,7 +119,6 @@ class AccountFragment : Fragment() {
         deleteAccountOption.setOnClickListener {
             showDeleteConfirmationDialog()
         }
-
         logoutButton.setOnClickListener {
             if (sessionManager.isLoggedIn()) {
                 performLogout()
@@ -125,9 +126,8 @@ class AccountFragment : Fragment() {
                 startActivity(Intent(requireContext(), LoginActivity::class.java))
             }
         }
-
-        return view
     }
+
     private fun showDeleteConfirmationDialog() {
         AlertDialog.Builder(requireContext())
             .setTitle("Xác nhận xóa tài khoản")
@@ -141,7 +141,7 @@ class AccountFragment : Fragment() {
 
     private fun deleteAccount() {
         loadingDialog.show("Đang xóa tài khoản...")
-        
+
         apiService.deleteAccount().enqueue(object : Callback<ApiResponse<String>> {
             override fun onResponse(
                 call: Call<ApiResponse<String>>,
@@ -149,7 +149,7 @@ class AccountFragment : Fragment() {
             ) {
                 if (!isAdded) return
                 loadingDialog.dismiss()
-                
+
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Tài khoản đã được xóa thành công.", Toast.LENGTH_SHORT).show()
                     performLogout()
@@ -205,13 +205,12 @@ class AccountFragment : Fragment() {
             ) {
                 if (!isAdded) return
                 loadingDialog.dismiss()
-                
+
                 if (response.isSuccessful && response.body()?.data != null) {
                     val userProfile = response.body()?.data!!
-                    
-                    // Cập nhật cache
+
                     DataCache.userProfile = userProfile
-                    
+
                     sessionManager.saveLoginSession(
                         userId = userProfile.id?.toInt() ?: -1,
                         username = userProfile.username,
@@ -271,12 +270,10 @@ class AccountFragment : Fragment() {
 
     private fun fetchAndShowUserDetails() {
         Log.d("AccountFragment", "Fetching user details")
-        
-        // Kiểm tra cache trước
+
         val cachedProfile = DataCache.userProfile
         if (cachedProfile != null) {
             showUserDetailDialog(cachedProfile)
-            // Vẫn refresh data trong background
             refreshUserProfile()
             return
         }
@@ -290,13 +287,12 @@ class AccountFragment : Fragment() {
             ) {
                 if (!isAdded) return
                 loadingDialog.dismiss()
-                
+
                 if (response.isSuccessful && response.body()?.data != null) {
                     val profile = response.body()!!.data!!
-                    
-                    // Lưu vào cache
+
                     DataCache.userProfile = profile
-                    
+
                     showUserDetailDialog(profile)
 
                     sessionManager.saveLoginSession(
@@ -323,7 +319,7 @@ class AccountFragment : Fragment() {
             }
         })
     }
-    
+
     private fun refreshUserProfile() {
         apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
             override fun onResponse(
@@ -331,11 +327,11 @@ class AccountFragment : Fragment() {
                 response: Response<ApiResponse<UserProfileDto>>
             ) {
                 if (!isAdded) return
-                
+
                 if (response.isSuccessful && response.body()?.data != null) {
                     val profile = response.body()!!.data!!
                     DataCache.userProfile = profile
-                    
+
                     sessionManager.saveLoginSession(
                         userId = profile.id?.toInt() ?: -1,
                         username = profile.username,
@@ -348,8 +344,7 @@ class AccountFragment : Fragment() {
                         refreshToken = sessionManager.getRefreshToken(),
                         avatar = profile.avatar
                     )
-                    
-                    // Cập nhật UI
+
                     profileNameText.text = profile.fullName
                     profileEmailText.text = profile.email
                 }
@@ -382,8 +377,7 @@ class AccountFragment : Fragment() {
 
     private fun performLogout() {
         sessionManager.logout()
-        
-        // Xóa cache khi logout
+
         DataCache.clearAll()
 
         val intent = Intent(requireContext(), LoginActivity::class.java)

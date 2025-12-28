@@ -9,7 +9,6 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import com.example.doan.Models.*
@@ -19,6 +18,7 @@ import com.example.doan.R
 import com.example.doan.Utils.KeyStoreManager
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.textfield.TextInputEditText
+import com.onesignal.OneSignal
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -148,6 +148,13 @@ class LoginActivity : AppCompatActivity() {
                         refreshToken = sessionManager.getRefreshToken(), // Lấy refresh token mới từ session
                         avatar = profile.avatar
                     )
+
+                    // Gán External User ID cho OneSignal
+                    profile.id?.let {
+                        OneSignal.login(it.toString())
+                        Log.d("LoginActivity", "OneSignal.login called with userId: ${it}")
+                    }
+
                     navigateToMain()
                 } else {
                     Toast.makeText(this@LoginActivity, "Không thể lấy thông tin người dùng. Mã lỗi: ${response.code()}", Toast.LENGTH_SHORT).show()
@@ -187,6 +194,11 @@ class LoginActivity : AppCompatActivity() {
                             refreshToken = loginResponse.refreshToken,
                             avatar = loginResponse.avatar
                         )
+
+                        // Gán External User ID cho OneSignal
+                        OneSignal.login(loginResponse.userId.toString())
+                        Log.d("LoginActivity", "OneSignal.login called with userId: ${loginResponse.userId}")
+
                         navigateToMain()
                     } else {
                         Toast.makeText(this@LoginActivity, response.body()?.message ?: "Đã có lỗi xảy ra", Toast.LENGTH_SHORT).show()
