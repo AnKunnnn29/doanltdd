@@ -40,14 +40,16 @@ class PredictiveOrderHelper(private val context: Context) {
      * @param activity Activity để hiển thị dialog
      * @param weather Điều kiện thời tiết (optional)
      * @param onAddToCart Callback khi user chọn thêm vào giỏ
+     * @param forceShow Bỏ qua điều kiện thời gian, luôn hiển thị
      */
     fun checkAndShowPrediction(
         activity: AppCompatActivity,
         weather: String? = null,
+        forceShow: Boolean = false,
         onAddToCart: (PredictedDrink) -> Unit
     ) {
-        // Kiểm tra điều kiện thời gian
-        if (!shouldShowPrediction()) {
+        // Kiểm tra điều kiện thời gian (bỏ qua nếu forceShow = true)
+        if (!forceShow && !shouldShowPrediction()) {
             Log.d(TAG, "Skipping prediction - too soon since last shown")
             return
         }
@@ -55,8 +57,8 @@ class PredictiveOrderHelper(private val context: Context) {
         // Gọi API
         fetchPrediction(weather) { prediction ->
             if (prediction != null && prediction.hasPrediction && prediction.predictedDrink != null) {
-                // Kiểm tra xem có phải món đã bị dismiss nhiều lần không
-                if (isDrinkDismissedTooMuch(prediction.predictedDrink.drinkId)) {
+                // Kiểm tra xem có phải món đã bị dismiss nhiều lần không (bỏ qua nếu forceShow)
+                if (!forceShow && isDrinkDismissedTooMuch(prediction.predictedDrink.drinkId)) {
                     Log.d(TAG, "Skipping prediction - drink dismissed too many times")
                     return@fetchPrediction
                 }
@@ -75,22 +77,30 @@ class PredictiveOrderHelper(private val context: Context) {
      * Gọi API lấy prediction
      */
     private fun fetchPrediction(weather: String?, callback: (PredictiveOrderResponse?) -> Unit) {
+        Log.d(TAG, "Fetching prediction from API...")
+        
         RetrofitClient.getInstance(context).apiService.getPredictiveOrder(weather)
             .enqueue(object : Callback<ApiResponse<PredictiveOrderResponse>> {
                 override fun onResponse(
                     call: Call<ApiResponse<PredictiveOrderResponse>>,
                     response: Response<ApiResponse<PredictiveOrderResponse>>
                 ) {
+                    Log.d(TAG, "API response code: ${response.code()}")
                     if (response.isSuccessful) {
-                        callback(response.body()?.data)
+                        val data = response.body()?.data
+                        Log.d(TAG, "Prediction received: hasPrediction=${data?.hasPrediction}, message=${data?.message}")
+                        if (data?.predictedDrink != null) {
+                            Log.d(TAG, "Predicted drink: ${data.predictedDrink.drinkName}, confidence=${data.confidenceScore}")
+                        }
+                        callback(data)
                     } else {
-                        Log.e(TAG, "API error: ${response.code()}")
+                        Log.e(TAG, "API error: ${response.code()} - ${response.errorBody()?.string()}")
                         callback(null)
                     }
                 }
                 
                 override fun onFailure(call: Call<ApiResponse<PredictiveOrderResponse>>, t: Throwable) {
-                    Log.e(TAG, "API call failed", t)
+                    Log.e(TAG, "API call failed: ${t.message}", t)
                     callback(null)
                 }
             })
@@ -130,6 +140,7 @@ class PredictiveOrderHelper(private val context: Context) {
         val now = System.currentTimeMillis()
         val hoursSinceLastShown = TimeUnit.MILLISECONDS.toHours(now - lastShown)
         
+        Log.d(TAG, "Hours since last shown: $hoursSinceLastShown, required: $MIN_INTERVAL_HOURS")
         return hoursSinceLastShown >= MIN_INTERVAL_HOURS
     }
     

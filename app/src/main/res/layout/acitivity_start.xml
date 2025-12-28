@@ -3,7 +3,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wine_primary">
+    android:background="@drawable/splash_gradient_bg">
+
+    <!-- Decorative circles -->
+    <View
+        android:id="@+id/circle1"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="-100dp"
+        android:layout_marginEnd="-100dp"
+        android:background="@drawable/logo_circle_bg"
+        android:alpha="0.1"/>
+
+    <View
+        android:id="@+id/circle2"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="-50dp"
+        android:layout_marginStart="-50dp"
+        android:background="@drawable/logo_circle_bg"
+        android:alpha="0.1"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,38 +36,69 @@
         android:orientation="vertical"
         android:padding="32dp">
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="100dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/wine_light_surface">
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="App Logo"
-                android:src="@drawable/img"
-                android:scaleType="centerCrop"
-               />
-        </androidx.cardview.widget.CardView>
+        <!-- Logo with shadow effect -->
+        <FrameLayout
+            android:id="@+id/logoContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp">
+
+            <!-- Shadow circle -->
+            <View
+                android:layout_width="210dp"
+                android:layout_height="210dp"
+                android:layout_gravity="center"
+                android:background="@drawable/logo_circle_bg"
+                android:alpha="0.3"
+                android:translationY="8dp"/>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="100dp"
+                app:cardElevation="16dp"
+                app:cardBackgroundColor="@color/wine_light_surface">
+                <ImageView
+                    android:id="@+id/imgLogo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="App Logo"
+                    android:src="@drawable/icon"
+                    android:scaleType="centerCrop"/>
+            </androidx.cardview.widget.CardView>
+        </FrameLayout>
 
         <TextView
+            android:id="@+id/tvWelcome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Xin Chào!"
-            android:textSize="40sp"
+            android:textSize="42sp"
             android:textStyle="bold"
-            android:textColor="@color/wine_light_surface"
-            android:layout_marginBottom="16dp"/>
+            android:textColor="#FFFFFF"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
+            android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Chào mừng bạn đến với Houjicha"
             android:textSize="18sp"
-            android:textColor="@color/wine_light_surface"
+            android:textColor="#FFFFFF"
             android:alpha="0.9"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/tvTagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="☕ Trà rang đậm vị - Hương thơm tự nhiên"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:alpha="0.7"
             android:gravity="center"
             android:layout_marginBottom="48dp"/>
 
@@ -52,13 +106,43 @@
             android:id="@+id/btn_start"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:text="BẮT ĐẦU"
-            android:textSize="20sp"
+            android:text="🚀 BẮT ĐẦU KHÁM PHÁ"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/wine_primary"
-            android:backgroundTint="@color/wine_light_surface"
-            app:cornerRadius="32dp" />
+            android:textColor="#8B4513"
+            android:backgroundTint="#FFFFFF"
+            app:cornerRadius="32dp"
+            app:elevation="8dp"
+            app:rippleColor="#CD853F"/>
 
+    </LinearLayout>
+
+    <!-- Bottom branding -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Powered by"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:alpha="0.6"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Houjicha © 2025"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:alpha="0.8"/>
     </LinearLayout>
 
 </RelativeLayout>
