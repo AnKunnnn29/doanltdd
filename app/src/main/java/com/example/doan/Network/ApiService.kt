@@ -433,6 +433,12 @@ interface ApiService {
         @Query("limit") limit: Int = 50
     ): Call<ApiResponse<List<GroupChatMessageDto>>>
 
+    // ==================== PREDICTIVE ORDER (DỰ ĐOÁN MÓN) ====================
+    @GET("predictive-order")
+    fun getPredictiveOrder(
+        @Query("weather") weather: String? = null
+    ): Call<ApiResponse<PredictiveOrderResponse>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

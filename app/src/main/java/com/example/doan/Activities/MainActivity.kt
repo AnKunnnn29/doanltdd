@@ -25,6 +25,7 @@ import com.example.doan.Network.AuthInterceptor
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.PredictiveOrderHelper
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
@@ -83,6 +84,9 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             
             // Preload dữ liệu trong background
             preloadData()
+            
+            // Kiểm tra và hiển thị Predictive Order nếu có
+            checkPredictiveOrder()
             
             // Đăng ký broadcast receiver cho token expired
             LocalBroadcastManager.getInstance(this).registerReceiver(
@@ -233,6 +237,28 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             return true
         }
         return false
+    }
+    
+    /**
+     * Kiểm tra và hiển thị Predictive Order dialog nếu có gợi ý phù hợp
+     */
+    private fun checkPredictiveOrder() {
+        val sessionManager = SessionManager(this)
+        if (!sessionManager.isLoggedIn()) return
+        
+        val helper = PredictiveOrderHelper(this)
+        helper.checkAndShowPrediction(
+            activity = this,
+            weather = null, // Có thể tích hợp Weather API sau
+            onAddToCart = { predictedDrink ->
+                // Chuyển đến màn hình chi tiết sản phẩm để thêm vào giỏ
+                val intent = Intent(this, ProductDetailActivity::class.java).apply {
+                    putExtra("DRINK_ID", predictedDrink.drinkId.toInt())
+                    putExtra("FROM_PREDICTION", true)
+                }
+                startActivity(intent)
+            }
+        )
     }
     
     private fun preloadData() {

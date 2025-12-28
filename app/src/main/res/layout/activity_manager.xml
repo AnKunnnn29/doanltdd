@@ -46,17 +46,46 @@
 
         </LinearLayout>
 
-        <!-- Forecast Button -->
-        <ImageView
-            android:id="@+id/btn_forecast"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="8dp"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_sort_by_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Dự báo"
-            app:tint="@color/wine_light_surface" />
+        <!-- Forecast/Warning Button với Badge -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="4dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_forecast"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="2dp"
+                app:strokeColor="#FF5722"
+                app:cardBackgroundColor="#FFEBEE">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_dialog_alert"
+                    app:tint="#D32F2F" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Badge cảnh báo nhấp nháy -->
+            <TextView
+                android:id="@+id/badge_warning"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:background="@drawable/bg_badge_warning"
+                android:gravity="center"
+                android:text="!"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+        </FrameLayout>
 
         <ImageView
             android:id="@+id/btn_notifications"
