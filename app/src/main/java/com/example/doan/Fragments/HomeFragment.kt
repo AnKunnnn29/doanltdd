@@ -27,6 +27,8 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.doan.Activities.AccountActivity
 import com.example.doan.Activities.CartActivity
 import com.example.doan.Activities.ChatbotActivity
+import com.example.doan.Activities.CreateGroupOrderActivity
+import com.example.doan.Activities.JoinGroupOrderActivity
 import com.example.doan.Activities.SpinWheelActivity
 import com.example.doan.Adapters.BannerAdapter
 import com.example.doan.Adapters.ProductCarouselAdapter
@@ -64,6 +66,7 @@ class HomeFragment : Fragment() {
     private lateinit var fabVoiceOrder: ExtendedFloatingActionButton
     private lateinit var fabChatbot: ExtendedFloatingActionButton
     private lateinit var fabSpinWheel: ExtendedFloatingActionButton
+    private lateinit var fabGroupOrder: ExtendedFloatingActionButton
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -150,6 +153,7 @@ class HomeFragment : Fragment() {
         fabVoiceOrder = view.findViewById(R.id.fab_voice_order)
         fabChatbot = view.findViewById(R.id.fab_chatbot)
         fabSpinWheel = view.findViewById(R.id.fab_spin_wheel)
+        fabGroupOrder = view.findViewById(R.id.fab_group_order)
     }
 
     private fun setupHeader() {
@@ -490,6 +494,72 @@ class HomeFragment : Fragment() {
             }
             startActivity(Intent(context, SpinWheelActivity::class.java))
         }
+        
+        fabGroupOrder.setOnClickListener {
+            val sessionManager = SessionManager(requireContext())
+            if (!sessionManager.isLoggedIn()) {
+                Toast.makeText(context, "Vui lòng đăng nhập để đặt hàng nhóm", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            checkActiveGroupOrderAndShow()
+        }
+    }
+    
+    private fun checkActiveGroupOrderAndShow() {
+        // Kiểm tra xem user có phiên đang hoạt động không
+        RetrofitClient.getInstance(requireContext()).apiService.getActiveGroupOrders()
+            .enqueue(object : Callback<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>>,
+                    response: Response<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val activeOrders = response.body()?.data ?: emptyList()
+                        if (activeOrders.isNotEmpty()) {
+                            // Có phiên đang hoạt động, mở trực tiếp
+                            val activeOrder = activeOrders.first()
+                            val intent = Intent(context, com.example.doan.Activities.GroupOrderActivity::class.java)
+                            intent.putExtra("GROUP_ORDER_ID", activeOrder.id)
+                            startActivity(intent)
+                        } else {
+                            // Không có phiên nào, hiện dialog chọn
+                            showGroupOrderOptionsDialog()
+                        }
+                    } else {
+                        // Lỗi API, vẫn hiện dialog
+                        showGroupOrderOptionsDialog()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>>, t: Throwable) {
+                    Log.e("HomeFragment", "Error checking active group orders", t)
+                    // Lỗi kết nối, vẫn hiện dialog
+                    showGroupOrderOptionsDialog()
+                }
+            })
+    }
+    
+    private fun showGroupOrderOptionsDialog() {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_group_order_options, null)
+        
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+        
+        dialogView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card_create_new)
+            .setOnClickListener {
+                dialog.dismiss()
+                startActivity(Intent(context, CreateGroupOrderActivity::class.java))
+            }
+        
+        dialogView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card_join)
+            .setOnClickListener {
+                dialog.dismiss()
+                startActivity(Intent(context, JoinGroupOrderActivity::class.java))
+            }
+        
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
     }
     
     private fun checkMicPermissionAndShowDialog() {

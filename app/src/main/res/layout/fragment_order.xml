@@ -177,13 +177,35 @@
             </LinearLayout>
 
             <!-- Orders List -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/orders_recycler_view"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clipToPadding="false"
-                android:paddingHorizontal="12dp"
-                android:paddingBottom="80dp" />
+                android:orientation="vertical">
+                
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/orders_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="12dp" />
+                
+                <!-- Load More Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_load_more"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="80dp"
+                    android:text="Xem thêm"
+                    android:textColor="@color/wine_primary"
+                    android:visibility="gone"
+                    app:icon="@drawable/ic_expand_more"
+                    app:iconGravity="end"
+                    app:iconTint="@color/wine_primary" />
+                    
+            </LinearLayout>
 
         </FrameLayout>
 

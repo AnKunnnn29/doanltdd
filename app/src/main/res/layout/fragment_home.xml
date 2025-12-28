@@ -397,7 +397,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="200dp"
+        android:layout_marginBottom="260dp"
         android:text="Đặt bằng giọng nói"
         android:textColor="@color/white"
         app:icon="@drawable/ic_mic"
@@ -413,7 +413,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="140dp"
+        android:layout_marginBottom="200dp"
         android:text="Trợ lý AI"
         android:textColor="@color/white"
         app:icon="@drawable/ic_bot"
@@ -429,12 +429,28 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="140dp"
         android:text="Vòng quay"
         android:textColor="@color/white"
         app:icon="@drawable/ic_star"
         app:iconTint="@color/white"
         app:backgroundTint="@color/orange"
+        app:elevation="8dp" />
+
+    <!-- 👥 Group Order FAB -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fab_group_order"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="80dp"
+        android:text="Đặt nhóm"
+        android:textColor="@color/white"
+        app:icon="@drawable/ic_group"
+        app:iconTint="@color/white"
+        app:backgroundTint="#2196F3"
         app:elevation="8dp" />
 
 </RelativeLayout>

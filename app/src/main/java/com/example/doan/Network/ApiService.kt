@@ -301,6 +301,68 @@ interface ApiService {
     @GET("loyalty/voucher/validate")
     fun validateSpinVoucher(@Query("code") code: String): Call<ApiResponse<SpinRewardDto>>
 
+    // ==================== GROUP ORDER (ĐẶT HÀNG NHÓM) ====================
+    @POST("group-orders")
+    fun createGroupOrder(@Body request: CreateGroupOrderRequest): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/join")
+    fun joinGroupOrder(@Body request: JoinGroupOrderRequest): Call<ApiResponse<GroupOrderDto>>
+    
+    @GET("group-orders/{id}")
+    fun getGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @GET("group-orders/code/{inviteCode}")
+    fun getGroupOrderByCode(@Path("inviteCode") inviteCode: String): Call<ApiResponse<GroupOrderDto>>
+    
+    @GET("group-orders/active")
+    fun getActiveGroupOrders(): Call<ApiResponse<List<GroupOrderDto>>>
+    
+    @GET("group-orders/my-orders")
+    fun getMyGroupOrders(): Call<ApiResponse<List<GroupOrderDto>>>
+    
+    @PUT("group-orders/{id}")
+    fun updateGroupOrder(
+        @Path("id") id: Long,
+        @Body request: UpdateGroupOrderRequest
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/items")
+    fun addGroupOrderItem(
+        @Path("id") id: Long,
+        @Body request: AddGroupOrderItemRequest
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @PUT("group-orders/{id}/items/{itemId}")
+    fun updateGroupOrderItem(
+        @Path("id") id: Long,
+        @Path("itemId") itemId: Long,
+        @Body request: AddGroupOrderItemRequest
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @DELETE("group-orders/{id}/items/{itemId}")
+    fun removeGroupOrderItem(
+        @Path("id") id: Long,
+        @Path("itemId") itemId: Long
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/lock")
+    fun lockGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/unlock")
+    fun unlockGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/leave")
+    fun leaveGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/checkout")
+    fun checkoutGroupOrder(
+        @Path("id") id: Long,
+        @Body request: CheckoutGroupOrderRequest
+    ): Call<ApiResponse<Order>>
+    
+    @DELETE("group-orders/{id}")
+    fun cancelGroupOrder(@Path("id") id: Long): Call<ApiResponse<Void>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

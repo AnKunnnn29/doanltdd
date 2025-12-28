@@ -154,6 +154,32 @@
             android:name=".Activities.VietQRActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
+        
+        <!-- Group Order Activities -->
+        <activity
+            android:name=".Activities.GroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.CreateGroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.JoinGroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.SelectDrinkForGroupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.AddToGroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
 
     </application>
 
