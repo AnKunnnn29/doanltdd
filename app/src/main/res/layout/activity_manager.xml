@@ -46,6 +46,18 @@
 
         </LinearLayout>
 
+        <!-- Forecast Button -->
+        <ImageView
+            android:id="@+id/btn_forecast"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="8dp"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Dự báo"
+            app:tint="@color/wine_light_surface" />
+
         <ImageView
             android:id="@+id/btn_notifications"
             android:layout_width="40dp"

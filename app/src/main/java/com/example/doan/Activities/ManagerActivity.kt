@@ -3,6 +3,7 @@ package com.example.doan.Activities
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.doan.Fragments.Manager.DashboardFragment
+import com.example.doan.Fragments.Manager.ForecastFragment
 import com.example.doan.Fragments.Manager.ManageCategoriesFragment
 import com.example.doan.Fragments.Manager.ManageChatsFragment
 import com.example.doan.Fragments.Manager.ManageDrinksFragment
@@ -24,6 +26,7 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
 
     private lateinit var sessionManager: SessionManager
     private var selectedItemId = R.id.nav_manager_dashboard
+    private lateinit var btnForecast: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +48,18 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
             "Hi, $fullName (Manager)"
         } else {
             "Hi, Manager"
+        }
+
+        // Setup Forecast Button
+        btnForecast = findViewById(R.id.btn_forecast)
+        btnForecast.setOnClickListener {
+            loadFragment(ForecastFragment(), true)
+            // Deselect bottom nav items
+            findViewById<BottomNavigationView>(R.id.manager_bottom_navigation).menu.setGroupCheckable(0, true, false)
+            for (i in 0 until findViewById<BottomNavigationView>(R.id.manager_bottom_navigation).menu.size()) {
+                findViewById<BottomNavigationView>(R.id.manager_bottom_navigation).menu.getItem(i).isChecked = false
+            }
+            findViewById<BottomNavigationView>(R.id.manager_bottom_navigation).menu.setGroupCheckable(0, true, true)
         }
 
         // Setup Bottom Navigation
