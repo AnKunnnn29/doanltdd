@@ -57,6 +57,7 @@ class AccountFragment : Fragment() {
     private lateinit var profileImage: ShapeableImageView
     private lateinit var fabEditAvatar: FloatingActionButton
     private lateinit var deleteAccountOption: RelativeLayout
+    private lateinit var memberTierOption: RelativeLayout
 
     // FIX C1: Use ActivityResultLauncher instead of deprecated startActivityForResult
     private val pickImageLauncher = registerForActivityResult(
@@ -98,12 +99,16 @@ class AccountFragment : Fragment() {
         settingsOption = view.findViewById(R.id.settings_option)
         logoutButton = view.findViewById(R.id.logout_button)
         deleteAccountOption = view.findViewById(R.id.delete_account_option)
+        memberTierOption = view.findViewById(R.id.member_tier_option)
 
         // Thiết lập sự kiện click.
         fabEditAvatar.setOnClickListener { openGalleryWithPermission() }
         userDetailOption.setOnClickListener { fetchAndShowUserDetails() }
         orderHistoryOption.setOnClickListener {
             startActivity(Intent(requireContext(), OrderHistoryActivity::class.java))
+        }
+        memberTierOption.setOnClickListener {
+            startActivity(Intent(requireContext(), MemberTierActivity::class.java))
         }
         profileOption.setOnClickListener {
             startActivity(Intent(requireContext(), UserProfileActivity::class.java))

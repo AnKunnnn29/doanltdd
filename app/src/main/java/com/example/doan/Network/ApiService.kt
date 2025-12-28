@@ -323,6 +323,16 @@ interface ApiService {
     
     @GET("loyalty/voucher/validate")
     fun validateSpinVoucher(@Query("code") code: String): Call<ApiResponse<SpinRewardDto>>
+    
+    // Member Tier Benefits
+    @GET("loyalty/tier/benefits")
+    fun getTierBenefits(): Call<ApiResponse<MemberTierBenefitsDto>>
+    
+    @POST("loyalty/tier/check-upgrade")
+    fun checkTierUpgrade(): Call<ApiResponse<MemberTierBenefitsDto>>
+    
+    @GET("loyalty/tier/preview-discount")
+    fun previewTierDiscount(@Query("orderTotal") orderTotal: Double): Call<ApiResponse<TierDiscountPreview>>
 
     // ==================== GROUP ORDER (ĐẶT HÀNG NHÓM) ====================
     @POST("group-orders")

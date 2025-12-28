@@ -73,7 +73,15 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var appliedVoucher: com.example.doan.Models.Voucher? = null
     private var appliedSpinVoucher: com.example.doan.Models.SpinRewardDto? = null
     private var discountAmount: Double = 0.0
+    private var tierDiscountAmount: Double = 0.0
+    private var tierDiscountPercent: Double = 0.0
+    private var tierName: String = ""
     private var createdOrderId: Long? = null
+    
+    // Tier discount views
+    private lateinit var llTierDiscount: LinearLayout
+    private lateinit var tvTierDiscountLabel: TextView
+    private lateinit var tvTierDiscountAmount: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,6 +149,11 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         btnClearVoucher = findViewById(R.id.btn_clear_voucher)
         tvDiscountAmount = findViewById(R.id.tv_discount_amount)
         tvFinalPrice = findViewById(R.id.tv_final_price)
+        
+        // Tier discount views
+        llTierDiscount = findViewById(R.id.ll_tier_discount)
+        tvTierDiscountLabel = findViewById(R.id.tv_tier_discount_label)
+        tvTierDiscountAmount = findViewById(R.id.tv_tier_discount_amount)
         
         val orderType = intent.getStringExtra("orderType")
         Log.d("CartActivity", "Received orderType: $orderType")
@@ -356,14 +369,19 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
         tvTotalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
         
+        // Load tier discount từ API
+        if (total > 0) {
+            loadTierDiscount(total)
+        } else {
+            hideTierDiscount()
+        }
+        
         // Recalculate discount if voucher is applied
         when {
             appliedSpinVoucher != null -> {
                 // Tính discount từ spin voucher
                 discountAmount = total * appliedSpinVoucher!!.discountPercent / 100
-                val finalPrice = maxOf(0.0, total - discountAmount)
-                tvDiscountAmount.text = String.format(Locale.getDefault(), "-%,.0f VNĐ (%d%%)", discountAmount, appliedSpinVoucher!!.discountPercent)
-                tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", finalPrice)
+                updateFinalPrice(total)
             }
             appliedVoucher != null -> {
                 calculateDiscount(total)
@@ -371,9 +389,59 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             else -> {
                 discountAmount = 0.0
                 tvDiscountAmount.text = "0 VNĐ"
-                tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
+                updateFinalPrice(total)
             }
         }
+    }
+    
+    private fun loadTierDiscount(orderTotal: Double) {
+        RetrofitClient.getInstance(this).apiService.previewTierDiscount(orderTotal)
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.TierDiscountPreview>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.TierDiscountPreview>>,
+                    response: Response<ApiResponse<com.example.doan.Models.TierDiscountPreview>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val preview = response.body()?.data
+                        if (preview != null && preview.tierDiscount > 0) {
+                            tierDiscountAmount = preview.tierDiscount
+                            tierDiscountPercent = preview.discountPercent
+                            tierName = preview.tierName
+                            showTierDiscount()
+                            updateFinalPrice(orderTotal)
+                        } else {
+                            tierDiscountAmount = 0.0
+                            hideTierDiscount()
+                        }
+                    } else {
+                        tierDiscountAmount = 0.0
+                        hideTierDiscount()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.TierDiscountPreview>>, t: Throwable) {
+                    Log.e("CartActivity", "Error loading tier discount", t)
+                    tierDiscountAmount = 0.0
+                    hideTierDiscount()
+                }
+            })
+    }
+    
+    private fun showTierDiscount() {
+        llTierDiscount.visibility = View.VISIBLE
+        tvTierDiscountLabel.text = "Ưu đãi hạng $tierName (${tierDiscountPercent.toInt()}%):"
+        tvTierDiscountAmount.text = String.format(Locale.getDefault(), "-%,.0f VNĐ", tierDiscountAmount)
+    }
+    
+    private fun hideTierDiscount() {
+        llTierDiscount.visibility = View.GONE
+        tierDiscountAmount = 0.0
+    }
+    
+    private fun updateFinalPrice(total: Double) {
+        val totalDiscount = discountAmount + tierDiscountAmount
+        val finalPrice = maxOf(0.0, total - totalDiscount)
+        tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", finalPrice)
     }
     
     // FIX Medium #14: Improved null handling in calculateDiscount
@@ -385,7 +453,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         if (discountValue == null || discountValue <= 0) {
             discountAmount = 0.0
             tvDiscountAmount.text = "0 VNĐ"
-            tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", totalPrice)
+            updateFinalPrice(totalPrice)
             return
         }
         
@@ -403,10 +471,8 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             minOf(discountValue, totalPrice)
         }
         
-        val finalPrice = maxOf(0.0, totalPrice - discountAmount)
-        
         tvDiscountAmount.text = String.format(Locale.getDefault(), "-%,.0f VNĐ", discountAmount)
-        tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", finalPrice)
+        updateFinalPrice(totalPrice)
     }
     
     private fun validateAndApplyVoucher(code: String) {
@@ -423,7 +489,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     response: Response<ApiResponse<com.example.doan.Models.SpinRewardDto>>
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
-                        // Đây là voucher từ spin wheel
+                        // Đây là voucher từ spin wheel - còn hợp lệ
                         val spinVoucher = response.body()?.data
                         if (spinVoucher != null) {
                             appliedSpinVoucher = spinVoucher
@@ -434,20 +500,27 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                             
                             // Tính discount từ spin voucher
                             discountAmount = totalPrice * spinVoucher.discountPercent / 100
-                            val finalPrice = maxOf(0.0, totalPrice - discountAmount)
                             
                             tvDiscountAmount.text = String.format(Locale.getDefault(), "-%,.0f VNĐ (${spinVoucher.discountPercent}%%)", discountAmount)
-                            tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", finalPrice)
+                            updateFinalPrice(totalPrice)
                             
                             Toast.makeText(this@CartActivity, "Áp dụng voucher giảm ${spinVoucher.discountPercent}% thành công!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        // Kiểm tra xem có phải voucher spin đã dùng không
+                        // Voucher spin không hợp lệ hoặc đã dùng
                         val errorMsg = response.body()?.message ?: ""
-                        if (errorMsg.contains("đã được sử dụng") || errorMsg.contains("không hợp lệ")) {
-                            Toast.makeText(this@CartActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                        val errorCode = response.code()
+                        
+                        // Nếu là lỗi 400 (Bad Request) - voucher spin đã dùng hoặc không tồn tại
+                        if (errorCode == 400 || errorMsg.contains("đã được sử dụng") || errorMsg.contains("không hợp lệ")) {
+                            // Clear spin voucher nếu đang có
+                            if (appliedSpinVoucher?.voucherCode?.equals(code, ignoreCase = true) == true) {
+                                appliedSpinVoucher = null
+                            }
+                            // Thử validate như voucher thường
+                            validateNormalVoucher(code, totalPrice)
                         } else {
-                            // Không phải voucher spin, thử voucher thường
+                            // Lỗi khác (server error, etc.) - thử voucher thường
                             validateNormalVoucher(code, totalPrice)
                         }
                     }
@@ -704,7 +777,15 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     navigateToOrders()
                 } else {
                     loadingDialog.dismiss()
-                    Toast.makeText(this@CartActivity, "Đặt hàng thất bại: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                    val errorMsg = response.body()?.message ?: "Đặt hàng thất bại"
+                    
+                    // Nếu lỗi liên quan đến voucher, clear voucher đã chọn
+                    if (errorMsg.contains("voucher", ignoreCase = true) || 
+                        errorMsg.contains("đã được sử dụng", ignoreCase = true)) {
+                        clearAppliedVoucher()
+                    }
+                    
+                    Toast.makeText(this@CartActivity, "Đặt hàng thất bại: $errorMsg", Toast.LENGTH_LONG).show()
                 }
             }
 
