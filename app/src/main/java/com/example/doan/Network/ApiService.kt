@@ -12,6 +12,29 @@ interface ApiService {
     @POST("chatbot/message")
     fun sendChatMessage(@Body request: ChatRequest): Call<ApiResponse<ChatResponse>>
 
+    // ==================== LIVE CHAT ====================
+    @POST("chat/conversations")
+    fun startLiveConversation(@Body request: StartConversationRequest): Call<ApiResponse<LiveConversation>>
+    
+    @POST("chat/messages")
+    fun sendLiveMessage(@Body request: SendLiveMessageRequest): Call<ApiResponse<LiveMessage>>
+    
+    @GET("chat/conversations/my")
+    fun getMyConversations(): Call<ApiResponse<List<ConversationListItem>>>
+    
+    @GET("chat/conversations/{id}")
+    fun getConversation(@Path("id") id: Long): Call<ApiResponse<LiveConversation>>
+    
+    @POST("chat/conversations/{id}/close")
+    fun closeConversation(@Path("id") id: Long): Call<ApiResponse<LiveConversation>>
+    
+    // Manager Live Chat APIs
+    @GET("chat/manager/conversations")
+    fun getManagerConversations(): Call<ApiResponse<List<ConversationListItem>>>
+    
+    @GET("chat/manager/conversations/waiting-count")
+    fun getWaitingConversationsCount(): Call<ApiResponse<Long>>
+
     // ==================== USER PROFILE ====================
     @GET("me")
     fun getMyProfile(): Call<ApiResponse<UserProfileDto>>

@@ -19,14 +19,15 @@
             android:orientation="horizontal"
             android:paddingHorizontal="20dp"
             android:paddingTop="24dp"
-            android:paddingBottom="16dp"
+            android:paddingBottom="8dp"
             android:gravity="center_vertical">
 
             <TextView
+                android:id="@+id/tv_header_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Quản Lý Món Nước"
+                android:text="Quản Lý Sản Phẩm"
                 android:textColor="@color/wine_dark_background"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -35,7 +36,7 @@
                 android:id="@+id/btn_add_drink"
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
-                android:text="Thêm món"
+                android:text="Thêm"
                 android:textSize="13sp"
                 android:textAllCaps="false"
                 app:icon="@drawable/ic_add"
@@ -44,6 +45,33 @@
                 app:backgroundTint="@color/wine_primary"
                 app:cornerRadius="22dp" />
         </LinearLayout>
+
+        <!-- Tab Layout: Món nước / Danh mục -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="12dp"
+            app:tabMode="fixed"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@color/wine_primary"
+            app:tabSelectedTextColor="@color/wine_primary"
+            app:tabTextColor="@color/wine_neutral_dark"
+            app:tabBackground="@android:color/transparent"
+            app:tabRippleColor="@color/wine_neutral_light">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🍵 Món nước" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📂 Danh mục" />
+
+        </com.google.android.material.tabs.TabLayout>
 
         <!-- Search Box -->
         <com.google.android.material.card.MaterialCardView
@@ -130,7 +158,7 @@
                 style="@style/Widget.Material3.Chip.Filter" />
         </LinearLayout>
 
-        <!-- RecyclerView -->
+        <!-- RecyclerView for Drinks -->
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
@@ -139,6 +167,24 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_drinks"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="16dp"
+                android:clipToPadding="false" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <!-- RecyclerView for Categories (hidden by default) -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_categories"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_categories"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingHorizontal="20dp"

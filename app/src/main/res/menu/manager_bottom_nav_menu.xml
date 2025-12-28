@@ -8,7 +8,7 @@
     <item
         android:id="@+id/nav_manager_drinks"
         android:icon="@android:drawable/ic_menu_edit"
-        android:title="Món nước" />
+        android:title="Sản phẩm" />
     
     <item
         android:id="@+id/nav_manager_orders"
@@ -16,9 +16,9 @@
         android:title="Đơn hàng" />
     
     <item
-        android:id="@+id/nav_manager_categories"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:title="Danh mục" />
+        android:id="@+id/nav_manager_chats"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="Hỗ trợ" />
     
     <item
         android:id="@+id/nav_manager_settings"
