@@ -31,6 +31,10 @@ class PredictiveOrderHelper(private val context: Context) {
         private const val MIN_INTERVAL_HOURS = 2L
         // Tối đa 3 lần dismiss trong ngày cho cùng 1 món
         private const val MAX_DISMISS_PER_DAY = 3
+        
+        // Session-based flag: Tắt trong phiên hiện tại (reset khi tắt app)
+        @Volatile
+        private var disabledForSession = false
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -40,7 +44,7 @@ class PredictiveOrderHelper(private val context: Context) {
      * @param activity Activity để hiển thị dialog
      * @param weather Điều kiện thời tiết (optional)
      * @param onAddToCart Callback khi user chọn thêm vào giỏ
-     * @param forceShow Bỏ qua điều kiện thời gian, luôn hiển thị
+     * @param forceShow Bỏ qua điều kiện thời gian (nhưng vẫn tôn trọng "Không hiển thị lại")
      */
     fun checkAndShowPrediction(
         activity: AppCompatActivity,
@@ -48,6 +52,12 @@ class PredictiveOrderHelper(private val context: Context) {
         forceShow: Boolean = false,
         onAddToCart: (PredictedDrink) -> Unit
     ) {
+        // LUÔN kiểm tra xem user có tắt tính năng không (không bỏ qua dù forceShow = true)
+        if (isPredictionDisabled()) {
+            Log.d(TAG, "Skipping prediction - feature disabled by user")
+            return
+        }
+        
         // Kiểm tra điều kiện thời gian (bỏ qua nếu forceShow = true)
         if (!forceShow && !shouldShowPrediction()) {
             Log.d(TAG, "Skipping prediction - too soon since last shown")
@@ -125,6 +135,11 @@ class PredictiveOrderHelper(private val context: Context) {
             onDismiss = {
                 // Ghi nhận dismiss
                 recordDismiss(prediction.predictedDrink?.drinkId)
+            },
+            onDontShowAgain = {
+                // User chọn không hiển thị lại trong phiên này
+                disabledForSession = true
+                Log.d(TAG, "User disabled prediction for this session")
             }
         )
         
@@ -193,6 +208,32 @@ class PredictiveOrderHelper(private val context: Context) {
         prefs.edit()
             .putInt(KEY_DISMISSED_COUNT, 0)
             .apply()
+    }
+    
+    /**
+     * Kiểm tra xem prediction có bị tắt trong phiên này không
+     */
+    private fun isPredictionDisabled(): Boolean {
+        if (disabledForSession) {
+            Log.d(TAG, "Prediction disabled for this session")
+            return true
+        }
+        return false
+    }
+    
+    /**
+     * Bật lại prediction (reset session flag)
+     */
+    fun enablePrediction() {
+        disabledForSession = false
+        Log.d(TAG, "Prediction re-enabled")
+    }
+    
+    /**
+     * Kiểm tra trạng thái prediction
+     */
+    fun isPredictionEnabled(): Boolean {
+        return !disabledForSession
     }
     
     /**

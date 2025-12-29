@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.Window
+import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -26,7 +27,8 @@ class PredictiveOrderDialog(
     context: Context,
     private val prediction: PredictiveOrderResponse,
     private val onAddToCart: (PredictedDrink) -> Unit,
-    private val onDismiss: () -> Unit
+    private val onDismiss: () -> Unit,
+    private val onDontShowAgain: (() -> Unit)? = null
 ) : Dialog(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,8 +79,14 @@ class PredictiveOrderDialog(
             findViewById<TextView>(R.id.tvReasons).text = reasonsText
         }
         
+        // Checkbox "Không hiển thị lại"
+        val cbDontShowAgain = findViewById<CheckBox>(R.id.cbDontShowAgain)
+        
         // Buttons
         findViewById<MaterialButton>(R.id.btnDismiss).setOnClickListener {
+            if (cbDontShowAgain.isChecked) {
+                onDontShowAgain?.invoke()
+            }
             onDismiss()
             dismiss()
         }

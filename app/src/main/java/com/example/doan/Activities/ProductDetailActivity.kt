@@ -14,8 +14,11 @@ import com.example.doan.Adapters.ReviewAdapter
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.AddToCartAnimator
+import com.example.doan.Utils.InAppNotification
 import com.example.doan.Utils.LoadingDialog
 import com.example.doan.Utils.PredictiveOrderHelper
+import com.example.doan.Utils.SeasonalEffectManager
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
 import retrofit2.Call
@@ -400,7 +403,27 @@ class ProductDetailActivity : AppCompatActivity() {
                         })
                         finish()
                     } else {
-                        showSuccessDialog()
+                        // Kiểm tra settings trước khi animate
+                        if (SeasonalEffectManager.isCartAnimationEnabled(this@ProductDetailActivity)) {
+                            // Animate product flying to cart and show notification
+                            AddToCartAnimator.animate(
+                                activity = this@ProductDetailActivity,
+                                sourceView = ivProductImage,
+                                targetView = btnAddToCart,
+                                onComplete = {
+                                    InAppNotification.cartAdded(
+                                        this@ProductDetailActivity,
+                                        product?.name ?: tvProductName.text.toString()
+                                    )
+                                }
+                            )
+                        } else {
+                            // Chỉ hiển thị notification
+                            InAppNotification.cartAdded(
+                                this@ProductDetailActivity,
+                                product?.name ?: tvProductName.text.toString()
+                            )
+                        }
                     }
                 } else {
                     // FIX C2: Xử lý lỗi response tốt hơn
@@ -409,7 +432,7 @@ class ProductDetailActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         "Lỗi thêm giỏ hàng"
                     }
-                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    InAppNotification.error(this@ProductDetailActivity, "Không thể thêm vào giỏ", errorMessage)
                 }
             }
 
@@ -426,7 +449,7 @@ class ProductDetailActivity : AppCompatActivity() {
                         t is java.net.SocketTimeoutException -> "Kết nối quá thời gian chờ"
                         else -> "Lỗi kết nối: ${t.message}"
                     }
-                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    InAppNotification.error(this@ProductDetailActivity, "Lỗi kết nối", errorMessage)
                 }
             }
         })

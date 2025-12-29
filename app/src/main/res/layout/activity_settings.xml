@@ -86,6 +86,114 @@
                 android:textSize="18sp"
                 android:padding="16dp"/>
 
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Hiệu ứng theo mùa -->
+            <TextView
+                style="@style/TextAppearance.Material3.LabelLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hiệu ứng"
+                android:textColor="?attr/colorPrimary"
+                android:paddingBottom="8dp"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_seasonal_effects"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Hiệu ứng theo mùa"
+                android:textSize="18sp"
+                android:padding="16dp"/>
+            
+            <!-- Chế độ chọn mùa -->
+            <LinearLayout
+                android:id="@+id/layout_season_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chế độ hiệu ứng"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:paddingBottom="8dp"/>
+                
+                <RadioGroup
+                    android:id="@+id/radio_group_season_mode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <RadioButton
+                        android:id="@+id/radio_realtime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="🕐 Theo thời gian thực"
+                        android:textSize="16sp"
+                        android:padding="8dp"/>
+                    
+                    <RadioButton
+                        android:id="@+id/radio_custom"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="🎨 Tự chọn hiệu ứng"
+                        android:textSize="16sp"
+                        android:padding="8dp"/>
+                </RadioGroup>
+                
+                <TextView
+                    android:id="@+id/tv_current_season"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Mùa hiện tại: ❄️ Mùa đông"
+                    android:textSize="14sp"
+                    android:textColor="?attr/colorPrimary"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"/>
+                
+                <!-- Dropdown chọn mùa (chỉ hiện khi chọn custom) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_season_dropdown"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Chọn hiệu ứng"
+                    android:visibility="gone">
+                    
+                    <AutoCompleteTextView
+                        android:id="@+id/dropdown_season"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textSize="16sp"/>
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_confetti"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pháo giấy khi đặt hàng"
+                android:textSize="18sp"
+                android:padding="16dp"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_cart_animation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Animation thêm giỏ hàng"
+                android:textSize="18sp"
+                android:padding="16dp"/>
+
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"

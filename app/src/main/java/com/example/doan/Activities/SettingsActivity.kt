@@ -2,6 +2,11 @@ package com.example.doan.Activities
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -12,9 +17,11 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import com.example.doan.R
 import com.example.doan.Utils.KeyStoreManager
+import com.example.doan.Utils.SeasonalEffectManager
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.materialswitch.MaterialSwitch
+import com.google.android.material.textfield.TextInputLayout
 import com.onesignal.OneSignal
 
 class SettingsActivity : AppCompatActivity() {
@@ -22,7 +29,19 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var switchDarkMode: MaterialSwitch
     private lateinit var switchBiometric: MaterialSwitch
     private lateinit var switchNotifications: MaterialSwitch
+    private lateinit var switchSeasonalEffects: MaterialSwitch
+    private lateinit var switchConfetti: MaterialSwitch
+    private lateinit var switchCartAnimation: MaterialSwitch
+    private lateinit var tvCurrentSeason: TextView
+    private lateinit var radioGroupSeasonMode: RadioGroup
+    private lateinit var radioRealtime: RadioButton
+    private lateinit var radioCustom: RadioButton
+    private lateinit var layoutSeasonDropdown: TextInputLayout
+    private lateinit var dropdownSeason: AutoCompleteTextView
     private lateinit var sessionManager: SessionManager
+    
+    // Danh sách các mùa với emoji và tên
+    private val seasonItems = mutableListOf<Pair<SeasonalEffectManager.Season, String>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +103,9 @@ class SettingsActivity : AppCompatActivity() {
             }
             sharedPreferences.edit().putBoolean("notifications_enabled", isChecked).apply()
         }
+
+        // Seasonal Effects Settings
+        setupSeasonalEffectsSettings(sharedPreferences)
 
         findViewById<TextView>(R.id.tv_about).setOnClickListener {
             showAboutDialog()
@@ -220,6 +242,153 @@ class SettingsActivity : AppCompatActivity() {
             )
             .setPositiveButton("Đóng", null)
             .show()
+    }
+
+    /**
+     * Setup các cài đặt hiệu ứng theo mùa
+     */
+    private fun setupSeasonalEffectsSettings(sharedPreferences: android.content.SharedPreferences) {
+        switchSeasonalEffects = findViewById(R.id.switch_seasonal_effects)
+        switchConfetti = findViewById(R.id.switch_confetti)
+        switchCartAnimation = findViewById(R.id.switch_cart_animation)
+        tvCurrentSeason = findViewById(R.id.tv_current_season)
+        radioGroupSeasonMode = findViewById(R.id.radio_group_season_mode)
+        radioRealtime = findViewById(R.id.radio_realtime)
+        radioCustom = findViewById(R.id.radio_custom)
+        layoutSeasonDropdown = findViewById(R.id.layout_season_dropdown)
+        dropdownSeason = findViewById(R.id.dropdown_season)
+
+        // Setup dropdown với danh sách các mùa
+        setupSeasonDropdown()
+        
+        // Load current mode
+        val currentMode = SeasonalEffectManager.getSeasonMode(this)
+        when (currentMode) {
+            SeasonalEffectManager.SeasonMode.REALTIME -> radioRealtime.isChecked = true
+            SeasonalEffectManager.SeasonMode.CUSTOM -> {
+                radioCustom.isChecked = true
+                layoutSeasonDropdown.visibility = View.VISIBLE
+            }
+        }
+        
+        // Hiển thị mùa hiện tại (realtime)
+        updateCurrentSeasonDisplay()
+
+        // Load saved preferences
+        val seasonalEffectsEnabled = sharedPreferences.getBoolean("seasonal_effects_enabled", true)
+        val confettiEnabled = sharedPreferences.getBoolean("confetti_enabled", true)
+        val cartAnimationEnabled = sharedPreferences.getBoolean("cart_animation_enabled", true)
+
+        switchSeasonalEffects.isChecked = seasonalEffectsEnabled
+        switchConfetti.isChecked = confettiEnabled
+        switchCartAnimation.isChecked = cartAnimationEnabled
+        
+        // Enable/disable season mode options based on switch
+        updateSeasonModeVisibility(seasonalEffectsEnabled)
+
+        // Seasonal Effects toggle
+        switchSeasonalEffects.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("seasonal_effects_enabled", isChecked).apply()
+            updateSeasonModeVisibility(isChecked)
+            val activeSeason = SeasonalEffectManager.getActiveSeason(this)
+            val emoji = SeasonalEffectManager.getSeasonalEmoji(activeSeason)
+            val message = if (isChecked) {
+                "Hiệu ứng theo mùa đã được bật $emoji"
+            } else {
+                "Hiệu ứng theo mùa đã được tắt"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+        
+        // Radio group listener
+        radioGroupSeasonMode.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.radio_realtime -> {
+                    SeasonalEffectManager.setSeasonMode(this, SeasonalEffectManager.SeasonMode.REALTIME)
+                    layoutSeasonDropdown.visibility = View.GONE
+                    updateCurrentSeasonDisplay()
+                    Toast.makeText(this, "🕐 Chế độ thời gian thực", Toast.LENGTH_SHORT).show()
+                }
+                R.id.radio_custom -> {
+                    SeasonalEffectManager.setSeasonMode(this, SeasonalEffectManager.SeasonMode.CUSTOM)
+                    layoutSeasonDropdown.visibility = View.VISIBLE
+                    updateCurrentSeasonDisplay()
+                    Toast.makeText(this, "🎨 Chế độ tự chọn", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        // Confetti toggle
+        switchConfetti.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("confetti_enabled", isChecked).apply()
+            val message = if (isChecked) "Pháo giấy đã được bật 🎉" else "Pháo giấy đã được tắt"
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+
+        // Cart Animation toggle
+        switchCartAnimation.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("cart_animation_enabled", isChecked).apply()
+            val message = if (isChecked) "Animation giỏ hàng đã được bật 🛒" else "Animation giỏ hàng đã được tắt"
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun setupSeasonDropdown() {
+        // Tạo danh sách các mùa
+        seasonItems.clear()
+        SeasonalEffectManager.getAllSeasonsWithNames().forEach { (season, emoji, name) ->
+            seasonItems.add(Pair(season, "$emoji $name"))
+        }
+        
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            seasonItems.map { it.second }
+        )
+        dropdownSeason.setAdapter(adapter)
+        
+        // Set current custom season
+        val currentCustomSeason = SeasonalEffectManager.getCustomSeason(this)
+        val currentItem = seasonItems.find { it.first == currentCustomSeason }
+        currentItem?.let { dropdownSeason.setText(it.second, false) }
+        
+        // Listener khi chọn mùa
+        dropdownSeason.setOnItemClickListener { _, _, position, _ ->
+            val selectedSeason = seasonItems[position].first
+            SeasonalEffectManager.setCustomSeason(this, selectedSeason)
+            updateCurrentSeasonDisplay()
+            
+            val emoji = SeasonalEffectManager.getSeasonalEmoji(selectedSeason)
+            val name = SeasonalEffectManager.getSeasonNameVi(selectedSeason)
+            Toast.makeText(this, "Đã chọn: $emoji $name", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun updateCurrentSeasonDisplay() {
+        val mode = SeasonalEffectManager.getSeasonMode(this)
+        val realtimeSeason = SeasonalEffectManager.getRealTimeSeason()
+        val realtimeEmoji = SeasonalEffectManager.getSeasonalEmoji(realtimeSeason)
+        val realtimeName = SeasonalEffectManager.getSeasonNameVi(realtimeSeason)
+        
+        when (mode) {
+            SeasonalEffectManager.SeasonMode.REALTIME -> {
+                tvCurrentSeason.text = "🕐 Thời gian thực: $realtimeEmoji $realtimeName"
+            }
+            SeasonalEffectManager.SeasonMode.CUSTOM -> {
+                val customSeason = SeasonalEffectManager.getCustomSeason(this)
+                val customEmoji = SeasonalEffectManager.getSeasonalEmoji(customSeason)
+                val customName = SeasonalEffectManager.getSeasonNameVi(customSeason)
+                tvCurrentSeason.text = "🎨 Đang dùng: $customEmoji $customName (Thực tế: $realtimeEmoji)"
+            }
+        }
+    }
+    
+    private fun updateSeasonModeVisibility(enabled: Boolean) {
+        val visibility = if (enabled) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.layout_season_mode)?.alpha = if (enabled) 1f else 0.5f
+        radioRealtime.isEnabled = enabled
+        radioCustom.isEnabled = enabled
+        dropdownSeason.isEnabled = enabled
     }
 
 }

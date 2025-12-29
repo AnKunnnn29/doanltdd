@@ -147,6 +147,17 @@
                 tools:text="• Bạn thường đặt món này vào buổi sáng\n• Đây là món yêu thích của bạn (5 lần đặt)" />
         </LinearLayout>
 
+        <!-- Checkbox không hiển thị lại -->
+        <CheckBox
+            android:id="@+id/cbDontShowAgain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Không hiển thị gợi ý này nữa"
+            android:textColor="@color/gray"
+            android:textSize="13sp"
+            android:buttonTint="@color/primary" />
+
         <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"

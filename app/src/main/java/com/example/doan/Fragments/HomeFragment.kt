@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,8 +41,11 @@ import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.InAppNotification
 import com.example.doan.Utils.PredictiveOrderHelper
+import com.example.doan.Utils.SeasonalEffectManager
 import com.example.doan.Utils.SessionManager
+import com.example.doan.Utils.SnowfallView
 import com.example.doan.Utils.VoiceOrderDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
@@ -70,6 +74,10 @@ class HomeFragment : Fragment() {
     private lateinit var fabChatbot: com.google.android.material.card.MaterialCardView
     private lateinit var fabSpinWheel: com.google.android.material.card.MaterialCardView
     private lateinit var fabGroupOrder: com.google.android.material.card.MaterialCardView
+    
+    // Seasonal effects
+    private var rootContainer: RelativeLayout? = null
+    private var snowfallView: SnowfallView? = null
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -118,8 +126,44 @@ class HomeFragment : Fragment() {
         setupViewAllButtons(view)
         setupDeliveryPickupButtons()
         setupVoiceOrder()
+        setupSeasonalEffects(view)
 
         return view
+    }
+    
+    /**
+     * Setup hiệu ứng theo mùa
+     * Tự động chọn hiệu ứng phù hợp dựa trên thời điểm trong năm:
+     * - ❄️ WINTER/CHRISTMAS/NEW_YEAR: Tuyết rơi
+     * - 🌸 SPRING/TET: Hoa đào rơi
+     * - ☀️ SUMMER: Bong bóng & ánh nắng
+     * - 🍂 AUTUMN: Lá rơi
+     * - 💕 VALENTINE: Trái tim bay
+     * 
+     * Hỗ trợ 2 chế độ: REALTIME (tự động) và CUSTOM (tự chọn)
+     */
+    private fun setupSeasonalEffects(view: View) {
+        rootContainer = view as? RelativeLayout
+        rootContainer?.let { container ->
+            // Kiểm tra settings trước khi thêm hiệu ứng
+            if (SeasonalEffectManager.isSeasonalEffectsEnabled(requireContext())) {
+                // Thêm hiệu ứng theo mùa hiện tại (tự động chọn đúng loại dựa trên mode)
+                val effectView = SeasonalEffectManager.addSeasonalEffect(container, autoStart = true)
+                
+                if (effectView != null) {
+                    // Cập nhật greeting với emoji theo mùa đang active
+                    val activeSeason = SeasonalEffectManager.getActiveSeason(requireContext())
+                    val seasonalEmoji = SeasonalEffectManager.getSeasonalEmoji(activeSeason)
+                    val currentGreeting = greetingTextView.text.toString()
+                    if (!currentGreeting.contains(seasonalEmoji)) {
+                        greetingTextView.text = "$seasonalEmoji ${getGreetingMessage()}"
+                    }
+                }
+            }
+            
+            // Thêm confetti view (sẽ hiển thị khi đặt hàng thành công)
+            SeasonalEffectManager.addConfettiEffect(container)
+        }
     }
 
     override fun onResume() {
@@ -267,11 +311,10 @@ class HomeFragment : Fragment() {
                     response: Response<ApiResponse<com.example.doan.Models.Cart>>
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(
-                            context,
-                            "Đã thêm ${drink.drinkName} vào giỏ hàng! 🧋",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Sử dụng InAppNotification thay vì Toast
+                        activity?.let { act ->
+                            InAppNotification.cartAdded(act, drink.drinkName ?: "Sản phẩm")
+                        }
                         
                         // Update cart badge
                         val cartItems = response.body()?.data?.items?.size ?: 0
@@ -281,7 +324,9 @@ class HomeFragment : Fragment() {
                         val errorMsg = response.body()?.message ?: "Không thể thêm vào giỏ hàng"
                         val errorBody = response.errorBody()?.string()
                         Log.e("HomeFragment", "Add to cart failed: $errorMsg, code: ${response.code()}, body: $errorBody")
-                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                        activity?.let { act ->
+                            InAppNotification.error(act, "Lỗi", errorMsg)
+                        }
                     }
                 }
                 
@@ -303,6 +348,10 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         stopAutoScroll()
+        // Cleanup seasonal effects
+        SeasonalEffectManager.cleanup()
+        snowfallView = null
+        rootContainer = null
     }
 
     private fun initViews(view: View) {
