@@ -70,7 +70,7 @@
                         android:layout_height="48dp"
                         app:cardCornerRadius="24dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#40FFFFFF">
+                        app:cardBackgroundColor="@color/wine_light_surface">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -112,7 +112,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="↑ +12.5%"
-                        android:textColor="#90EE90"
+                        android:textColor="@color/success"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -160,7 +160,7 @@
                         android:layout_height="44dp"
                         app:cardCornerRadius="22dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#E3F2FD">
+                        app:cardBackgroundColor="@color/status_pending_bg">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -215,7 +215,7 @@
                         android:layout_height="44dp"
                         app:cardCornerRadius="22dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#FFF3E0">
+                        app:cardBackgroundColor="@color/status_making_bg">
 
                         <TextView
                             android:layout_width="match_parent"

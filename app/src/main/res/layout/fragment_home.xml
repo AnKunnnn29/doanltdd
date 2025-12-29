@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/wine_primary"
@@ -418,7 +419,7 @@
         android:textColor="@color/white"
         app:icon="@drawable/ic_bot"
         app:iconTint="@color/white"
-        app:backgroundTint="@color/colorPrimary"
+        app:backgroundTint="@color/wine_primary"
         app:elevation="8dp" />
 
 </RelativeLayout>

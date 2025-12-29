@@ -247,7 +247,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:visibility="gone"
-                            app:cardBackgroundColor="#FFEBEE"
+                            app:cardBackgroundColor="@color/status_canceled_bg"
                             app:cardCornerRadius="16dp"
                             app:cardElevation="0dp">
 

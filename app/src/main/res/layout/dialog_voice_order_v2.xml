@@ -56,10 +56,10 @@
                     android:id="@+id/iv_mic"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/primary_light"
+                    android:background="@color/wine_neutral_light"
                     android:padding="18dp"
                     android:src="@drawable/ic_mic"
-                    app:tint="@color/primary" />
+                    app:tint="@color/wine_primary" />
 
             </com.google.android.material.card.MaterialCardView>
         </FrameLayout>
@@ -82,7 +82,7 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:minHeight="40dp"
-            android:textColor="@color/primary"
+            android:textColor="@color/wine_primary"
             android:textSize="16sp"
             android:textStyle="bold|italic" />
 
@@ -113,10 +113,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:visibility="gone"
-            app:cardBackgroundColor="@color/primary_container"
+            app:cardBackgroundColor="@color/wine_neutral_light"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
-            app:strokeColor="@color/primary"
+            app:strokeColor="@color/wine_primary"
             app:strokeWidth="2dp">
 
             <LinearLayout
@@ -143,7 +143,7 @@
                         android:id="@+id/tv_product_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/primary"
+                        android:textColor="@color/wine_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 

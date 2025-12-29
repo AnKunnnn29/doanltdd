@@ -3,10 +3,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="primary">#7CB342</color>
-    <color name="primary_dark">#558B2F</color>
-    <color name="primary_light">#AED581</color>
-    <color name="primary_container">#E8F5E9</color>
+    <color name="primary">#931923</color>
+    <color name="primary_dark">#7A1019</color>
+    <color name="primary_light">#FCE4EC</color>
+    <color name="primary_container">#FCE4EC</color>
     <color name="on_primary">#FFFFFF</color>
 
     <color name="secondary">#FFB74D</color>
@@ -35,19 +35,19 @@
     <color name="border">#EEEEEE</color>
 
     <color name="orange">#FF8C00</color>
-    <color name="colorPrimary">#7CB342</color>
-    <color name="colorAccent">#FFB74D</color>
+    <color name="colorPrimary">#931923</color>
+    <color name="colorAccent">#B8293A</color>
     <color name="colorWhite">#FFFFFF</color>
     <color name="colorText">#333333</color>
     <color name="_931923">#931923</color>
 
-    <color name="tea_primary">#8B4513</color>
-    <color name="tea_secondary">#D2691E</color>
-    <color name="tea_accent">#FF8C00</color>
-    <color name="tea_light">#FFF8DC</color>
-    <color name="tea_dark">#4A2511</color>
-    <color name="gradient_start">#FF8C00</color>
-    <color name="gradient_end">#FF6347</color>
+    <color name="tea_primary">#931923</color>
+    <color name="tea_secondary">#B8293A</color>
+    <color name="tea_accent">#931923</color>
+    <color name="tea_light">#FCE4EC</color>
+    <color name="tea_dark">#931923</color>
+    <color name="gradient_start">#931923</color>
+    <color name="gradient_end">#B8293A</color>
     <color name="background_light">#FFFAF0</color>
 
     <color name="wine_primary">#931923</color>

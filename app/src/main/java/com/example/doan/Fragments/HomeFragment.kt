@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,7 +36,10 @@ import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.InAppNotification
+import com.example.doan.Utils.SeasonalEffectManager
 import com.example.doan.Utils.SessionManager
+import com.example.doan.Utils.SnowfallView
 import com.example.doan.Utils.VoiceOrderDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
@@ -62,6 +66,8 @@ class HomeFragment : Fragment() {
     private lateinit var pickupCard: MaterialCardView
     private lateinit var fabVoiceOrder: ExtendedFloatingActionButton
     private lateinit var fabChatbot: ExtendedFloatingActionButton
+    private lateinit var rootContainer: RelativeLayout
+    private var snowfallView: SnowfallView? = null
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -110,6 +116,7 @@ class HomeFragment : Fragment() {
         setupViewAllButtons(view)
         setupDeliveryPickupButtons()
         setupVoiceOrder()
+        setupSeasonalEffects()
 
         return view
     }
@@ -130,9 +137,13 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         stopAutoScroll()
+        // Cleanup seasonal effects
+        SeasonalEffectManager.cleanup()
+        snowfallView = null
     }
 
     private fun initViews(view: View) {
+        rootContainer = view.findViewById(R.id.root_container)
         userNameTextView = view.findViewById(R.id.user_name_home)
         greetingTextView = view.findViewById(R.id.greeting_text)
         avatarInitialTextView = view.findViewById(R.id.avatar_initial)
@@ -468,6 +479,28 @@ class HomeFragment : Fragment() {
         private const val AUTO_SCROLL_DELAY = 4000L // 4 seconds
     }
     
+    // ==================== Seasonal Effects ====================
+    
+    /**
+     * Setup hiệu ứng theo mùa (tuyết rơi vào mùa đông/Giáng sinh/Năm mới)
+     */
+    private fun setupSeasonalEffects() {
+        // Thêm hiệu ứng tuyết nếu đúng mùa
+        if (SeasonalEffectManager.shouldShowSnowfall()) {
+            snowfallView = SeasonalEffectManager.addSnowfallEffect(rootContainer, autoStart = true)
+            
+            // Cập nhật greeting với emoji theo mùa
+            val seasonalEmoji = SeasonalEffectManager.getSeasonalEmoji()
+            val currentGreeting = greetingTextView.text.toString()
+            if (!currentGreeting.contains(seasonalEmoji)) {
+                greetingTextView.text = "$seasonalEmoji ${getGreetingMessage()}"
+            }
+        }
+        
+        // Thêm confetti view (sẽ hiển thị khi đặt hàng thành công)
+        SeasonalEffectManager.addConfettiEffect(rootContainer)
+    }
+    
     // ==================== Voice Order ====================
     
     private fun setupVoiceOrder() {
@@ -542,24 +575,27 @@ class HomeFragment : Fragment() {
                     response: Response<ApiResponse<com.example.doan.Models.Cart>>
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(
-                            context,
-                            "Da them $quantity ${product.name} (Size $sizeName) vao gio!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        // Sử dụng InAppNotification thay vì Toast
+                        activity?.let { act ->
+                            InAppNotification.cartAdded(act, "$quantity ${product.name} (Size $sizeName)")
+                        }
                         
                         // Update cart badge
                         val cartItems = response.body()?.data?.items?.size ?: 0
                         DataCache.cartItemCount = cartItems
                         updateCartBadge()
                     } else {
-                        Toast.makeText(context, "Khong the them vao gio hang", Toast.LENGTH_SHORT).show()
+                        activity?.let { act ->
+                            InAppNotification.error(act, "Không thể thêm vào giỏ hàng", "Vui lòng thử lại")
+                        }
                     }
                 }
                 
                 override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.Cart>>, t: Throwable) {
                     Log.e("HomeFragment", "Error adding to cart", t)
-                    Toast.makeText(context, "Loi ket noi", Toast.LENGTH_SHORT).show()
+                    activity?.let { act ->
+                        InAppNotification.error(act, "Lỗi kết nối", "Không thể kết nối đến server")
+                    }
                 }
             })
     }

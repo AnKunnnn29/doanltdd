@@ -83,7 +83,7 @@
                 android:layout_height="36dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#E3F2FD">
+                app:cardBackgroundColor="@color/wine_neutral_light">
 
                 <ImageButton
                     android:id="@+id/btn_edit"
@@ -93,7 +93,7 @@
                     android:src="@android:drawable/ic_menu_edit"
                     android:contentDescription="Edit"
                     android:padding="8dp"
-                    app:tint="@color/info" />
+                    app:tint="@color/wine_primary" />
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -102,7 +102,7 @@
                 android:layout_marginStart="8dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFEBEE">
+                app:cardBackgroundColor="@color/status_canceled_bg">
 
                 <ImageButton
                     android:id="@+id/btn_delete"

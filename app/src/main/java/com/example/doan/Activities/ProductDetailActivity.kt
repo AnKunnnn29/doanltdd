@@ -11,6 +11,8 @@ import com.bumptech.glide.Glide
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.AddToCartAnimator
+import com.example.doan.Utils.InAppNotification
 import com.example.doan.Utils.LoadingDialog
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
@@ -36,6 +38,7 @@ class ProductDetailActivity : AppCompatActivity() {
     private lateinit var spinnerSize: Spinner
     private lateinit var layoutToppings: LinearLayout
     private lateinit var tvToppingLabel: TextView
+    private var cartIconView: View? = null  // Reference to cart icon for animation
     
     private lateinit var loadingDialog: LoadingDialog
 
@@ -91,6 +94,10 @@ class ProductDetailActivity : AppCompatActivity() {
         spinnerSize = findViewById(R.id.spinner_size)
         layoutToppings = findViewById(R.id.layout_toppings)
         tvToppingLabel = findViewById(R.id.tv_topping_label)
+        
+        // Try to find cart icon for animation (may not exist in all layouts)
+        // Use btnAddToCart as fallback target for animation
+        cartIconView = null
     }
 
     private fun getIntentData() {
@@ -296,7 +303,20 @@ class ProductDetailActivity : AppCompatActivity() {
                         })
                         finish()
                     } else {
-                        showSuccessDialog()
+                        // Animate product flying to cart
+                        val targetView = cartIconView ?: btnAddToCart
+                        AddToCartAnimator.animate(
+                            activity = this@ProductDetailActivity,
+                            sourceView = ivProductImage,
+                            targetView = targetView,
+                            onComplete = {
+                                // Show in-app notification instead of dialog
+                                InAppNotification.cartAdded(
+                                    this@ProductDetailActivity,
+                                    "${product?.name ?: tvProductName.text}"
+                                )
+                            }
+                        )
                     }
                 } else {
                     // FIX C2: Xử lý lỗi response tốt hơn
@@ -305,7 +325,7 @@ class ProductDetailActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         "Lỗi thêm giỏ hàng"
                     }
-                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    InAppNotification.error(this@ProductDetailActivity, "Không thể thêm vào giỏ", errorMessage)
                 }
             }
 
@@ -322,7 +342,7 @@ class ProductDetailActivity : AppCompatActivity() {
                         t is java.net.SocketTimeoutException -> "Kết nối quá thời gian chờ"
                         else -> "Lỗi kết nối: ${t.message}"
                     }
-                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    InAppNotification.error(this@ProductDetailActivity, "Lỗi kết nối", errorMessage)
                 }
             }
         })

@@ -2,7 +2,7 @@
 <resources>
     <!-- Bottom Navigation Active Indicator -->
     <style name="App.Widget.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/primary_container</item>
+        <item name="android:color">@color/wine_neutral_light</item>
     </style>
     
     <!-- Status Chip Styles -->

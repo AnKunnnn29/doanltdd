@@ -61,7 +61,7 @@
                 android:layout_marginEnd="6dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#FFF3E0">
+                app:cardBackgroundColor="@color/status_making_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -95,7 +95,7 @@
                 android:layout_marginHorizontal="6dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#E3F2FD">
+                app:cardBackgroundColor="@color/status_pending_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -129,7 +129,7 @@
                 android:layout_marginStart="6dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#E8F5E9">
+                app:cardBackgroundColor="@color/status_done_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"

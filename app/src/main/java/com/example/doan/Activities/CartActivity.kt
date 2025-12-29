@@ -33,7 +33,10 @@ import com.example.doan.Models.VNPayPaymentRequest
 import com.example.doan.Models.VNPayPaymentResponse
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.ConfettiView
+import com.example.doan.Utils.InAppNotification
 import com.example.doan.Utils.LoadingDialog
+import com.example.doan.Utils.SeasonalEffectManager
 import com.example.doan.Utils.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -71,6 +74,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var appliedVoucher: com.example.doan.Models.Voucher? = null
     private var discountAmount: Double = 0.0
     private var createdOrderId: Long? = null
+    private var confettiView: ConfettiView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,7 +83,16 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         initViews()
         setupRecyclerView()
         setupListeners()
+        setupConfetti()
         loadCart()
+    }
+    
+    private fun setupConfetti() {
+        // Add confetti view to root container for order success celebration
+        val rootView = findViewById<View>(android.R.id.content) as? android.view.ViewGroup
+        rootView?.let {
+            confettiView = SeasonalEffectManager.addConfettiEffect(it)
+        }
     }
 
     private fun initViews() {
@@ -514,18 +527,30 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     } else {
                         // COD - thanh toán khi nhận hàng
                         loadingDialog.dismiss()
-                        Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
-                        navigateToOrders()
+                        
+                        // Show confetti celebration
+                        SeasonalEffectManager.showConfetti(3000L, 200)
+                        
+                        // Show beautiful order success notification
+                        InAppNotification.orderSuccess(
+                            this@CartActivity,
+                            order?.id?.toString() ?: "N/A"
+                        )
+                        
+                        // Navigate after a short delay to let user see the celebration
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            navigateToOrders()
+                        }, 2500)
                     }
                 } else {
                     loadingDialog.dismiss()
-                    Toast.makeText(this@CartActivity, "Đặt hàng thất bại: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                    InAppNotification.error(this@CartActivity, "Đặt hàng thất bại", response.body()?.message ?: "Vui lòng thử lại")
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
                 loadingDialog.dismiss()
-                Toast.makeText(this@CartActivity, "Lỗi: ${t.message}", Toast.LENGTH_LONG).show()
+                InAppNotification.error(this@CartActivity, "Lỗi đặt hàng", t.message ?: "Không thể kết nối đến server")
             }
         })
     }

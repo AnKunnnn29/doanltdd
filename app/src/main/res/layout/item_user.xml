@@ -190,7 +190,7 @@
                         android:layout_marginStart="8dp"
                         app:cardCornerRadius="8dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#E8F5E9">
+                        app:cardBackgroundColor="@color/status_done_bg">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
