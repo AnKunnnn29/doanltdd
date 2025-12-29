@@ -3,6 +3,8 @@ package com.example.doan.Activities
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -10,19 +12,24 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.doan.Fragments.Manager.DashboardFragment
+import com.example.doan.Fragments.Manager.ForecastFragment
 import com.example.doan.Fragments.Manager.ManageCategoriesFragment
+import com.example.doan.Fragments.Manager.ManageChatsFragment
 import com.example.doan.Fragments.Manager.ManageDrinksFragment
 import com.example.doan.Fragments.Manager.ManageOrdersFragment
 import com.example.doan.Fragments.Manager.ManagerSettingsFragment
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationBarView
 
 class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
 
     private lateinit var sessionManager: SessionManager
     private var selectedItemId = R.id.nav_manager_dashboard
+    private lateinit var btnForecast: MaterialCardView
+    private lateinit var badgeWarning: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +53,28 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
             "Hi, Manager"
         }
 
+        // Setup Forecast/Warning Button với animation
+        btnForecast = findViewById(R.id.btn_forecast)
+        badgeWarning = findViewById(R.id.badge_warning)
+        
+        // Bắt đầu animation nhấp nháy cho badge
+        startWarningAnimation()
+        
+        btnForecast.setOnClickListener {
+            // Dừng animation khi click
+            badgeWarning.clearAnimation()
+            badgeWarning.visibility = View.GONE
+            
+            loadFragment(ForecastFragment(), true)
+            // Deselect bottom nav items
+            val bottomNav = findViewById<BottomNavigationView>(R.id.manager_bottom_navigation)
+            bottomNav.menu.setGroupCheckable(0, true, false)
+            for (i in 0 until bottomNav.menu.size()) {
+                bottomNav.menu.getItem(i).isChecked = false
+            }
+            bottomNav.menu.setGroupCheckable(0, true, true)
+        }
+
         // Setup Bottom Navigation
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.manager_bottom_navigation)
         bottomNavigationView.setOnItemSelectedListener(this)
@@ -62,6 +91,20 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
             loadFragment(DashboardFragment(), false)
         } else {
             selectedItemId = savedInstanceState.getInt("selectedItemId", R.id.nav_manager_dashboard)
+        }
+    }
+    
+    private fun startWarningAnimation() {
+        val pulseAnim = AnimationUtils.loadAnimation(this, R.anim.pulse_warning)
+        badgeWarning.startAnimation(pulseAnim)
+        btnForecast.startAnimation(pulseAnim)
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Restart animation khi quay lại activity
+        if (badgeWarning.visibility == View.VISIBLE) {
+            startWarningAnimation()
         }
     }
 
@@ -92,7 +135,7 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
             R.id.nav_manager_dashboard -> DashboardFragment()
             R.id.nav_manager_drinks -> ManageDrinksFragment()
             R.id.nav_manager_orders -> ManageOrdersFragment()
-            R.id.nav_manager_categories -> ManageCategoriesFragment()
+            R.id.nav_manager_chats -> ManageChatsFragment()
             R.id.nav_manager_settings -> ManagerSettingsFragment()
             else -> null
         }

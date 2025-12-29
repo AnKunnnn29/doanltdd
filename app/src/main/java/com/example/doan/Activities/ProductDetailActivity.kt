@@ -7,13 +7,15 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.doan.Adapters.ReviewAdapter
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
-import com.example.doan.Utils.AddToCartAnimator
-import com.example.doan.Utils.InAppNotification
 import com.example.doan.Utils.LoadingDialog
+import com.example.doan.Utils.PredictiveOrderHelper
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
 import retrofit2.Call
@@ -38,7 +40,16 @@ class ProductDetailActivity : AppCompatActivity() {
     private lateinit var spinnerSize: Spinner
     private lateinit var layoutToppings: LinearLayout
     private lateinit var tvToppingLabel: TextView
-    private var cartIconView: View? = null  // Reference to cart icon for animation
+    
+    // Review views
+    private lateinit var layoutRatingSummary: LinearLayout
+    private lateinit var tvAverageRating: TextView
+    private lateinit var ratingBarAverage: RatingBar
+    private lateinit var tvTotalReviews: TextView
+    private lateinit var tvNoReviews: TextView
+    private lateinit var rvReviews: RecyclerView
+    private lateinit var tvViewAllReviews: TextView
+    private lateinit var reviewAdapter: ReviewAdapter
     
     private lateinit var loadingDialog: LoadingDialog
 
@@ -51,6 +62,8 @@ class ProductDetailActivity : AppCompatActivity() {
     // FIX C5: Lưu reference của các Retrofit calls để cancel khi Activity destroy
     private var loadProductCall: Call<ApiResponse<List<Drink>>>? = null
     private var addToCartCall: Call<ApiResponse<Cart>>? = null
+    private var loadReviewsCall: Call<ApiResponse<List<Review>>>? = null
+    private var loadRatingSummaryCall: Call<ApiResponse<DrinkRatingSummary>>? = null
 
     companion object {
         private const val TAG = "ProductDetailActivity"
@@ -65,6 +78,7 @@ class ProductDetailActivity : AppCompatActivity() {
         initViews()
         getIntentData()
         setupListeners()
+        setupReviewsRecyclerView()
         loadProductDetails()
     }
     
@@ -73,6 +87,8 @@ class ProductDetailActivity : AppCompatActivity() {
         super.onDestroy()
         loadProductCall?.cancel()
         addToCartCall?.cancel()
+        loadReviewsCall?.cancel()
+        loadRatingSummaryCall?.cancel()
         Log.d(TAG, "Cancelled pending API calls")
     }
 
@@ -95,9 +111,21 @@ class ProductDetailActivity : AppCompatActivity() {
         layoutToppings = findViewById(R.id.layout_toppings)
         tvToppingLabel = findViewById(R.id.tv_topping_label)
         
-        // Try to find cart icon for animation (may not exist in all layouts)
-        // Use btnAddToCart as fallback target for animation
-        cartIconView = null
+        // Review views
+        layoutRatingSummary = findViewById(R.id.layout_rating_summary)
+        tvAverageRating = findViewById(R.id.tv_average_rating)
+        ratingBarAverage = findViewById(R.id.rating_bar_average)
+        tvTotalReviews = findViewById(R.id.tv_total_reviews)
+        tvNoReviews = findViewById(R.id.tv_no_reviews)
+        rvReviews = findViewById(R.id.rv_reviews)
+        tvViewAllReviews = findViewById(R.id.tv_view_all_reviews)
+    }
+    
+    private fun setupReviewsRecyclerView() {
+        reviewAdapter = ReviewAdapter()
+        rvReviews.layoutManager = LinearLayoutManager(this)
+        rvReviews.adapter = reviewAdapter
+        rvReviews.isNestedScrollingEnabled = false
     }
 
     private fun getIntentData() {
@@ -144,6 +172,7 @@ class ProductDetailActivity : AppCompatActivity() {
 
                     product?.let {
                         displayProductFullDetails(it)
+                        loadReviews(productId.toLong())
                     } ?: run {
                         // FIX C2: Hiển thị lỗi cho user khi không tìm thấy sản phẩm
                         Toast.makeText(this@ProductDetailActivity, "Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show()
@@ -233,6 +262,69 @@ class ProductDetailActivity : AppCompatActivity() {
 
         updateTotalPrice()
     }
+    
+    private fun loadReviews(drinkId: Long) {
+        // Load rating summary
+        loadRatingSummaryCall = RetrofitClient.getInstance(this).apiService.getDrinkRatingSummary(drinkId)
+        loadRatingSummaryCall?.enqueue(object : Callback<ApiResponse<DrinkRatingSummary>> {
+            override fun onResponse(call: Call<ApiResponse<DrinkRatingSummary>>, response: Response<ApiResponse<DrinkRatingSummary>>) {
+                if (isFinishing || isDestroyed) return
+                
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val summary = response.body()?.data
+                    if (summary != null && summary.totalReviews > 0) {
+                        layoutRatingSummary.visibility = View.VISIBLE
+                        tvNoReviews.visibility = View.GONE
+                        
+                        tvAverageRating.text = String.format("%.1f", summary.averageRating)
+                        ratingBarAverage.rating = summary.averageRating.toFloat()
+                        tvTotalReviews.text = "(${summary.totalReviews} đánh giá)"
+                    } else {
+                        layoutRatingSummary.visibility = View.GONE
+                        tvNoReviews.visibility = View.VISIBLE
+                    }
+                }
+            }
+            
+            override fun onFailure(call: Call<ApiResponse<DrinkRatingSummary>>, t: Throwable) {
+                if (!call.isCanceled) {
+                    Log.e(TAG, "Failed to load rating summary", t)
+                }
+            }
+        })
+        
+        // Load reviews list
+        loadReviewsCall = RetrofitClient.getInstance(this).apiService.getReviewsByDrink(drinkId)
+        loadReviewsCall?.enqueue(object : Callback<ApiResponse<List<Review>>> {
+            override fun onResponse(call: Call<ApiResponse<List<Review>>>, response: Response<ApiResponse<List<Review>>>) {
+                if (isFinishing || isDestroyed) return
+                
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val reviews = response.body()?.data ?: emptyList()
+                    if (reviews.isNotEmpty()) {
+                        rvReviews.visibility = View.VISIBLE
+                        tvNoReviews.visibility = View.GONE
+                        // Chỉ hiển thị tối đa 3 đánh giá gần nhất
+                        val displayReviews = reviews.take(3)
+                        reviewAdapter.updateReviews(displayReviews)
+                        
+                        if (reviews.size > 3) {
+                            tvViewAllReviews.visibility = View.VISIBLE
+                            tvViewAllReviews.text = "Xem tất cả (${reviews.size})"
+                        }
+                    } else {
+                        rvReviews.visibility = View.GONE
+                    }
+                }
+            }
+            
+            override fun onFailure(call: Call<ApiResponse<List<Review>>>, t: Throwable) {
+                if (!call.isCanceled) {
+                    Log.e(TAG, "Failed to load reviews", t)
+                }
+            }
+        })
+    }
 
     private fun setupListeners() {
         btnBack.setOnClickListener { finish() }
@@ -271,6 +363,11 @@ class ProductDetailActivity : AppCompatActivity() {
             startActivity(Intent(this, LoginActivity::class.java))
             return
         }
+        
+        // Debug: Log token info
+        Log.d("ProductDetailActivity", "Adding to cart - Token exists: ${session.getToken() != null}")
+        Log.d("ProductDetailActivity", "Adding to cart - Token length: ${session.getToken()?.length ?: 0}")
+        Log.d("ProductDetailActivity", "Adding to cart - User ID: ${session.getUserId()}")
 
         loadingDialog.show("Đang thêm vào giỏ hàng...")
 
@@ -303,20 +400,7 @@ class ProductDetailActivity : AppCompatActivity() {
                         })
                         finish()
                     } else {
-                        // Animate product flying to cart
-                        val targetView = cartIconView ?: btnAddToCart
-                        AddToCartAnimator.animate(
-                            activity = this@ProductDetailActivity,
-                            sourceView = ivProductImage,
-                            targetView = targetView,
-                            onComplete = {
-                                // Show in-app notification instead of dialog
-                                InAppNotification.cartAdded(
-                                    this@ProductDetailActivity,
-                                    "${product?.name ?: tvProductName.text}"
-                                )
-                            }
-                        )
+                        showSuccessDialog()
                     }
                 } else {
                     // FIX C2: Xử lý lỗi response tốt hơn
@@ -325,7 +409,7 @@ class ProductDetailActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         "Lỗi thêm giỏ hàng"
                     }
-                    InAppNotification.error(this@ProductDetailActivity, "Không thể thêm vào giỏ", errorMessage)
+                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -342,7 +426,7 @@ class ProductDetailActivity : AppCompatActivity() {
                         t is java.net.SocketTimeoutException -> "Kết nối quá thời gian chờ"
                         else -> "Lỗi kết nối: ${t.message}"
                     }
-                    InAppNotification.error(this@ProductDetailActivity, "Lỗi kết nối", errorMessage)
+                    Toast.makeText(this@ProductDetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
                 }
             }
         })

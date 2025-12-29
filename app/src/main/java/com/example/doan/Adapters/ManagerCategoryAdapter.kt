@@ -18,6 +18,8 @@ class ManagerCategoryAdapter(
     private val listener: OnCategoryActionListener
 ) : RecyclerView.Adapter<ManagerCategoryAdapter.ViewHolder>() {
 
+    private var filteredList: List<Category> = categoryList
+
     interface OnCategoryActionListener {
         fun onEditClick(category: Category)
         fun onDeleteClick(category: Category)
@@ -29,7 +31,7 @@ class ManagerCategoryAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val category = categoryList[position]
+        val category = filteredList[position]
 
         holder.tvName.text = category.name
         holder.tvDescription.text = category.description ?: "Không có mô tả"
@@ -56,10 +58,23 @@ class ManagerCategoryAdapter(
         }
     }
 
-    override fun getItemCount(): Int = categoryList.size
+    override fun getItemCount(): Int = filteredList.size
 
     fun updateList(newList: List<Category>) {
         this.categoryList = newList
+        this.filteredList = newList
+        notifyDataSetChanged()
+    }
+
+    fun filter(query: String) {
+        filteredList = if (query.isEmpty()) {
+            categoryList
+        } else {
+            categoryList.filter { category ->
+                (category.name?.contains(query, ignoreCase = true) == true) ||
+                    (category.description?.contains(query, ignoreCase = true) == true)
+            }
+        }
         notifyDataSetChanged()
     }
 

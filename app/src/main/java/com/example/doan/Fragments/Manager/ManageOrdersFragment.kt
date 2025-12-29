@@ -1,6 +1,7 @@
 package com.example.doan.Fragments.Manager
 
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -24,6 +25,7 @@ import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Order
 import com.example.doan.Models.PageResponse
 import com.example.doan.Models.Store
+import com.example.doan.Network.OrderWebSocketManager
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -48,13 +50,27 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     private lateinit var tvMakingCount: TextView
     private lateinit var tvDoneCount: TextView
     private lateinit var btnRefresh: MaterialButton
+    private var tvConnectionStatus: TextView? = null
 
     private lateinit var adapter: ManagerOrderAdapter
     private val allOrders = mutableListOf<Order>()
-    private val filteredOrders = mutableListOf<Order>()
+    private val displayedOrders = mutableListOf<Order>()
     private val storeList = mutableListOf<Store>()
     private var currentStatus: String? = null
     private var selectedStoreId: Long? = null
+    
+    // WebSocket Manager
+    private lateinit var webSocketManager: OrderWebSocketManager
+    private var notificationSound: MediaPlayer? = null
+    
+    // Pagination - gọi API thực sự
+    private val PAGE_SIZE = 10
+    private var currentPage = 0
+    private var totalPages = 0
+    private var totalElements = 0L
+    private var hasMoreData = true
+    private var isLoading = false
+    private var btnLoadMore: MaterialButton? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -66,11 +82,109 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         initViews(view)
         setupRecyclerView()
         setupListeners()
+        setupWebSocket()
         animateViewsIn()
         loadStores()
         loadOrders()
 
         return view
+    }
+    
+    private fun setupWebSocket() {
+        webSocketManager = OrderWebSocketManager.getInstance()
+        
+        // Set listener for new orders
+        webSocketManager.setOnNewOrderListener { newOrder ->
+            activity?.runOnUiThread {
+                handleNewOrder(newOrder)
+            }
+        }
+        
+        // Set listener for status updates
+        webSocketManager.setOnStatusUpdateListener { updatedOrder ->
+            activity?.runOnUiThread {
+                handleOrderStatusUpdate(updatedOrder)
+            }
+        }
+        
+        // Set listener for connection state
+        webSocketManager.setOnConnectionListener { connected ->
+            activity?.runOnUiThread {
+                updateConnectionStatus(connected)
+            }
+        }
+        
+        // Connect to WebSocket
+        val baseUrl = RetrofitClient.getBaseUrl()
+        webSocketManager.connect(baseUrl)
+    }
+    
+    private fun handleNewOrder(newOrder: Order) {
+        Log.d(TAG, "New order received via WebSocket: #${newOrder.id}")
+        
+        // Check if order matches current filter (store)
+        if (selectedStoreId != null && newOrder.storeId != selectedStoreId) {
+            Log.d(TAG, "Order doesn't match selected store, ignoring")
+            return
+        }
+        
+        // Check if order already exists
+        val existingIndex = allOrders.indexOfFirst { it.id == newOrder.id }
+        if (existingIndex >= 0) {
+            Log.d(TAG, "Order already exists, updating")
+            allOrders[existingIndex] = newOrder
+        } else {
+            // Add new order to the beginning
+            allOrders.add(0, newOrder)
+            
+            // Play notification sound
+            playNotificationSound()
+            
+            // Show toast
+            Toast.makeText(
+                context,
+                "🔔 Đơn hàng mới #${newOrder.id}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        
+        // Refresh display
+        updateStats()
+        applyFilters()
+    }
+    
+    private fun handleOrderStatusUpdate(updatedOrder: Order) {
+        Log.d(TAG, "Order status update via WebSocket: #${updatedOrder.id} -> ${updatedOrder.status}")
+        
+        // Find and update the order
+        val index = allOrders.indexOfFirst { it.id == updatedOrder.id }
+        if (index >= 0) {
+            allOrders[index] = updatedOrder
+            updateStats()
+            applyFilters()
+        }
+    }
+    
+    private fun updateConnectionStatus(connected: Boolean) {
+        tvConnectionStatus?.apply {
+            if (connected) {
+                text = "● Realtime"
+                setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
+            } else {
+                text = "○ Offline"
+                setTextColor(resources.getColor(android.R.color.holo_red_dark, null))
+            }
+        }
+    }
+    
+    private fun playNotificationSound() {
+        try {
+            notificationSound?.release()
+            notificationSound = MediaPlayer.create(context, android.provider.Settings.System.DEFAULT_NOTIFICATION_URI)
+            notificationSound?.start()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error playing notification sound: ${e.message}")
+        }
     }
 
     private fun initViews(view: View) {
@@ -86,14 +200,18 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         tvMakingCount = view.findViewById(R.id.tv_making_count)
         tvDoneCount = view.findViewById(R.id.tv_done_count)
         btnRefresh = view.findViewById(R.id.btn_refresh)
+        tvConnectionStatus = view.findViewById(R.id.tv_connection_status)
+        btnLoadMore = view.findViewById(R.id.btn_load_more)
     }
 
     private fun setupRecyclerView() {
         rvOrders.layoutManager = LinearLayoutManager(context)
         rvOrders.layoutAnimation = AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_fall_down)
-        adapter = ManagerOrderAdapter(requireContext(), filteredOrders)
+        adapter = ManagerOrderAdapter(requireContext(), displayedOrders)
         adapter.setOnOrderActionListener(this)
         rvOrders.adapter = adapter
+        
+        // Không dùng scroll listener nữa, dùng nút "Xem thêm" thay thế
     }
 
     private fun setupListeners() {
@@ -108,6 +226,11 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
 
         cardStoreFilter.setOnClickListener {
             showStoreFilterDialog()
+        }
+        
+        // Nút xem thêm
+        btnLoadMore?.setOnClickListener {
+            loadMoreOrders()
         }
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -198,15 +321,31 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun loadOrders() {
-        if (!swipeRefresh.isRefreshing) {
+        // Reset pagination khi load mới
+        currentPage = 0
+        hasMoreData = true
+        allOrders.clear()
+        displayedOrders.clear()
+        adapter.notifyDataSetChanged()
+        
+        // Load trang đầu tiên
+        loadOrdersPage(0, isRefresh = true)
+    }
+    
+    private fun loadOrdersPage(page: Int, isRefresh: Boolean = false) {
+        if (isLoading) return
+        isLoading = true
+        
+        if (isRefresh && !swipeRefresh.isRefreshing) {
             progressBar.visibility = View.VISIBLE
         }
         emptyState.visibility = View.GONE
+        btnLoadMore?.visibility = View.GONE
 
-        Log.d(TAG, "Loading orders with status: $currentStatus")
+        Log.d(TAG, "Loading orders page $page with status: $currentStatus, size: $PAGE_SIZE")
 
         RetrofitClient.getInstance(requireContext()).apiService
-            .getManagerOrders(currentStatus, 0, 100)
+            .getManagerOrders(currentStatus, page, PAGE_SIZE)
             .enqueue(object : Callback<ApiResponse<PageResponse<Order>>> {
                 override fun onResponse(
                     call: Call<ApiResponse<PageResponse<Order>>>,
@@ -214,19 +353,53 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                 ) {
                     progressBar.visibility = View.GONE
                     swipeRefresh.isRefreshing = false
+                    isLoading = false
 
                     if (response.isSuccessful && response.body() != null) {
                         val apiResponse = response.body()!!
 
                         if (apiResponse.success && apiResponse.data != null) {
                             val pageResponse = apiResponse.data!!
-                            allOrders.clear()
-                            pageResponse.content?.let { allOrders.addAll(it) }
+                            
+                            // Cập nhật thông tin pagination
+                            totalPages = pageResponse.totalPages ?: 0
+                            totalElements = pageResponse.totalElements ?: 0
+                            currentPage = page
+                            hasMoreData = !pageResponse.isLast
+                            
+                            // Thêm orders vào danh sách
+                            pageResponse.content?.let { newOrders ->
+                                allOrders.addAll(newOrders)
+                                
+                                // Filter theo store nếu cần
+                                val filteredNewOrders = if (selectedStoreId != null) {
+                                    newOrders.filter { it.storeId == selectedStoreId }
+                                } else {
+                                    newOrders
+                                }
+                                displayedOrders.addAll(filteredNewOrders)
+                            }
 
-                            Log.d(TAG, "Orders loaded: ${allOrders.size}")
+                            Log.d(TAG, "Orders loaded: page=$page, total=${allOrders.size}, hasMore=$hasMoreData")
 
+                            adapter.notifyDataSetChanged()
                             updateStats()
-                            applyFilters()
+                            updateLoadMoreButton()
+                            
+                            // Animation chỉ cho lần load đầu
+                            if (page == 0) {
+                                rvOrders.scheduleLayoutAnimation()
+                            }
+                            
+                            // Hiển thị empty state nếu không có đơn
+                            if (displayedOrders.isEmpty()) {
+                                emptyState.visibility = View.VISIBLE
+                                view?.findViewById<TextView>(R.id.tv_empty_message)?.text =
+                                    if (selectedStoreId != null) "Không có đơn hàng tại chi nhánh này"
+                                    else "Đơn hàng mới sẽ xuất hiện ở đây"
+                            } else {
+                                emptyState.visibility = View.GONE
+                            }
                         } else {
                             val msg = apiResponse.message ?: "Không thể tải đơn hàng"
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -239,7 +412,11 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                 override fun onFailure(call: Call<ApiResponse<PageResponse<Order>>>, t: Throwable) {
                     progressBar.visibility = View.GONE
                     swipeRefresh.isRefreshing = false
-                    emptyState.visibility = View.VISIBLE
+                    isLoading = false
+                    
+                    if (displayedOrders.isEmpty()) {
+                        emptyState.visibility = View.VISIBLE
+                    }
 
                     Log.e(TAG, "Connection error: ${t.message}", t)
                     Toast.makeText(context, "Không thể kết nối Server", Toast.LENGTH_SHORT).show()
@@ -248,6 +425,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun updateStats() {
+        // Đếm từ danh sách đã load (có thể không chính xác 100% nếu chưa load hết)
         val ordersToCount = if (selectedStoreId != null) {
             allOrders.filter { it.storeId == selectedStoreId }
         } else {
@@ -264,28 +442,26 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun applyFilters() {
-        filteredOrders.clear()
-
-        filteredOrders.addAll(
-            if (selectedStoreId != null) {
-                allOrders.filter { it.storeId == selectedStoreId }
+        // Khi thay đổi filter store, cần reload từ đầu
+        loadOrders()
+    }
+    
+    private fun loadMoreOrders() {
+        if (isLoading || !hasMoreData) return
+        
+        // Load trang tiếp theo từ API
+        loadOrdersPage(currentPage + 1)
+    }
+    
+    private fun updateLoadMoreButton() {
+        btnLoadMore?.apply {
+            if (hasMoreData) {
+                visibility = View.VISIBLE
+                val loaded = displayedOrders.size
+                text = "Xem thêm (đã tải $loaded đơn)"
             } else {
-                allOrders
+                visibility = View.GONE
             }
-        )
-
-        adapter.updateOrders(filteredOrders)
-        rvOrders.scheduleLayoutAnimation()
-
-        updateStats()
-
-        if (filteredOrders.isEmpty()) {
-            emptyState.visibility = View.VISIBLE
-            view?.findViewById<TextView>(R.id.tv_empty_message)?.text =
-                if (selectedStoreId != null) "Không có đơn hàng tại chi nhánh này"
-                else "Đơn hàng mới sẽ xuất hiện ở đây"
-        } else {
-            emptyState.visibility = View.GONE
         }
     }
 
@@ -368,7 +544,18 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         super.onDestroyView()
         // Clear lists to prevent memory leak
         allOrders.clear()
-        filteredOrders.clear()
+        displayedOrders.clear()
         storeList.clear()
+        
+        // Release notification sound
+        notificationSound?.release()
+        notificationSound = null
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Reconnect WebSocket if needed
+        val baseUrl = RetrofitClient.getBaseUrl()
+        webSocketManager.reconnectIfNeeded(baseUrl)
     }
 }

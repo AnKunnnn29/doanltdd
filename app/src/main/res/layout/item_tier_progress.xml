@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="12dp">
+
+    <!-- Tier Icon -->
+    <ImageView
+        android:id="@+id/ivTierIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_tier_bronze"
+        android:contentDescription="Tier Icon" />
+
+    <!-- Tier Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="12dp">
+
+        <TextView
+            android:id="@+id/tvTierProgressName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hạng Đồng"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/tvTierPoints"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 điểm"
+            android:textSize="13sp"
+            android:textColor="@color/gray" />
+
+    </LinearLayout>
+
+    <!-- Discount Badge -->
+    <TextView
+        android:id="@+id/tvTierDiscount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Giảm 5%"
+        android:textSize="13sp"
+        android:textColor="@color/wine_primary"
+        android:background="@drawable/bg_discount_badge"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp" />
+
+    <!-- Connector Line (hidden for last item) -->
+    <View
+        android:id="@+id/viewConnector"
+        android:layout_width="2dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:background="@color/light_gray"
+        android:visibility="gone" />
+
+</LinearLayout>

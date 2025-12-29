@@ -13,10 +13,10 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +28,10 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.doan.Activities.AccountActivity
 import com.example.doan.Activities.CartActivity
 import com.example.doan.Activities.ChatbotActivity
+import com.example.doan.Activities.CreateGroupOrderActivity
+import com.example.doan.Activities.JoinGroupOrderActivity
+import com.example.doan.Activities.LiveChatActivity
+import com.example.doan.Activities.SpinWheelActivity
 import com.example.doan.Adapters.BannerAdapter
 import com.example.doan.Adapters.ProductCarouselAdapter
 import com.example.doan.Models.ApiResponse
@@ -36,14 +40,11 @@ import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
-import com.example.doan.Utils.InAppNotification
-import com.example.doan.Utils.SeasonalEffectManager
+import com.example.doan.Utils.PredictiveOrderHelper
 import com.example.doan.Utils.SessionManager
-import com.example.doan.Utils.SnowfallView
 import com.example.doan.Utils.VoiceOrderDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -62,12 +63,13 @@ class HomeFragment : Fragment() {
     private lateinit var avatarCard: MaterialCardView
     private lateinit var cartButton: FrameLayout
     private lateinit var cartBadge: TextView
+    private lateinit var liveChatButton: FrameLayout
     private lateinit var deliveryCard: MaterialCardView
     private lateinit var pickupCard: MaterialCardView
-    private lateinit var fabVoiceOrder: ExtendedFloatingActionButton
-    private lateinit var fabChatbot: ExtendedFloatingActionButton
-    private lateinit var rootContainer: RelativeLayout
-    private var snowfallView: SnowfallView? = null
+    private lateinit var fabVoiceOrder: com.google.android.material.card.MaterialCardView
+    private lateinit var fabChatbot: com.google.android.material.card.MaterialCardView
+    private lateinit var fabSpinWheel: com.google.android.material.card.MaterialCardView
+    private lateinit var fabGroupOrder: com.google.android.material.card.MaterialCardView
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -116,7 +118,6 @@ class HomeFragment : Fragment() {
         setupViewAllButtons(view)
         setupDeliveryPickupButtons()
         setupVoiceOrder()
-        setupSeasonalEffects()
 
         return view
     }
@@ -124,6 +125,171 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         startAutoScroll()
+        updateCartBadge()
+        
+        // Kiểm tra và hiển thị gợi ý thông minh (Predictive Order)
+        // Delay 1 giây để đảm bảo UI đã sẵn sàng
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (isAdded && context != null) {
+                checkPredictiveOrder()
+            }
+        }, 1000)
+    }
+    
+    /**
+     * Kiểm tra và hiển thị gợi ý món dự đoán khi mở app
+     * Dựa trên lịch sử đặt hàng và thói quen của user
+     */
+    private fun checkPredictiveOrder() {
+        val sessionManager = SessionManager(requireContext())
+        if (!sessionManager.isLoggedIn()) {
+            Log.d("HomeFragment", "User not logged in, skipping predictive order")
+            return
+        }
+        
+        Log.d("HomeFragment", "Checking predictive order for user: ${sessionManager.getUserId()}")
+        
+        val helper = PredictiveOrderHelper(requireContext())
+        // Uncomment dòng dưới để reset và test lại từ đầu
+        // helper.clearPreferences()
+        
+        helper.checkAndShowPrediction(
+            activity = requireActivity() as AppCompatActivity,
+            weather = null, // Có thể tích hợp API thời tiết sau
+            forceShow = true, // Luôn hiển thị gợi ý khi mở app
+            onAddToCart = { predictedDrink ->
+                addPredictedDrinkToCart(predictedDrink)
+            }
+        )
+    }
+    
+    /**
+     * Thêm món được gợi ý vào giỏ hàng
+     */
+    private fun addPredictedDrinkToCart(drink: com.example.doan.Models.PredictedDrink) {
+        val sessionManager = SessionManager(requireContext())
+        if (!sessionManager.isLoggedIn()) {
+            Toast.makeText(context, "Vui lòng đăng nhập để thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Lấy sizeId từ prediction
+        var sizeId = drink.sizeId ?: 0L
+        Log.d("HomeFragment", "PredictedDrink: drinkId=${drink.drinkId}, sizeId=$sizeId, sizeName=${drink.sizeName}")
+        
+        // Nếu sizeId không hợp lệ, tìm từ cache hoặc gọi API lấy drink detail
+        if (sizeId <= 0L) {
+            // Thử tìm trong cache trước
+            val cachedProduct = DataCache.products?.find { it.id.toLong() == drink.drinkId }
+            if (cachedProduct != null && !cachedProduct.sizes.isNullOrEmpty()) {
+                // Nếu có sizeName từ prediction, tìm size khớp
+                val matchingSize = if (!drink.sizeName.isNullOrEmpty()) {
+                    cachedProduct.sizes?.find { it.sizeName.equals(drink.sizeName, ignoreCase = true) }
+                } else null
+                
+                sizeId = matchingSize?.id?.toLong() ?: cachedProduct.sizes?.firstOrNull()?.id?.toLong() ?: 0L
+                Log.d("HomeFragment", "Found sizeId from cache: $sizeId for drink: ${drink.drinkName}")
+            }
+            
+            // Nếu vẫn không có sizeId, gọi API lấy drink detail
+            if (sizeId <= 0L) {
+                Log.d("HomeFragment", "Fetching drink detail to get sizeId for drinkId: ${drink.drinkId}")
+                fetchDrinkAndAddToCart(drink)
+                return
+            }
+        }
+        
+        // Có sizeId hợp lệ, thêm vào giỏ hàng
+        addToCartWithSize(drink, sizeId)
+    }
+    
+    /**
+     * Gọi API lấy drink detail rồi thêm vào giỏ hàng
+     */
+    private fun fetchDrinkAndAddToCart(drink: com.example.doan.Models.PredictedDrink) {
+        RetrofitClient.getInstance(requireContext()).apiService.getDrinkById(drink.drinkId.toInt())
+            .enqueue(object : Callback<ApiResponse<Drink>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<Drink>>,
+                    response: Response<ApiResponse<Drink>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val drinkDetail = response.body()?.data
+                        if (drinkDetail != null && !drinkDetail.sizes.isNullOrEmpty()) {
+                            // Tìm size khớp với sizeName từ prediction
+                            val matchingSize = if (!drink.sizeName.isNullOrEmpty()) {
+                                drinkDetail.sizes?.find { it.sizeName.equals(drink.sizeName, ignoreCase = true) }
+                            } else null
+                            
+                            val sizeId = matchingSize?.id?.toLong() ?: drinkDetail.sizes?.firstOrNull()?.id?.toLong() ?: 0L
+                            Log.d("HomeFragment", "Got sizeId from API: $sizeId for drink: ${drink.drinkName}")
+                            
+                            if (sizeId > 0L) {
+                                addToCartWithSize(drink, sizeId)
+                            } else {
+                                Toast.makeText(context, "Không tìm thấy size cho sản phẩm này", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            // Drink không có sizes, thêm với sizeId = 0 (backend sẽ xử lý)
+                            addToCartWithSize(drink, 0L)
+                        }
+                    } else {
+                        Log.e("HomeFragment", "Failed to get drink detail: ${response.code()}")
+                        Toast.makeText(context, "Không thể lấy thông tin sản phẩm", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<Drink>>, t: Throwable) {
+                    Log.e("HomeFragment", "Error fetching drink detail", t)
+                    Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    /**
+     * Thêm vào giỏ hàng với sizeId đã xác định
+     */
+    private fun addToCartWithSize(drink: com.example.doan.Models.PredictedDrink, sizeId: Long) {
+        val request = com.example.doan.Models.AddToCartRequest(
+            drinkId = drink.drinkId,
+            sizeId = sizeId,
+            quantity = 1,
+            toppingIds = drink.toppings?.mapNotNull { if (it.toppingId > 0) it.toppingId else null } ?: emptyList(),
+            note = drink.note ?: ""
+        )
+        
+        Log.d("HomeFragment", "Adding to cart: drinkId=${request.drinkId}, sizeId=${request.sizeId}")
+        
+        RetrofitClient.getInstance(requireContext()).apiService.addToCart(request)
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.Cart>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.Cart>>,
+                    response: Response<ApiResponse<com.example.doan.Models.Cart>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        Toast.makeText(
+                            context,
+                            "Đã thêm ${drink.drinkName} vào giỏ hàng! 🧋",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        
+                        // Update cart badge
+                        val cartItems = response.body()?.data?.items?.size ?: 0
+                        DataCache.cartItemCount = cartItems
+                        updateCartBadge()
+                    } else {
+                        val errorMsg = response.body()?.message ?: "Không thể thêm vào giỏ hàng"
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("HomeFragment", "Add to cart failed: $errorMsg, code: ${response.code()}, body: $errorBody")
+                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.Cart>>, t: Throwable) {
+                    Log.e("HomeFragment", "Error adding predicted drink to cart", t)
+                    Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     override fun onPause() {
@@ -137,19 +303,16 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         stopAutoScroll()
-        // Cleanup seasonal effects
-        SeasonalEffectManager.cleanup()
-        snowfallView = null
     }
 
     private fun initViews(view: View) {
-        rootContainer = view.findViewById(R.id.root_container)
         userNameTextView = view.findViewById(R.id.user_name_home)
         greetingTextView = view.findViewById(R.id.greeting_text)
         avatarInitialTextView = view.findViewById(R.id.avatar_initial)
         avatarCard = view.findViewById(R.id.avatar_card)
         cartButton = view.findViewById(R.id.cart_button)
         cartBadge = view.findViewById(R.id.cart_badge)
+        liveChatButton = view.findViewById(R.id.live_chat_button)
         bannerViewPager = view.findViewById(R.id.banner_viewpager)
         indicatorLayout = view.findViewById(R.id.indicator_layout)
         bestSellerRecyclerView = view.findViewById(R.id.best_seller_recycler_view)
@@ -158,6 +321,8 @@ class HomeFragment : Fragment() {
         pickupCard = view.findViewById(R.id.pickup_card)
         fabVoiceOrder = view.findViewById(R.id.fab_voice_order)
         fabChatbot = view.findViewById(R.id.fab_chatbot)
+        fabSpinWheel = view.findViewById(R.id.fab_spin_wheel)
+        fabGroupOrder = view.findViewById(R.id.fab_group_order)
     }
 
     private fun setupHeader() {
@@ -186,6 +351,11 @@ class HomeFragment : Fragment() {
         // Cart button click
         cartButton.setOnClickListener {
             startActivity(Intent(context, CartActivity::class.java))
+        }
+
+        // Live Chat button click
+        liveChatButton.setOnClickListener {
+            startActivity(Intent(context, LiveChatActivity::class.java))
         }
 
         // Update cart badge
@@ -479,38 +649,130 @@ class HomeFragment : Fragment() {
         private const val AUTO_SCROLL_DELAY = 4000L // 4 seconds
     }
     
-    // ==================== Seasonal Effects ====================
-    
-    /**
-     * Setup hiệu ứng theo mùa (tuyết rơi vào mùa đông/Giáng sinh/Năm mới)
-     */
-    private fun setupSeasonalEffects() {
-        // Thêm hiệu ứng tuyết nếu đúng mùa
-        if (SeasonalEffectManager.shouldShowSnowfall()) {
-            snowfallView = SeasonalEffectManager.addSnowfallEffect(rootContainer, autoStart = true)
-            
-            // Cập nhật greeting với emoji theo mùa
-            val seasonalEmoji = SeasonalEffectManager.getSeasonalEmoji()
-            val currentGreeting = greetingTextView.text.toString()
-            if (!currentGreeting.contains(seasonalEmoji)) {
-                greetingTextView.text = "$seasonalEmoji ${getGreetingMessage()}"
-            }
-        }
-        
-        // Thêm confetti view (sẽ hiển thị khi đặt hàng thành công)
-        SeasonalEffectManager.addConfettiEffect(rootContainer)
-    }
-    
     // ==================== Voice Order ====================
     
     private fun setupVoiceOrder() {
+        // Animate buttons khi xuất hiện
+        animateQuickActionsOnStart()
+        
         fabVoiceOrder.setOnClickListener {
+            animateButtonClick(it)
             checkMicPermissionAndShowDialog()
         }
         
         fabChatbot.setOnClickListener {
+            animateButtonClick(it)
             startActivity(Intent(context, ChatbotActivity::class.java))
         }
+        
+        fabSpinWheel.setOnClickListener {
+            animateButtonClick(it)
+            val sessionManager = SessionManager(requireContext())
+            if (!sessionManager.isLoggedIn()) {
+                Toast.makeText(context, "Vui lòng đăng nhập để tham gia vòng quay", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            startActivity(Intent(context, SpinWheelActivity::class.java))
+        }
+        
+        fabGroupOrder.setOnClickListener {
+            animateButtonClick(it)
+            val sessionManager = SessionManager(requireContext())
+            if (!sessionManager.isLoggedIn()) {
+                Toast.makeText(context, "Vui lòng đăng nhập để đặt hàng nhóm", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            checkActiveGroupOrderAndShow()
+        }
+    }
+    
+    /**
+     * Animation bounce-in cho 4 quick action buttons khi mở app
+     */
+    private fun animateQuickActionsOnStart() {
+        val bounceAnim = android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in)
+        
+        // Delay khác nhau cho mỗi button để tạo hiệu ứng stagger
+        fabVoiceOrder.postDelayed({
+            fabVoiceOrder.startAnimation(bounceAnim)
+        }, 100)
+        
+        fabChatbot.postDelayed({
+            fabChatbot.startAnimation(android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in))
+        }, 200)
+        
+        fabSpinWheel.postDelayed({
+            fabSpinWheel.startAnimation(android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in))
+        }, 300)
+        
+        fabGroupOrder.postDelayed({
+            fabGroupOrder.startAnimation(android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in))
+        }, 400)
+    }
+    
+    /**
+     * Animation pulse khi click button
+     */
+    private fun animateButtonClick(view: View) {
+        val pulseAnim = android.view.animation.AnimationUtils.loadAnimation(context, R.anim.pulse)
+        view.startAnimation(pulseAnim)
+    }
+    
+    private fun checkActiveGroupOrderAndShow() {
+        // Kiểm tra xem user có phiên đang hoạt động không
+        RetrofitClient.getInstance(requireContext()).apiService.getActiveGroupOrders()
+            .enqueue(object : Callback<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>>,
+                    response: Response<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val activeOrders = response.body()?.data ?: emptyList()
+                        if (activeOrders.isNotEmpty()) {
+                            // Có phiên đang hoạt động, mở trực tiếp
+                            val activeOrder = activeOrders.first()
+                            val intent = Intent(context, com.example.doan.Activities.GroupOrderActivity::class.java)
+                            intent.putExtra("GROUP_ORDER_ID", activeOrder.id)
+                            startActivity(intent)
+                        } else {
+                            // Không có phiên nào, hiện dialog chọn
+                            showGroupOrderOptionsDialog()
+                        }
+                    } else {
+                        // Lỗi API, vẫn hiện dialog
+                        showGroupOrderOptionsDialog()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<com.example.doan.Models.GroupOrderDto>>>, t: Throwable) {
+                    Log.e("HomeFragment", "Error checking active group orders", t)
+                    // Lỗi kết nối, vẫn hiện dialog
+                    showGroupOrderOptionsDialog()
+                }
+            })
+    }
+    
+    private fun showGroupOrderOptionsDialog() {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_group_order_options, null)
+        
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+        
+        dialogView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card_create_new)
+            .setOnClickListener {
+                dialog.dismiss()
+                startActivity(Intent(context, CreateGroupOrderActivity::class.java))
+            }
+        
+        dialogView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card_join)
+            .setOnClickListener {
+                dialog.dismiss()
+                startActivity(Intent(context, JoinGroupOrderActivity::class.java))
+            }
+        
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
     }
     
     private fun checkMicPermissionAndShowDialog() {
@@ -575,27 +837,24 @@ class HomeFragment : Fragment() {
                     response: Response<ApiResponse<com.example.doan.Models.Cart>>
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
-                        // Sử dụng InAppNotification thay vì Toast
-                        activity?.let { act ->
-                            InAppNotification.cartAdded(act, "$quantity ${product.name} (Size $sizeName)")
-                        }
+                        Toast.makeText(
+                            context,
+                            "Da them $quantity ${product.name} (Size $sizeName) vao gio!",
+                            Toast.LENGTH_LONG
+                        ).show()
                         
                         // Update cart badge
                         val cartItems = response.body()?.data?.items?.size ?: 0
                         DataCache.cartItemCount = cartItems
                         updateCartBadge()
                     } else {
-                        activity?.let { act ->
-                            InAppNotification.error(act, "Không thể thêm vào giỏ hàng", "Vui lòng thử lại")
-                        }
+                        Toast.makeText(context, "Khong the them vao gio hang", Toast.LENGTH_SHORT).show()
                     }
                 }
                 
                 override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.Cart>>, t: Throwable) {
                     Log.e("HomeFragment", "Error adding to cart", t)
-                    activity?.let { act ->
-                        InAppNotification.error(act, "Lỗi kết nối", "Không thể kết nối đến server")
-                    }
+                    Toast.makeText(context, "Loi ket noi", Toast.LENGTH_SHORT).show()
                 }
             })
     }

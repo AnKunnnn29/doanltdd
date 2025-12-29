@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Adapters.CartAdapter
+import com.example.doan.Adapters.CombinedVoucherAdapter
 import com.example.doan.Adapters.VoucherSelectionAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Cart
@@ -33,10 +34,7 @@ import com.example.doan.Models.VNPayPaymentRequest
 import com.example.doan.Models.VNPayPaymentResponse
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
-import com.example.doan.Utils.ConfettiView
-import com.example.doan.Utils.InAppNotification
 import com.example.doan.Utils.LoadingDialog
-import com.example.doan.Utils.SeasonalEffectManager
 import com.example.doan.Utils.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -63,6 +61,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private lateinit var etVoucherCode: EditText
     private lateinit var btnApplyVoucher: Button
     private lateinit var btnSelectVoucher: Button
+    private lateinit var btnClearVoucher: ImageView
     private lateinit var tvDiscountAmount: TextView
     private lateinit var tvFinalPrice: TextView
     
@@ -70,11 +69,19 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var storeList = mutableListOf<Store>()
     private var selectedStoreId: Int? = null
     private var selectedDeliveryType: String = "PICKUP" // Mặc định là đến lấy
-    private val paymentMethods = listOf("COD", "VNPAY")
+    private val paymentMethods = listOf("COD", "VNPAY", "VIETQR")
     private var appliedVoucher: com.example.doan.Models.Voucher? = null
+    private var appliedSpinVoucher: com.example.doan.Models.SpinRewardDto? = null
     private var discountAmount: Double = 0.0
+    private var tierDiscountAmount: Double = 0.0
+    private var tierDiscountPercent: Double = 0.0
+    private var tierName: String = ""
     private var createdOrderId: Long? = null
-    private var confettiView: ConfettiView? = null
+    
+    // Tier discount views
+    private lateinit var llTierDiscount: LinearLayout
+    private lateinit var tvTierDiscountLabel: TextView
+    private lateinit var tvTierDiscountAmount: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,15 +90,41 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         initViews()
         setupRecyclerView()
         setupListeners()
-        setupConfetti()
         loadCart()
     }
     
-    private fun setupConfetti() {
-        // Add confetti view to root container for order success celebration
-        val rootView = findViewById<View>(android.R.id.content) as? android.view.ViewGroup
-        rootView?.let {
-            confettiView = SeasonalEffectManager.addConfettiEffect(it)
+    override fun onResume() {
+        super.onResume()
+        // Clear voucher đã áp dụng khi quay lại để tránh dùng voucher đã hết hạn
+        if (appliedSpinVoucher != null || appliedVoucher != null) {
+            // Re-validate voucher đã áp dụng
+            val code = etVoucherCode.text.toString().trim()
+            if (code.isNotEmpty()) {
+                revalidateAppliedVoucher(code)
+            }
+        }
+    }
+    
+    private fun revalidateAppliedVoucher(code: String) {
+        if (appliedSpinVoucher != null) {
+            // Re-validate spin voucher
+            RetrofitClient.getInstance(this).apiService.validateSpinVoucher(code)
+                .enqueue(object : Callback<ApiResponse<com.example.doan.Models.SpinRewardDto>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<com.example.doan.Models.SpinRewardDto>>,
+                        response: Response<ApiResponse<com.example.doan.Models.SpinRewardDto>>
+                    ) {
+                        if (!response.isSuccessful || response.body()?.success != true) {
+                            // Voucher không còn hợp lệ, clear nó
+                            clearAppliedVoucher()
+                            Toast.makeText(this@CartActivity, "Voucher đã hết hạn hoặc đã được sử dụng", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.SpinRewardDto>>, t: Throwable) {
+                        // Ignore network error
+                    }
+                })
         }
     }
 
@@ -113,8 +146,14 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         etVoucherCode = findViewById(R.id.et_voucher_code)
         btnApplyVoucher = findViewById(R.id.btn_apply_voucher)
         btnSelectVoucher = findViewById(R.id.btn_select_voucher)
+        btnClearVoucher = findViewById(R.id.btn_clear_voucher)
         tvDiscountAmount = findViewById(R.id.tv_discount_amount)
         tvFinalPrice = findViewById(R.id.tv_final_price)
+        
+        // Tier discount views
+        llTierDiscount = findViewById(R.id.ll_tier_discount)
+        tvTierDiscountLabel = findViewById(R.id.tv_tier_discount_label)
+        tvTierDiscountAmount = findViewById(R.id.tv_tier_discount_amount)
         
         val orderType = intent.getStringExtra("orderType")
         Log.d("CartActivity", "Received orderType: $orderType")
@@ -210,6 +249,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 return@setOnClickListener
             }
             validateAndApplyVoucher(code)
+        }
+        
+        btnClearVoucher.setOnClickListener {
+            clearAppliedVoucher()
         }
         
         btnSelectVoucher.setOnClickListener {
@@ -326,14 +369,79 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
         tvTotalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
         
-        // Recalculate discount if voucher is applied
-        if (appliedVoucher != null) {
-            calculateDiscount(total)
+        // Load tier discount từ API
+        if (total > 0) {
+            loadTierDiscount(total)
         } else {
-            discountAmount = 0.0
-            tvDiscountAmount.text = "0 VNĐ"
-            tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
+            hideTierDiscount()
         }
+        
+        // Recalculate discount if voucher is applied
+        when {
+            appliedSpinVoucher != null -> {
+                // Tính discount từ spin voucher
+                discountAmount = total * appliedSpinVoucher!!.discountPercent / 100
+                updateFinalPrice(total)
+            }
+            appliedVoucher != null -> {
+                calculateDiscount(total)
+            }
+            else -> {
+                discountAmount = 0.0
+                tvDiscountAmount.text = "0 VNĐ"
+                updateFinalPrice(total)
+            }
+        }
+    }
+    
+    private fun loadTierDiscount(orderTotal: Double) {
+        RetrofitClient.getInstance(this).apiService.previewTierDiscount(orderTotal)
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.TierDiscountPreview>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.TierDiscountPreview>>,
+                    response: Response<ApiResponse<com.example.doan.Models.TierDiscountPreview>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val preview = response.body()?.data
+                        if (preview != null && preview.tierDiscount > 0) {
+                            tierDiscountAmount = preview.tierDiscount
+                            tierDiscountPercent = preview.discountPercent
+                            tierName = preview.tierName
+                            showTierDiscount()
+                            updateFinalPrice(orderTotal)
+                        } else {
+                            tierDiscountAmount = 0.0
+                            hideTierDiscount()
+                        }
+                    } else {
+                        tierDiscountAmount = 0.0
+                        hideTierDiscount()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.TierDiscountPreview>>, t: Throwable) {
+                    Log.e("CartActivity", "Error loading tier discount", t)
+                    tierDiscountAmount = 0.0
+                    hideTierDiscount()
+                }
+            })
+    }
+    
+    private fun showTierDiscount() {
+        llTierDiscount.visibility = View.VISIBLE
+        tvTierDiscountLabel.text = "Ưu đãi hạng $tierName (${tierDiscountPercent.toInt()}%):"
+        tvTierDiscountAmount.text = String.format(Locale.getDefault(), "-%,.0f VNĐ", tierDiscountAmount)
+    }
+    
+    private fun hideTierDiscount() {
+        llTierDiscount.visibility = View.GONE
+        tierDiscountAmount = 0.0
+    }
+    
+    private fun updateFinalPrice(total: Double) {
+        val totalDiscount = discountAmount + tierDiscountAmount
+        val finalPrice = maxOf(0.0, total - totalDiscount)
+        tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", finalPrice)
     }
     
     // FIX Medium #14: Improved null handling in calculateDiscount
@@ -345,7 +453,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         if (discountValue == null || discountValue <= 0) {
             discountAmount = 0.0
             tvDiscountAmount.text = "0 VNĐ"
-            tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", totalPrice)
+            updateFinalPrice(totalPrice)
             return
         }
         
@@ -363,10 +471,8 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             minOf(discountValue, totalPrice)
         }
         
-        val finalPrice = maxOf(0.0, totalPrice - discountAmount)
-        
         tvDiscountAmount.text = String.format(Locale.getDefault(), "-%,.0f VNĐ", discountAmount)
-        tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", finalPrice)
+        updateFinalPrice(totalPrice)
     }
     
     private fun validateAndApplyVoucher(code: String) {
@@ -375,6 +481,59 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             (it.unitPrice ?: 0.0) * (it.quantity ?: 1)
         }
         
+        // Thử validate voucher từ spin wheel trước
+        RetrofitClient.getInstance(this).apiService.validateSpinVoucher(code)
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.SpinRewardDto>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.SpinRewardDto>>,
+                    response: Response<ApiResponse<com.example.doan.Models.SpinRewardDto>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        // Đây là voucher từ spin wheel - còn hợp lệ
+                        val spinVoucher = response.body()?.data
+                        if (spinVoucher != null) {
+                            appliedSpinVoucher = spinVoucher
+                            appliedVoucher = null // Clear voucher thường
+                            etVoucherCode.setText(spinVoucher.voucherCode)
+                            etVoucherCode.isEnabled = false // Disable edit khi đã áp dụng
+                            btnClearVoucher.visibility = View.VISIBLE
+                            
+                            // Tính discount từ spin voucher
+                            discountAmount = totalPrice * spinVoucher.discountPercent / 100
+                            
+                            tvDiscountAmount.text = String.format(Locale.getDefault(), "-%,.0f VNĐ (${spinVoucher.discountPercent}%%)", discountAmount)
+                            updateFinalPrice(totalPrice)
+                            
+                            Toast.makeText(this@CartActivity, "Áp dụng voucher giảm ${spinVoucher.discountPercent}% thành công!", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        // Voucher spin không hợp lệ hoặc đã dùng
+                        val errorMsg = response.body()?.message ?: ""
+                        val errorCode = response.code()
+                        
+                        // Nếu là lỗi 400 (Bad Request) - voucher spin đã dùng hoặc không tồn tại
+                        if (errorCode == 400 || errorMsg.contains("đã được sử dụng") || errorMsg.contains("không hợp lệ")) {
+                            // Clear spin voucher nếu đang có
+                            if (appliedSpinVoucher?.voucherCode?.equals(code, ignoreCase = true) == true) {
+                                appliedSpinVoucher = null
+                            }
+                            // Thử validate như voucher thường
+                            validateNormalVoucher(code, totalPrice)
+                        } else {
+                            // Lỗi khác (server error, etc.) - thử voucher thường
+                            validateNormalVoucher(code, totalPrice)
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.SpinRewardDto>>, t: Throwable) {
+                    // Lỗi kết nối, thử voucher thường
+                    validateNormalVoucher(code, totalPrice)
+                }
+            })
+    }
+    
+    private fun validateNormalVoucher(code: String, totalPrice: Double) {
         RetrofitClient.getInstance(this).apiService.validatePromotion(code, totalPrice)
             .enqueue(object : Callback<ApiResponse<com.example.doan.Models.Voucher>> {
                 override fun onResponse(
@@ -383,7 +542,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
                         appliedVoucher = response.body()?.data
+                        appliedSpinVoucher = null // Clear spin voucher
                         etVoucherCode.setText(appliedVoucher?.code)
+                        etVoucherCode.isEnabled = false // Disable edit khi đã áp dụng
+                        btnClearVoucher.visibility = View.VISIBLE
                         calculateDiscount(totalPrice)
                         Toast.makeText(this@CartActivity, "Áp dụng voucher thành công!", Toast.LENGTH_SHORT).show()
                     } else {
@@ -398,55 +560,128 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             })
     }
     
+    private fun clearAppliedVoucher() {
+        appliedVoucher = null
+        appliedSpinVoucher = null
+        discountAmount = 0.0
+        etVoucherCode.setText("")
+        etVoucherCode.isEnabled = true
+        btnClearVoucher.visibility = View.GONE
+        calculateTotalPrice()
+        Toast.makeText(this, "Đã xóa voucher", Toast.LENGTH_SHORT).show()
+    }
+    
     private fun showVoucherSelectionDialog() {
+        // Load cả voucher thường và voucher spin
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang tải voucher...")
+        
+        var normalVouchers: List<com.example.doan.Models.Voucher> = emptyList()
+        var spinVouchers: List<com.example.doan.Models.SpinRewardDto> = emptyList()
+        var loadedCount = 0
+        
+        // Load voucher thường
         RetrofitClient.getInstance(this).apiService.getActivePromotions()
             .enqueue(object : Callback<ApiResponse<List<com.example.doan.Models.Voucher>>> {
                 override fun onResponse(
                     call: Call<ApiResponse<List<com.example.doan.Models.Voucher>>>,
                     response: Response<ApiResponse<List<com.example.doan.Models.Voucher>>>
                 ) {
-                    Log.d("CartActivity", "Voucher response code: ${response.code()}")
-                    Log.d("CartActivity", "Voucher response: ${response.body()}")
-                    
                     if (response.isSuccessful && response.body()?.success == true) {
-                        val vouchers = response.body()?.data ?: emptyList()
-                        Log.d("CartActivity", "Loaded ${vouchers.size} vouchers")
-                        
-                        if (vouchers.isEmpty()) {
-                            Toast.makeText(this@CartActivity, "Không có voucher khả dụng", Toast.LENGTH_SHORT).show()
-                            return
-                        }
-                        
-                        val dialogView = LayoutInflater.from(this@CartActivity)
-                            .inflate(R.layout.dialog_voucher_selection, null)
-                        val rvVouchers: RecyclerView = dialogView.findViewById(R.id.rv_vouchers)
-                        
-                        val dialog = AlertDialog.Builder(this@CartActivity)
-                            .setTitle("Chọn Voucher")
-                            .setView(dialogView)
-                            .setNegativeButton("Đóng", null)
-                            .create()
-                        
-                        rvVouchers.layoutManager = LinearLayoutManager(this@CartActivity)
-                        rvVouchers.adapter = VoucherSelectionAdapter(vouchers) { voucher ->
-                            etVoucherCode.setText(voucher.code)
-                            validateAndApplyVoucher(voucher.code)
-                            dialog.dismiss()
-                        }
-                        
-                        dialog.show()
-                    } else {
-                        val errorMsg = response.body()?.message ?: response.errorBody()?.string() ?: "Unknown error"
-                        Log.e("CartActivity", "Error loading vouchers: $errorMsg")
-                        Toast.makeText(this@CartActivity, "Lỗi: $errorMsg", Toast.LENGTH_SHORT).show()
+                        normalVouchers = response.body()?.data ?: emptyList()
+                    }
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<List<com.example.doan.Models.Voucher>>>, t: Throwable) {
                     Log.e("CartActivity", "Error loading vouchers", t)
-                    Toast.makeText(this@CartActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
+                    }
                 }
             })
+        
+        // Load voucher spin
+        RetrofitClient.getInstance(this).apiService.getAvailableRewards()
+            .enqueue(object : Callback<ApiResponse<List<com.example.doan.Models.SpinRewardDto>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<com.example.doan.Models.SpinRewardDto>>>,
+                    response: Response<ApiResponse<List<com.example.doan.Models.SpinRewardDto>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        spinVouchers = response.body()?.data ?: emptyList()
+                    }
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<com.example.doan.Models.SpinRewardDto>>>, t: Throwable) {
+                    Log.e("CartActivity", "Error loading spin vouchers", t)
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
+                    }
+                }
+            })
+    }
+    
+    private fun showCombinedVoucherDialog(
+        normalVouchers: List<com.example.doan.Models.Voucher>,
+        spinVouchers: List<com.example.doan.Models.SpinRewardDto>
+    ) {
+        if (normalVouchers.isEmpty() && spinVouchers.isEmpty()) {
+            Toast.makeText(this, "Không có voucher khả dụng", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_voucher_selection, null)
+        val rvVouchers: RecyclerView = dialogView.findViewById(R.id.rv_vouchers)
+        
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Chọn Voucher")
+            .setView(dialogView)
+            .setNegativeButton("Đóng", null)
+            .create()
+        
+        // Tạo danh sách kết hợp
+        val combinedList = mutableListOf<Any>()
+        
+        // Thêm voucher spin trước (ưu tiên)
+        if (spinVouchers.isNotEmpty()) {
+            combinedList.addAll(spinVouchers)
+        }
+        
+        // Thêm voucher thường
+        if (normalVouchers.isNotEmpty()) {
+            combinedList.addAll(normalVouchers)
+        }
+        
+        rvVouchers.layoutManager = LinearLayoutManager(this)
+        rvVouchers.adapter = CombinedVoucherAdapter(combinedList) { item ->
+            when (item) {
+                is com.example.doan.Models.SpinRewardDto -> {
+                    etVoucherCode.setText(item.voucherCode)
+                    validateAndApplyVoucher(item.voucherCode ?: "")
+                }
+                is com.example.doan.Models.Voucher -> {
+                    etVoucherCode.setText(item.code)
+                    validateAndApplyVoucher(item.code ?: "")
+                }
+            }
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
 
     override fun onItemSelectedChanged() {
@@ -488,7 +723,6 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
     
     private fun createOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
-        // FIX: Thêm loading dialog để user biết app đang xử lý
         val loadingDialog = LoadingDialog(this)
         loadingDialog.show("Đang xử lý đơn hàng...")
         
@@ -505,54 +739,112 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         val request = CreateOrderRequest(
             storeId = storeId.toLong(),
             items = orderItems,
-            type = selectedDeliveryType, // PICKUP hoặc DELIVERY
+            type = selectedDeliveryType,
             paymentMethod = paymentMethod,
-            address = deliveryAddress, // Địa chỉ giao hàng (null nếu PICKUP)
-            promotionCode = appliedVoucher?.code // Mã voucher nếu có
+            address = deliveryAddress,
+            promotionCode = appliedVoucher?.code,
+            spinVoucherCode = appliedSpinVoucher?.voucherCode
         )
-
+        
+        // Nếu là VNPAY, tạo payment URL trước, KHÔNG tạo đơn hàng
+        if (paymentMethod == "VNPAY") {
+            // Tính tổng tiền để tạo payment URL
+            val totalAmount = calculateFinalAmount(items)
+            createVNPayPaymentFirst(totalAmount, request, loadingDialog)
+            return
+        }
+        
+        // Nếu là VIETQR, chuyển sang màn hình VietQR
+        if (paymentMethod == "VIETQR") {
+            val totalAmount = calculateFinalAmount(items)
+            loadingDialog.dismiss()
+            navigateToVietQRPayment(totalAmount, items, request)
+            return
+        }
+        
+        // COD - Tạo đơn hàng ngay
+        Log.d("CartActivity", "Creating COD order with spinVoucherCode: ${appliedSpinVoucher?.voucherCode}")
+        
         RetrofitClient.getInstance(this).apiService.createOrder(request).enqueue(object: Callback<ApiResponse<Order>> {
             override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
                 if(response.isSuccessful && response.body()?.success == true) {
-                    val order = response.body()?.data
-                    createdOrderId = order?.id?.toLong()
-                    
-                    // FIX: Clear cart async (không chờ response)
                     clearCartOnServerAsync()
+                    appliedVoucher = null
+                    appliedSpinVoucher = null
                     
-                    // Kiểm tra phương thức thanh toán
-                    if (paymentMethod == "VNPAY") {
-                        // Tạo URL thanh toán VNPAY
-                        createVNPayPayment(createdOrderId!!, loadingDialog)
-                    } else {
-                        // COD - thanh toán khi nhận hàng
-                        loadingDialog.dismiss()
-                        
-                        // Show confetti celebration
-                        SeasonalEffectManager.showConfetti(3000L, 200)
-                        
-                        // Show beautiful order success notification
-                        InAppNotification.orderSuccess(
-                            this@CartActivity,
-                            order?.id?.toString() ?: "N/A"
-                        )
-                        
-                        // Navigate after a short delay to let user see the celebration
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            navigateToOrders()
-                        }, 2500)
-                    }
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@CartActivity, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+                    navigateToOrders()
                 } else {
                     loadingDialog.dismiss()
-                    InAppNotification.error(this@CartActivity, "Đặt hàng thất bại", response.body()?.message ?: "Vui lòng thử lại")
+                    val errorMsg = response.body()?.message ?: "Đặt hàng thất bại"
+                    
+                    // Nếu lỗi liên quan đến voucher, clear voucher đã chọn
+                    if (errorMsg.contains("voucher", ignoreCase = true) || 
+                        errorMsg.contains("đã được sử dụng", ignoreCase = true)) {
+                        clearAppliedVoucher()
+                    }
+                    
+                    Toast.makeText(this@CartActivity, "Đặt hàng thất bại: $errorMsg", Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
                 loadingDialog.dismiss()
-                InAppNotification.error(this@CartActivity, "Lỗi đặt hàng", t.message ?: "Không thể kết nối đến server")
+                Toast.makeText(this@CartActivity, "Lỗi: ${t.message}", Toast.LENGTH_LONG).show()
             }
         })
+    }
+    
+    private fun calculateFinalAmount(items: List<CartItem>): Long {
+        val total = items.sumOf { (it.unitPrice ?: 0.0) * (it.quantity ?: 1) }
+        val finalAmount = maxOf(0.0, total - discountAmount)
+        return finalAmount.toLong()
+    }
+    
+    private fun createVNPayPaymentFirst(amount: Long, orderRequest: CreateOrderRequest, loadingDialog: LoadingDialog) {
+        // Tạo payment URL với amount, không cần orderId
+        val request = VNPayPaymentRequest(
+            orderId = 0, // Sẽ được xử lý ở backend
+            orderInfo = "Thanh toan UTE Tea",
+            ipAddress = "127.0.0.1"
+        )
+        
+        RetrofitClient.getInstance(this).apiService.createVNPayPaymentWithAmount(amount, request.orderInfo ?: "")
+            .enqueue(object : Callback<ApiResponse<VNPayPaymentResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<VNPayPaymentResponse>>,
+                    response: Response<ApiResponse<VNPayPaymentResponse>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val paymentUrl = response.body()?.data?.paymentUrl
+                        if (!paymentUrl.isNullOrEmpty()) {
+                            loadingDialog.dismiss()
+                            
+                            // Mở WebView để thanh toán, truyền thêm orderRequest để tạo đơn sau
+                            val intent = Intent(this@CartActivity, VNPayPaymentActivity::class.java)
+                            intent.putExtra("PAYMENT_URL", paymentUrl)
+                            intent.putExtra("ORDER_REQUEST", com.google.gson.Gson().toJson(orderRequest))
+                            intent.putExtra("VOUCHER_CODE", appliedVoucher?.code)
+                            intent.putExtra("SPIN_VOUCHER_CODE", appliedSpinVoucher?.voucherCode)
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            loadingDialog.dismiss()
+                            Toast.makeText(this@CartActivity, "Không thể tạo URL thanh toán", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        loadingDialog.dismiss()
+                        Toast.makeText(this@CartActivity, "Lỗi tạo thanh toán: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<VNPayPaymentResponse>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Log.e("CartActivity", "Error creating VNPAY payment", t)
+                    Toast.makeText(this@CartActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
     
     private fun createVNPayPayment(orderId: Long, loadingDialog: LoadingDialog) {
@@ -571,11 +863,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     if (response.isSuccessful && response.body()?.success == true) {
                         val paymentUrl = response.body()?.data?.paymentUrl
                         if (!paymentUrl.isNullOrEmpty()) {
-                            // FIX: Clear cart async (không chờ response)
                             clearCartOnServerAsync()
                             
                             loadingDialog.dismiss()
-                            // Mở WebView để thanh toán
                             val intent = Intent(this@CartActivity, VNPayPaymentActivity::class.java)
                             intent.putExtra("PAYMENT_URL", paymentUrl)
                             startActivity(intent)
@@ -604,6 +894,30 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
         startActivity(intent)
         finish()
+    }
+    
+    private fun navigateToVietQRPayment(totalAmount: Long, items: List<CartItem>, orderRequest: CreateOrderRequest) {
+        // Convert cart items to order summary items
+        val orderSummaryItems = items.map { item ->
+            com.example.doan.Models.OrderSummaryItem(
+                drinkName = item.drinkName ?: "Đồ uống",
+                sizeName = item.sizeName ?: "M",
+                quantity = item.quantity ?: 1,
+                unitPrice = item.unitPrice ?: 0.0,
+                toppings = item.toppings?.mapNotNull { it.toppingName } ?: emptyList()
+            )
+        }
+        
+        val intent = Intent(this, VietQRActivity::class.java).apply {
+            putExtra("ORDER_ID", System.currentTimeMillis())
+            putExtra("TOTAL_AMOUNT", totalAmount.toDouble())
+            putExtra("ORDER_REQUEST", com.google.gson.Gson().toJson(orderRequest))
+            putExtra("ORDER_ITEMS", com.google.gson.Gson().toJson(orderSummaryItems))
+            putExtra("VOUCHER_CODE", appliedVoucher?.code)
+            putExtra("SPIN_VOUCHER_CODE", appliedSpinVoucher?.voucherCode)
+        }
+        startActivity(intent)
+        // Không finish() để user có thể quay lại khi hủy thanh toán
     }
 
     /**

@@ -21,9 +21,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.DoAn"
         android:usesCleartextTraffic="true">
@@ -142,6 +142,60 @@
         
         <activity
             android:name=".Activities.ChatbotActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.SpinWheelActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.VietQRActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <!-- Group Order Activities -->
+        <activity
+            android:name=".Activities.GroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.CreateGroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.JoinGroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.SelectDrinkForGroupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.AddToGroupOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <!-- Live Chat Activity -->
+        <activity
+            android:name=".Activities.LiveChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <!-- Group Chat Activity -->
+        <activity
+            android:name=".Activities.GroupChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <!-- Member Tier Activity -->
+        <activity
+            android:name=".Activities.MemberTierActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
 

@@ -1,8 +1,11 @@
 package com.example.doan.Models
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import java.io.Serializable
+import kotlinx.parcelize.Parcelize
 
+// FIX C4: Chuyển từ Serializable sang Parcelable
+@Parcelize
 data class OrderItem(
     @SerializedName("id")
     val id: Int = 0,
@@ -27,11 +30,13 @@ data class OrderItem(
 
     @SerializedName("toppings")
     val toppings: List<OrderItemTopping>? = null
-) : Serializable {
+) : Parcelable {
     // Backward compatibility
     val price: Double get() = itemPrice
 }
 
+// FIX C4: Chuyển từ Serializable sang Parcelable
+@Parcelize
 data class OrderItemTopping(
     @SerializedName("id")
     val id: Int = 0,
@@ -41,7 +46,7 @@ data class OrderItemTopping(
     
     @SerializedName("price")
     val price: Double = 0.0
-) : Serializable {
+) : Parcelable {
     // Backward compatibility
     val name: String? get() = toppingName
 }

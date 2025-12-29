@@ -21,6 +21,9 @@ data class CreateOrderRequest(
     @SerializedName("promotionCode")
     var promotionCode: String? = null,
     
+    @SerializedName("spinVoucherCode")
+    var spinVoucherCode: String? = null,
+    
     @SerializedName("items")
     var items: List<OrderItemRequest>
 )

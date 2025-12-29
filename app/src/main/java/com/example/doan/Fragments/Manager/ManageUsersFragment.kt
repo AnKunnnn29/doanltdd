@@ -74,6 +74,10 @@ class ManageUsersFragment : Fragment() {
             override fun onToggleUserStatus(user: User) {
                 toggleUserBlock(user)
             }
+            
+            override fun onDeleteUser(user: User) {
+                confirmDeleteUser(user)
+            }
         })
         rvUsers.adapter = userAdapter
 
@@ -281,6 +285,53 @@ class ManageUsersFragment : Fragment() {
 
                 override fun onFailure(call: Call<ApiResponse<User>>, t: Throwable) {
                     Log.e(TAG, "Error toggling user block", t)
+                    Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    private fun confirmDeleteUser(user: User) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("⚠️ Xác nhận xóa")
+            .setMessage("Bạn có chắc muốn xóa tài khoản \"${user.fullName}\"?\n\nDữ liệu doanh thu sẽ được backup trước khi xóa.")
+            .setPositiveButton("Xóa") { _, _ ->
+                performDeleteUser(user.id)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    private fun performDeleteUser(userId: Int) {
+        Log.d(TAG, "Deleting user $userId")
+        showLoading(true)
+        
+        RetrofitClient.getInstance(requireContext()).apiService.deleteUser(userId)
+            .enqueue(object : Callback<ApiResponse<String>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<String>>,
+                    response: Response<ApiResponse<String>>
+                ) {
+                    showLoading(false)
+                    
+                    if (response.isSuccessful && response.body() != null) {
+                        val apiResponse = response.body()!!
+                        
+                        if (apiResponse.success) {
+                            Toast.makeText(context, "Đã xóa tài khoản thành công", Toast.LENGTH_SHORT).show()
+                            loadUsers() // Reload list
+                        } else {
+                            Toast.makeText(context, "Lỗi: ${apiResponse.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e(TAG, "Delete error: $errorBody")
+                        Toast.makeText(context, "Không thể xóa tài khoản", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
+                    showLoading(false)
+                    Log.e(TAG, "Error deleting user", t)
                     Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })

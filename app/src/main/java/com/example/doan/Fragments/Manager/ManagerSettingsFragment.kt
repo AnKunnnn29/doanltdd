@@ -26,6 +26,7 @@ class ManagerSettingsFragment : Fragment() {
     private lateinit var cardStore: MaterialCardView
     private lateinit var cardUsers: MaterialCardView
     private lateinit var cardVouchers: MaterialCardView
+    private lateinit var cardNotifications: MaterialCardView
     private lateinit var cardLogout: MaterialCardView
 
     override fun onCreateView(
@@ -41,12 +42,13 @@ class ManagerSettingsFragment : Fragment() {
         tvManagerName = view.findViewById(R.id.tv_manager_name)
         tvManagerPhone = view.findViewById(R.id.tv_manager_phone)
         tvManagerRole = view.findViewById(R.id.tv_manager_role)
-        
+
         cardProfile = view.findViewById(R.id.card_profile)
         cardStore = view.findViewById(R.id.card_store)
         cardUsers = view.findViewById(R.id.card_users)
         cardVouchers = view.findViewById(R.id.card_vouchers)
         cardLogout = view.findViewById(R.id.card_logout)
+        cardNotifications = view.findViewById(R.id.card_notifications)
 
         // Load manager info
         loadManagerInfo()
@@ -61,7 +63,7 @@ class ManagerSettingsFragment : Fragment() {
     }
 
     private fun animateCardsIn() {
-        val cards = listOf(cardProfile, cardStore, cardUsers, cardVouchers, cardLogout)
+        val cards = listOf(cardProfile, cardStore, cardUsers, cardVouchers, cardNotifications, cardLogout)
         cards.forEachIndexed { index, card ->
             card.alpha = 0f
             card.translationX = -50f
@@ -106,6 +108,11 @@ class ManagerSettingsFragment : Fragment() {
             navigateToFragment(ManageVouchersFragment())
         }
 
+        // Notifications management card
+        cardNotifications.setOnClickListener {
+            navigateToFragment(NotificationManagerFragment())
+        }
+
         // Logout card
         cardLogout.setOnClickListener { showLogoutDialog() }
     }
@@ -117,13 +124,13 @@ class ManagerSettingsFragment : Fragment() {
             .setPositiveButton("Đăng xuất") { _, _ ->
                 // Logout
                 sessionManager.logout()
-                
+
                 // Go to login
                 val intent = Intent(activity, LoginActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
                 startActivity(intent)
-                
+
                 activity?.finish()
             }
             .setNegativeButton("Hủy", null)

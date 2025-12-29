@@ -210,7 +210,8 @@ class ManageVouchersFragment : Fragment() {
         val tvStartDate = dialogView.findViewById<TextView>(R.id.tv_start_date)
         val tvEndDate = dialogView.findViewById<TextView>(R.id.tv_end_date)
         val switchActive = dialogView.findViewById<Switch>(R.id.switch_active)
-        
+        val cbSendNotification = dialogView.findViewById<CheckBox>(R.id.cb_send_notification) // Thêm dòng này
+
         val types = arrayOf("PERCENT", "FIXED")
         spinnerType.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
         
@@ -262,7 +263,8 @@ class ManageVouchersFragment : Fragment() {
                     usageLimit = etUsageLimit.text.toString().toIntOrNull(),
                     isActive = switchActive.isChecked
                 )
-                createVoucher(request)
+                val sendNotification = cbSendNotification.isChecked // Thêm dòng này
+                createVoucher(request, sendNotification) // Cập nhật dòng này
             }
             .setNegativeButton("Hủy", null)
             .show()
@@ -351,10 +353,10 @@ class ManageVouchersFragment : Fragment() {
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
-    private fun createVoucher(request: CreateVoucherRequest) {
+    private fun createVoucher(request: CreateVoucherRequest, sendNotification: Boolean) { // Cập nhật dòng này
         progressBar.visibility = View.VISIBLE
         
-        RetrofitClient.getInstance(requireContext()).apiService.createPromotion(request)
+        RetrofitClient.getInstance(requireContext()).apiService.createPromotion(request, sendNotification) // Cập nhật dòng này
             .enqueue(object : Callback<ApiResponse<Voucher>> {
                 override fun onResponse(
                     call: Call<ApiResponse<Voucher>>,

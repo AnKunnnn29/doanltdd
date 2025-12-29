@@ -2,7 +2,9 @@ package com.example.doan.Utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import com.example.doan.Models.JwtResponse
+import com.onesignal.OneSignal
 
 class SessionManager(private val context: Context) { // Store context as a property
 
@@ -46,6 +48,14 @@ class SessionManager(private val context: Context) { // Store context as a prope
     }
 
     fun logout() {
+        // Logout khỏi OneSignal để ngắt liên kết push notification
+        try {
+            OneSignal.logout()
+            Log.d("SessionManager", "OneSignal logout successful")
+        } catch (e: Exception) {
+            Log.e("SessionManager", "Error logging out from OneSignal", e)
+        }
+        
         // Xóa thông tin phiên đăng nhập, nhưng giữ lại dữ liệu sinh trắc học
         //Lấy ra các giá trị không cần xóa
         val biometricEnrolled = KeyStoreManager.isBiometricEnrolled(context)
@@ -91,6 +101,8 @@ class SessionManager(private val context: Context) { // Store context as a prope
     fun getAvatar(): String? = prefs.getString(KEY_AVATAR, null)
 
     fun isManager(): Boolean = getRole() == "MANAGER"
+
+    fun isAdmin(): Boolean = getRole() == "ADMIN"
 
     companion object {
         private const val PREF_NAME = "UTETeaPrefs"

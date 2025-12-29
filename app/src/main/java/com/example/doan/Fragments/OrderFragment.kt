@@ -40,6 +40,7 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
     private lateinit var loadingDialog: LoadingDialog
     private lateinit var emptyStateContainer: LinearLayout
     private lateinit var btnOrderNow: MaterialButton
+    private lateinit var btnLoadMore: MaterialButton
     
     // Stats views
     private lateinit var tvTotalOrders: TextView
@@ -47,6 +48,12 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
     private lateinit var tvCompletedOrders: TextView
 
     private val orderList = mutableListOf<Order>()
+    private val displayedOrders = mutableListOf<Order>()
+    
+    // Pagination
+    private val PAGE_SIZE = 10
+    private var currentPage = 0
+    private var hasMoreData = true
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -72,6 +79,7 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
         tvLoginPrompt = view.findViewById(R.id.tv_login_prompt_order)
         emptyStateContainer = view.findViewById(R.id.empty_state_container)
         btnOrderNow = view.findViewById(R.id.btn_order_now)
+        btnLoadMore = view.findViewById(R.id.btn_load_more)
         
         // Stats
         tvTotalOrders = view.findViewById(R.id.tv_total_orders)
@@ -81,7 +89,7 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
     
     private fun setupRecyclerView() {
         ordersRecyclerView.layoutManager = LinearLayoutManager(context)
-        orderAdapter = OrderAdapter(requireContext(), orderList)
+        orderAdapter = OrderAdapter(requireContext(), displayedOrders)
         orderAdapter.setOnOrderClickListener(this)
         ordersRecyclerView.adapter = orderAdapter
         
@@ -96,6 +104,10 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
             // Navigate to Menu
             val bottomNav = activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation)
             bottomNav?.selectedItemId = R.id.nav_order
+        }
+        
+        btnLoadMore.setOnClickListener {
+            loadMoreOrders()
         }
     }
 
@@ -175,14 +187,36 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
     
     private fun displayOrders(orders: List<Order>) {
         orderList.clear()
-        orderList.addAll(orders)
-        orderAdapter.notifyDataSetChanged()
         
-        // Play animation
-        ordersRecyclerView.scheduleLayoutAnimation()
+        // Sắp xếp thông minh:
+        // - Đơn đang xử lý (PENDING, MAKING, SHIPPING, READY): đơn đặt TRƯỚC lên đầu
+        // - Đơn đã hoàn thành/hủy (DONE, CANCELED): đơn MỚI NHẤT lên đầu
+        val processingStatuses = listOf("PENDING", "MAKING", "SHIPPING", "READY")
+        
+        val processingOrders = orders
+            .filter { it.status in processingStatuses }
+            .sortedBy { it.createdAt } // Đơn cũ lên trước
+            
+        val completedOrders = orders
+            .filter { it.status !in processingStatuses }
+            .sortedByDescending { it.createdAt } // Đơn mới lên trước
+        
+        // Đơn đang xử lý hiển thị trước
+        orderList.addAll(processingOrders)
+        orderList.addAll(completedOrders)
+        
+        // Reset pagination và clear displayed orders
+        currentPage = 0
+        displayedOrders.clear()
+        orderAdapter.notifyDataSetChanged() // Clear adapter first
+        hasMoreData = true
+        
+        // Load first page
+        loadMoreOrders()
         
         if (orderList.isEmpty()) {
             showEmptyState("Bạn chưa có đơn hàng nào")
+            btnLoadMore.visibility = View.GONE
         } else {
             emptyStateContainer.visibility = View.GONE
             ordersRecyclerView.visibility = View.VISIBLE
@@ -190,9 +224,36 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
         
         // FIX Medium #14: Update stats với đúng status từ Backend
         // Backend statuses: PENDING, MAKING, SHIPPING, READY, DONE, CANCELED
-        val pending = orders.count { it.status in listOf("PENDING", "MAKING", "SHIPPING", "READY") }
+        val pending = orders.count { it.status in processingStatuses }
         val completed = orders.count { it.status == "DONE" }
         updateStats(orders.size, pending, completed)
+    }
+    
+    private fun loadMoreOrders() {
+        val startIndex = currentPage * PAGE_SIZE
+        val endIndex = minOf(startIndex + PAGE_SIZE, orderList.size)
+        
+        if (startIndex >= orderList.size) {
+            hasMoreData = false
+            btnLoadMore.visibility = View.GONE
+            return
+        }
+        
+        // Copy items to avoid subList issues
+        val newOrders = orderList.subList(startIndex, endIndex).toList()
+        displayedOrders.addAll(newOrders)
+        orderAdapter.notifyDataSetChanged()
+        
+        currentPage++
+        
+        // Check if there's more data
+        hasMoreData = endIndex < orderList.size
+        btnLoadMore.visibility = if (hasMoreData) View.VISIBLE else View.GONE
+        
+        // Play animation only on first load
+        if (currentPage == 1) {
+            ordersRecyclerView.scheduleLayoutAnimation()
+        }
     }
     
     private fun updateStats(total: Int, pending: Int, completed: Int) {

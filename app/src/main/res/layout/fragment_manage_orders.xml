@@ -32,6 +32,16 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
+            <!-- Realtime Connection Status -->
+            <TextView
+                android:id="@+id/tv_connection_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="○ Offline"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="11sp"
+                android:layout_marginEnd="12dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_refresh"
                 android:layout_width="44dp"
@@ -285,14 +295,39 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_orders"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingHorizontal="20dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="16dp"
-                android:clipToPadding="false" />
+                android:orientation="vertical">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_orders"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:paddingHorizontal="20dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="8dp"
+                    android:clipToPadding="false" />
+
+                <!-- Nút Xem thêm -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_load_more"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="Xem thêm"
+                    android:textColor="@color/wine_primary"
+                    android:visibility="gone"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    app:strokeColor="@color/wine_primary"
+                    app:cornerRadius="12dp"
+                    app:icon="@android:drawable/ic_menu_more"
+                    app:iconGravity="textStart"
+                    app:iconTint="@color/wine_primary" />
+
+            </LinearLayout>
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

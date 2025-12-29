@@ -94,6 +94,20 @@
                 android:textColor="?android:attr/textColorSecondary"
                 tools:text="Topping: Trân châu đen, Thạch con cá" />
 
+            <!-- Review Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_review_item"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Đánh giá"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:icon="@drawable/ic_star"
+                app:iconSize="16dp"
+                tools:visibility="visible" />
+
         </LinearLayout>
     </LinearLayout>
 

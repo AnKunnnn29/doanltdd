@@ -1,14 +1,17 @@
 package com.example.doan.Models
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import java.io.Serializable
+import kotlinx.parcelize.Parcelize
 
 /**
  * FIX C7: Cập nhật SerializedName để khớp với Backend OrderDto
+ * FIX C4: Chuyển từ Serializable sang Parcelable để tránh crash trên một số thiết bị
  * Backend trả về: id, userId, userName, storeId, storeName, type, address, 
  *                 pickupTime, status, totalPrice, discount, finalPrice, 
  *                 paymentMethod, promotionCode, items, createdAt, updatedAt
  */
+@Parcelize
 data class Order(
     @SerializedName("id")
     var id: Int = 0,
@@ -64,7 +67,7 @@ data class Order(
     
     @SerializedName("items")
     var items: List<OrderItem>? = null
-) : Serializable {
+) : Parcelable {
     
     // Backward compatibility - giữ lại các property cũ
     val totalAmount: Double get() = totalPrice

@@ -8,9 +8,36 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    // ==================== NOTIFICATIONS ====================
+    @POST("notifications/send")
+    fun sendCustomNotification(@Body request: NotificationRequestDto): Call<ApiResponse<String>>
+
     // ==================== CHATBOT ====================
     @POST("chatbot/message")
     fun sendChatMessage(@Body request: ChatRequest): Call<ApiResponse<ChatResponse>>
+
+    // ==================== LIVE CHAT ====================
+    @POST("chat/conversations")
+    fun startLiveConversation(@Body request: StartConversationRequest): Call<ApiResponse<LiveConversation>>
+    
+    @POST("chat/messages")
+    fun sendLiveMessage(@Body request: SendLiveMessageRequest): Call<ApiResponse<LiveMessage>>
+    
+    @GET("chat/conversations/my")
+    fun getMyConversations(): Call<ApiResponse<List<ConversationListItem>>>
+    
+    @GET("chat/conversations/{id}")
+    fun getConversation(@Path("id") id: Long): Call<ApiResponse<LiveConversation>>
+    
+    @POST("chat/conversations/{id}/close")
+    fun closeConversation(@Path("id") id: Long): Call<ApiResponse<LiveConversation>>
+    
+    // Manager Live Chat APIs
+    @GET("chat/manager/conversations")
+    fun getManagerConversations(): Call<ApiResponse<List<ConversationListItem>>>
+    
+    @GET("chat/manager/conversations/waiting-count")
+    fun getWaitingConversationsCount(): Call<ApiResponse<Long>>
 
     // ==================== USER PROFILE ====================
     @GET("me")
@@ -173,7 +200,10 @@ interface ApiService {
     fun getAllPromotions(): Call<ApiResponse<List<Voucher>>>
     
     @POST("promotions/manager")
-    fun createPromotion(@Body request: CreateVoucherRequest): Call<ApiResponse<Voucher>>
+    fun createPromotion(
+        @Body request: CreateVoucherRequest,
+        @Query("sendNotification") sendNotification: Boolean
+    ): Call<ApiResponse<Voucher>>
     
     @PUT("promotions/manager/{id}")
     fun updatePromotion(
@@ -196,6 +226,25 @@ interface ApiService {
         @Query("days") days: Int = 7,
         @Query("months") months: Int = 6
     ): Call<ApiResponse<RevenueStatistics>>
+
+    // ==================== MANAGER FORECAST APIs ====================
+    @GET("manager/forecast")
+    fun getFullForecast(): Call<ApiResponse<ForecastDto>>
+    
+    @GET("manager/forecast/revenue")
+    fun getRevenueForecast(): Call<ApiResponse<RevenueForecast>>
+    
+    @GET("manager/forecast/peak-hours")
+    fun getPeakHours(): Call<ApiResponse<List<PeakHourAnalysis>>>
+    
+    @GET("manager/forecast/low-stock")
+    fun getLowStockWarnings(): Call<ApiResponse<List<LowStockWarning>>>
+    
+    @GET("manager/forecast/staffing")
+    fun getStaffingRecommendations(): Call<ApiResponse<List<StaffingRecommendation>>>
+    
+    @GET("manager/forecast/overload")
+    fun getOverloadWarnings(): Call<ApiResponse<List<OverloadWarning>>>
 
     @GET("manager/orders")
     fun getManagerOrders(
@@ -234,6 +283,9 @@ interface ApiService {
         @Query("size") size: Int
     ): Call<ApiResponse<PageResponse<User>>>
 
+    @DELETE("manager/users/{userId}")
+    fun deleteUser(@Path("userId") userId: Int): Call<ApiResponse<String>>
+
     // ==================== ADMIN APIs ====================
     @POST("admin/drinks")
     fun createDrink(@Body drink: Drink): Call<ApiResponse<Drink>>
@@ -259,6 +311,143 @@ interface ApiService {
     // ==================== VNPAY PAYMENT ====================
     @POST("vnpay/create-payment")
     fun createVNPayPayment(@Body request: VNPayPaymentRequest): Call<ApiResponse<VNPayPaymentResponse>>
+    
+    @POST("vnpay/create-payment-amount")
+    fun createVNPayPaymentWithAmount(
+        @Query("amount") amount: Long,
+        @Query("orderInfo") orderInfo: String
+    ): Call<ApiResponse<VNPayPaymentResponse>>
+    
+    @POST("vnpay/create-order-after-payment")
+    fun createOrderAfterPayment(@Body request: CreateOrderRequest): Call<ApiResponse<Order>>
+
+    // ==================== REVIEWS ====================
+    @POST("reviews")
+    fun createReview(@Body request: CreateReviewRequest): Call<ApiResponse<Review>>
+    
+    @GET("reviews/drink/{drinkId}")
+    fun getReviewsByDrink(@Path("drinkId") drinkId: Long): Call<ApiResponse<List<Review>>>
+    
+    @GET("reviews/drink/{drinkId}/summary")
+    fun getDrinkRatingSummary(@Path("drinkId") drinkId: Long): Call<ApiResponse<DrinkRatingSummary>>
+    
+    @GET("reviews/my-reviews")
+    fun getMyReviews(): Call<ApiResponse<List<Review>>>
+    
+    @GET("reviews/can-review/{orderItemId}")
+    fun canReviewOrderItem(@Path("orderItemId") orderItemId: Long): Call<ApiResponse<Boolean>>
+    
+    @DELETE("reviews/{reviewId}")
+    fun deleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<String>>
+
+    // ==================== LOYALTY / SPIN WHEEL ====================
+    @GET("loyalty/points")
+    fun getUserPoints(): Call<ApiResponse<UserPointsDto>>
+    
+    @POST("loyalty/spin")
+    fun spinWheel(): Call<ApiResponse<SpinWheelResponse>>
+    
+    @GET("loyalty/rewards")
+    fun getAvailableRewards(): Call<ApiResponse<List<SpinRewardDto>>>
+    
+    @GET("loyalty/voucher/validate")
+    fun validateSpinVoucher(@Query("code") code: String): Call<ApiResponse<SpinRewardDto>>
+    
+    // Member Tier Benefits
+    @GET("loyalty/tier/benefits")
+    fun getTierBenefits(): Call<ApiResponse<MemberTierBenefitsDto>>
+    
+    @POST("loyalty/tier/check-upgrade")
+    fun checkTierUpgrade(): Call<ApiResponse<MemberTierBenefitsDto>>
+    
+    @GET("loyalty/tier/preview-discount")
+    fun previewTierDiscount(@Query("orderTotal") orderTotal: Double): Call<ApiResponse<TierDiscountPreview>>
+
+    // ==================== GROUP ORDER (ĐẶT HÀNG NHÓM) ====================
+    @POST("group-orders")
+    fun createGroupOrder(@Body request: CreateGroupOrderRequest): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/join")
+    fun joinGroupOrder(@Body request: JoinGroupOrderRequest): Call<ApiResponse<GroupOrderDto>>
+    
+    @GET("group-orders/{id}")
+    fun getGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @GET("group-orders/code/{inviteCode}")
+    fun getGroupOrderByCode(@Path("inviteCode") inviteCode: String): Call<ApiResponse<GroupOrderDto>>
+    
+    @GET("group-orders/active")
+    fun getActiveGroupOrders(): Call<ApiResponse<List<GroupOrderDto>>>
+    
+    @GET("group-orders/my-orders")
+    fun getMyGroupOrders(): Call<ApiResponse<List<GroupOrderDto>>>
+    
+    @PUT("group-orders/{id}")
+    fun updateGroupOrder(
+        @Path("id") id: Long,
+        @Body request: UpdateGroupOrderRequest
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/items")
+    fun addGroupOrderItem(
+        @Path("id") id: Long,
+        @Body request: AddGroupOrderItemRequest
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @PUT("group-orders/{id}/items/{itemId}")
+    fun updateGroupOrderItem(
+        @Path("id") id: Long,
+        @Path("itemId") itemId: Long,
+        @Body request: AddGroupOrderItemRequest
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @DELETE("group-orders/{id}/items/{itemId}")
+    fun removeGroupOrderItem(
+        @Path("id") id: Long,
+        @Path("itemId") itemId: Long
+    ): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/lock")
+    fun lockGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/unlock")
+    fun unlockGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/leave")
+    fun leaveGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
+    
+    @POST("group-orders/{id}/checkout")
+    fun checkoutGroupOrder(
+        @Path("id") id: Long,
+        @Body request: CheckoutGroupOrderRequest
+    ): Call<ApiResponse<Order>>
+    
+    @DELETE("group-orders/{id}")
+    fun cancelGroupOrder(@Path("id") id: Long): Call<ApiResponse<Void>>
+
+    // ==================== GROUP CHAT (CHAT NHÓM) ====================
+    @POST("group-orders/{groupOrderId}/chat")
+    fun sendGroupChatMessage(
+        @Path("groupOrderId") groupOrderId: Long,
+        @Body request: SendGroupChatRequest
+    ): Call<ApiResponse<GroupChatMessageDto>>
+    
+    @GET("group-orders/{groupOrderId}/chat")
+    fun getGroupChatHistory(
+        @Path("groupOrderId") groupOrderId: Long
+    ): Call<ApiResponse<List<GroupChatMessageDto>>>
+    
+    @GET("group-orders/{groupOrderId}/chat/recent")
+    fun getRecentGroupChatMessages(
+        @Path("groupOrderId") groupOrderId: Long,
+        @Query("limit") limit: Int = 50
+    ): Call<ApiResponse<List<GroupChatMessageDto>>>
+
+    // ==================== PREDICTIVE ORDER (DỰ ĐOÁN MÓN) ====================
+    @GET("predictive-order")
+    fun getPredictiveOrder(
+        @Query("weather") weather: String? = null
+    ): Call<ApiResponse<PredictiveOrderResponse>>
 
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")

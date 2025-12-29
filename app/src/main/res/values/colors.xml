@@ -65,5 +65,12 @@
     <color name="wine_accent_gold">#FFD700</color>
 
     <color name="gray">#9E9E9E</color>
+    <color name="dark_gray">#616161</color>
+    <color name="green">#4CAF50</color>
+    <color name="light_gray">#E0E0E0</color>
+    
+    <!-- Group Order Colors -->
+    <color name="primary_color">#7CB342</color>
+    <color name="background_color">#F5F5F5</color>
 
 </resources>

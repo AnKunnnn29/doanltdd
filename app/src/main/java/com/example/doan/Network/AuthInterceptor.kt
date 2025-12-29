@@ -26,21 +26,24 @@ class AuthInterceptor(private val context: Context) : Interceptor {
         // Lấy token từ SharedPreferences
         val prefs = context.getSharedPreferences("UTETeaPrefs", Context.MODE_PRIVATE)
         val token = prefs.getString("jwt_token", null)
+        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
         
         // Log để debug
         Log.d(TAG, "Request URL: ${originalRequest.url}")
-        Log.d(TAG, "Token: ${if (token != null) "exists" else "null"}")
+        Log.d(TAG, "Token exists: ${token != null}, Token length: ${token?.length ?: 0}")
+        Log.d(TAG, "Is logged in: $isLoggedIn")
         
         // Chỉ thêm token nếu có và không rỗng
         val response = if (!token.isNullOrEmpty()) {
             val newRequest = originalRequest.newBuilder()
                 .header("Authorization", "Bearer $token")
+                .header("Content-Type", "application/json")
                 .build()
-            Log.d(TAG, "Added Authorization header")
+            Log.d(TAG, "Added Authorization header with token")
             chain.proceed(newRequest)
         } else {
             // Không có token, gửi request bình thường (cho public endpoints)
-            Log.d(TAG, "No token, sending request without Authorization header")
+            Log.w(TAG, "No token available! User may need to login again.")
             chain.proceed(originalRequest)
         }
         
@@ -135,7 +138,7 @@ class AuthInterceptor(private val context: Context) : Interceptor {
     }
     
     private fun getBaseUrl(): String {
-        return "http://10.0.2.2:8080/api/"
+        return "https://utetea-backend-production.up.railway.app/api/"
     }
     
     companion object {
