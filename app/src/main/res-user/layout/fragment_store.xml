@@ -32,18 +32,109 @@
             app:cardCornerRadius="24dp"
             app:cardElevation="4dp">
 
-            <androidx.appcompat.widget.SearchView
-                android:id="@+id/search_location"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:queryHint="Tìm kiếm địa điểm..."
-                app:iconifiedByDefault="false"
-                android:background="@android:color/transparent"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <androidx.appcompat.widget.SearchView
+                    android:id="@+id/search_location"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:queryHint="Nhập địa chỉ của bạn..."
+                    app:iconifiedByDefault="false"
+                    android:background="@android:color/transparent"/>
+
+            </LinearLayout>
                     
+        </com.google.android.material.card.MaterialCardView>
+        
+        <!-- Nearest Store Suggestion Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_nearest_store"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:strokeColor="@color/wine_primary"
+            app:strokeWidth="2dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:background="@color/wine_light_surface">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⭐ Gợi ý quán gần nhất"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:textColor="@color/wine_primary"/>
+
+                <TextView
+                    android:id="@+id/tv_nearest_store_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Tên quán"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/wine_dark_background"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:id="@+id/tv_nearest_store_distance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📍 0 km"
+                        android:textSize="13sp"
+                        android:textColor="@color/wine_neutral_dark"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="  •  "
+                        android:textColor="@color/wine_neutral_dark"/>
+
+                    <TextView
+                        android:id="@+id/tv_nearest_store_duration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🕐 0 phút"
+                        android:textSize="13sp"
+                        android:textColor="@color/wine_neutral_dark"/>
+
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_select_nearest_store"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Chọn quán này"
+                    android:textSize="12sp"
+                    app:backgroundTint="@color/wine_primary"
+                    app:cornerRadius="8dp"/>
+
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Scrollable Content: List + Map -->
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/nested_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -77,6 +168,7 @@
 
                 <!-- Map Container -->
                 <TextView
+                    android:id="@+id/tv_map_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Bản đồ"
@@ -87,6 +179,7 @@
                     android:textColor="@color/wine_dark_background"/>
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/card_map_container"
                     android:layout_width="match_parent"
                     android:layout_height="400dp"
                     android:layout_marginHorizontal="16dp"
@@ -112,6 +205,17 @@
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="12dp">
+
+                            <ImageButton
+                                android:id="@+id/btn_my_location"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginBottom="8dp"
+                                android:background="@drawable/bg_circle_white"
+                                android:src="@drawable/ic_my_location"
+                                android:elevation="4dp"
+                                app:tint="@color/wine_primary"
+                                android:contentDescription="Vị trí của tôi" />
 
                             <ImageButton
                                 android:id="@+id/btn_zoom_in"

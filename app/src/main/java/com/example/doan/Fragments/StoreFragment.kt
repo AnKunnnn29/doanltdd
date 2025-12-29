@@ -1,6 +1,8 @@
 package com.example.doan.Fragments
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
@@ -9,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -18,12 +21,14 @@ import com.example.doan.Adapters.StoreAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Branch
 import com.example.doan.Models.DistanceMatrixResponse
+import com.example.doan.Models.Element
 import com.example.doan.Models.Store
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.Network.RetrofitClientMaps
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
 import com.example.doan.Utils.LoadingDialog
+import com.example.doan.Utils.LocationHelper
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -60,22 +65,66 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
     private lateinit var btnZoomIn: ImageButton
     private lateinit var btnZoomOut: ImageButton
     
+    // Location button
+    private lateinit var btnMyLocation: ImageButton
+    
+    // Nearest store suggestion
+    private lateinit var cardNearestStore: MaterialCardView
+    private lateinit var tvNearestStoreName: TextView
+    private lateinit var tvNearestStoreDistance: TextView
+    private lateinit var tvNearestStoreDuration: TextView
+    private lateinit var btnSelectNearestStore: MaterialButton
+    
+    // Scroll view và map container để auto scroll
+    private lateinit var nestedScrollView: androidx.core.widget.NestedScrollView
+    private lateinit var cardMapContainer: androidx.cardview.widget.CardView
+    
     private lateinit var storeAdapter: StoreAdapter
+    private lateinit var locationHelper: LocationHelper
 
     private var map: GoogleMap? = null
     private var userLocation: LatLng? = null
     private var branches: List<Branch> = emptyList()
     private var stores: List<Store> = emptyList()
     private var selectedBranch: Branch? = null
+    private var nearestBranch: Branch? = null
     
     // Cache cho địa chỉ đã geocode
     private val geocodeCache = mutableMapOf<String, LatLng?>()
+    
+    // Cache cho khoảng cách và thời gian
+    private data class StoreDistanceInfo(val distanceText: String, val durationText: String, val distanceValue: Int)
+    private val distanceCache = mutableMapOf<Int, StoreDistanceInfo>()
+    
+    // Permission launcher
+    private val locationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineLocationGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarseLocationGranted = permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+        
+        if (fineLocationGranted || coarseLocationGranted) {
+            checkGPSAndGetLocation()
+        } else {
+            Toast.makeText(context, "Cần quyền vị trí để tìm quán gần nhất", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    // GPS settings launcher
+    private val gpsSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            getCurrentLocation()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!Places.isInitialized()) {
             Places.initialize(requireContext(), getString(R.string.google_maps_key))
         }
+        locationHelper = LocationHelper(requireContext())
     }
 
     override fun onCreateView(
@@ -93,12 +142,35 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
             setupListeners()
             setupRecyclerView()
             
+            // Hiển thị prompt yêu cầu bật vị trí nếu chưa có quyền
+            if (!locationHelper.hasLocationPermission()) {
+                showLocationPermissionPrompt()
+            }
+            
             view
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreateView: ${e.message}")
             e.printStackTrace()
             Toast.makeText(context, "Lỗi tải trang cửa hàng", Toast.LENGTH_SHORT).show()
             inflater.inflate(R.layout.fragment_store, container, false)
+        }
+    }
+    
+    /**
+     * Hiển thị dialog gợi ý bật vị trí để tìm quán gần nhất
+     */
+    private fun showLocationPermissionPrompt() {
+        try {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("📍 Bật định vị")
+                .setMessage("Bật định vị để tìm quán gần bạn nhất và xem khoảng cách, thời gian di chuyển.")
+                .setPositiveButton("Bật ngay") { _, _ ->
+                    requestLocationAndFindNearest()
+                }
+                .setNegativeButton("Để sau", null)
+                .show()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing location prompt", e)
         }
     }
 
@@ -115,6 +187,23 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         // Init zoom buttons
         btnZoomIn = view.findViewById(R.id.btn_zoom_in)
         btnZoomOut = view.findViewById(R.id.btn_zoom_out)
+        
+        // Init location button
+        btnMyLocation = view.findViewById(R.id.btn_my_location)
+        
+        // Init nearest store card (có thể null nếu chưa thêm vào layout)
+        cardNearestStore = view.findViewById(R.id.card_nearest_store) ?: run {
+            // Tạo view động nếu chưa có trong layout
+            MaterialCardView(requireContext()).apply { visibility = View.GONE }
+        }
+        tvNearestStoreName = view.findViewById(R.id.tv_nearest_store_name) ?: TextView(requireContext())
+        tvNearestStoreDistance = view.findViewById(R.id.tv_nearest_store_distance) ?: TextView(requireContext())
+        tvNearestStoreDuration = view.findViewById(R.id.tv_nearest_store_duration) ?: TextView(requireContext())
+        btnSelectNearestStore = view.findViewById(R.id.btn_select_nearest_store) ?: MaterialButton(requireContext())
+        
+        // Init scroll view và map container
+        nestedScrollView = view.findViewById(R.id.nested_scroll_view)
+        cardMapContainer = view.findViewById(R.id.card_map_container)
     }
     
     private fun setupRecyclerView() {
@@ -165,6 +254,241 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         btnZoomOut.setOnClickListener {
             map?.animateCamera(CameraUpdateFactory.zoomOut())
         }
+        
+        // My Location Button
+        btnMyLocation.setOnClickListener {
+            requestLocationAndFindNearest()
+        }
+        
+        // Nearest store selection
+        btnSelectNearestStore.setOnClickListener {
+            nearestBranch?.let { branch ->
+                saveDefaultBranch(branch)
+                Toast.makeText(context, "Đã chọn ${branch.branchName} làm chi nhánh mặc định", Toast.LENGTH_SHORT).show()
+                onBranchListClick(branch)
+            }
+        }
+    }
+    
+    /**
+     * Yêu cầu quyền vị trí và tìm quán gần nhất
+     */
+    private fun requestLocationAndFindNearest() {
+        if (locationHelper.hasLocationPermission()) {
+            checkGPSAndGetLocation()
+        } else {
+            // Yêu cầu quyền
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+    
+    /**
+     * Kiểm tra GPS và lấy vị trí
+     */
+    private fun checkGPSAndGetLocation() {
+        val activity = activity ?: return
+        
+        locationHelper.checkAndRequestGPS(
+            activity,
+            onGPSEnabled = {
+                getCurrentLocation()
+            },
+            onGPSDisabled = {
+                Toast.makeText(context, "Vui lòng bật GPS để tìm quán gần nhất", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+    
+    /**
+     * Lấy vị trí hiện tại của user
+     */
+    private fun getCurrentLocation() {
+        loadingDialog.show("Đang xác định vị trí của bạn...")
+        
+        locationHelper.getCurrentLocation(
+            onSuccess = { location ->
+                if (!isAdded) return@getCurrentLocation
+                
+                userLocation = LatLng(location.latitude, location.longitude)
+                Log.d(TAG, "Got user location: ${location.latitude}, ${location.longitude}")
+                
+                loadingDialog.setMessage("Đang tìm quán gần nhất...")
+                
+                // Cập nhật map và tìm quán gần nhất
+                displayBranchesOnMap()
+                findNearestStore()
+            },
+            onError = { error ->
+                if (!isAdded) return@getCurrentLocation
+                loadingDialog.dismiss()
+                
+                // Hiển thị dialog cho phép retry
+                showLocationErrorDialog(error)
+            }
+        )
+    }
+    
+    /**
+     * Hiển thị dialog lỗi với option retry
+     */
+    private fun showLocationErrorDialog(error: String) {
+        try {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Không xác định được vị trí")
+                .setMessage("$error\n\nBạn có thể:\n• Kiểm tra GPS đã bật chưa\n• Ra ngoài trời để có tín hiệu tốt hơn\n• Nhập địa chỉ thủ công vào ô tìm kiếm")
+                .setPositiveButton("Thử lại") { _, _ ->
+                    requestLocationAndFindNearest()
+                }
+                .setNegativeButton("Nhập địa chỉ") { _, _ ->
+                    searchView.requestFocus()
+                }
+                .show()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing location error dialog", e)
+            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    /**
+     * Tìm quán gần nhất dựa trên vị trí user
+     */
+    private fun findNearestStore() {
+        val userLoc = userLocation ?: run {
+            loadingDialog.dismiss()
+            return
+        }
+        
+        if (branches.isEmpty()) {
+            loadingDialog.dismiss()
+            return
+        }
+        
+        // Tính khoảng cách đến tất cả các quán bằng Distance Matrix API
+        calculateAllDistances(userLoc)
+    }
+    
+    /**
+     * Tính khoảng cách đến tất cả các quán
+     */
+    private fun calculateAllDistances(userLoc: LatLng) {
+        val originStr = "${userLoc.latitude},${userLoc.longitude}"
+        
+        // Tạo danh sách destinations
+        val destinations = branches.mapNotNull { branch ->
+            geocodeCache[branch.address ?: ""]?.let { loc ->
+                "${loc.latitude},${loc.longitude}"
+            }
+        }
+        
+        if (destinations.isEmpty()) {
+            loadingDialog.dismiss()
+            Toast.makeText(context, "Không thể xác định vị trí các cửa hàng", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val destStr = destinations.joinToString("|")
+        val key = getString(R.string.google_maps_key)
+        
+        RetrofitClientMaps.instance.getDistance(originStr, destStr, key)
+            .enqueue(object : Callback<DistanceMatrixResponse> {
+                override fun onResponse(
+                    call: Call<DistanceMatrixResponse>,
+                    response: Response<DistanceMatrixResponse>
+                ) {
+                    if (!isAdded) return
+                    loadingDialog.dismiss()
+                    
+                    if (response.isSuccessful && response.body()?.status == "OK") {
+                        val elements = response.body()?.rows?.getOrNull(0)?.elements ?: return
+                        
+                        var minDistance = Int.MAX_VALUE
+                        var nearestIndex = -1
+                        
+                        // Tìm quán gần nhất
+                        elements.forEachIndexed { index, element ->
+                            if (element.status == "OK") {
+                                val distanceValue = element.distance.value
+                                
+                                // Cache khoảng cách
+                                branches.getOrNull(index)?.id?.let { branchId ->
+                                    distanceCache[branchId] = StoreDistanceInfo(
+                                        element.distance.text,
+                                        element.duration.text,
+                                        distanceValue
+                                    )
+                                }
+                                
+                                if (distanceValue < minDistance) {
+                                    minDistance = distanceValue
+                                    nearestIndex = index
+                                }
+                            }
+                        }
+                        
+                        // Hiển thị quán gần nhất
+                        if (nearestIndex >= 0 && nearestIndex < branches.size) {
+                            nearestBranch = branches[nearestIndex]
+                            showNearestStoreCard(nearestBranch!!, elements[nearestIndex])
+                            
+                            // Zoom đến quán gần nhất
+                            geocodeCache[nearestBranch!!.address ?: ""]?.let { loc ->
+                                map?.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 15f))
+                            }
+                        }
+                        
+                        // Cập nhật adapter với thông tin khoảng cách
+                        updateStoreListWithDistances()
+                    } else {
+                        Toast.makeText(context, "Không thể tính khoảng cách", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<DistanceMatrixResponse>, t: Throwable) {
+                    if (!isAdded) return
+                    loadingDialog.dismiss()
+                    Log.e(TAG, "Error calculating distances", t)
+                    Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    /**
+     * Hiển thị card gợi ý quán gần nhất
+     */
+    private fun showNearestStoreCard(branch: Branch, element: Element) {
+        try {
+            cardNearestStore.visibility = View.VISIBLE
+            tvNearestStoreName.text = "📍 ${branch.branchName}"
+            tvNearestStoreDistance.text = "Khoảng cách: ${element.distance.text}"
+            tvNearestStoreDuration.text = "Thời gian: ${element.duration.text}"
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing nearest store card", e)
+        }
+    }
+    
+    /**
+     * Cập nhật danh sách store với thông tin khoảng cách
+     */
+    private fun updateStoreListWithDistances() {
+        // Sắp xếp stores theo khoảng cách
+        val sortedStores = stores.sortedBy { store ->
+            distanceCache[store.id]?.distanceValue ?: Int.MAX_VALUE
+        }
+        
+        // Cập nhật adapter
+        storeAdapter.updateStoresWithDistance(sortedStores, distanceCache.mapValues { 
+            "${it.value.distanceText} - ${it.value.durationText}" 
+        })
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        locationHelper.stopLocationUpdates()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -190,6 +514,16 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         }
 
         loadBranches()
+        
+        // Tự động yêu cầu vị trí khi mở màn hình (nếu đã có quyền)
+        if (locationHelper.hasLocationPermission()) {
+            // Delay một chút để map load xong
+            view?.postDelayed({
+                if (isAdded && userLocation == null) {
+                    requestLocationAndFindNearest()
+                }
+            }, 1500)
+        }
     }
 
     private fun loadBranches() {
@@ -394,6 +728,8 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
         if (branchLocation != null) {
             map?.animateCamera(CameraUpdateFactory.newLatLngZoom(branchLocation, 16f))
             onBranchMarkerClick(branch)
+            // Scroll xuống bản đồ
+            scrollToMap()
         } else {
             // Nếu chưa có trong cache, geocode async
             val ctx = context ?: return
@@ -410,10 +746,27 @@ class StoreFragment : Fragment(), OnMapReadyCallback {
                     geocodeCache[branch.address ?: ""] = location
                     map?.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 16f))
                     onBranchMarkerClick(branch)
+                    // Scroll xuống bản đồ
+                    scrollToMap()
                 } else {
                     Toast.makeText(context, "Không xác định được vị trí cửa hàng này", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+    
+    /**
+     * Scroll xuống phần bản đồ với animation mượt
+     */
+    private fun scrollToMap() {
+        try {
+            // Delay một chút để map animation hoàn thành
+            nestedScrollView.postDelayed({
+                // Scroll đến vị trí của map container
+                nestedScrollView.smoothScrollTo(0, cardMapContainer.top - 50)
+            }, 300)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error scrolling to map", e)
         }
     }
 

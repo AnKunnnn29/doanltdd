@@ -1,12 +1,14 @@
 package com.example.doan
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.doan.Network.OrderWebSocketManager
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.Utils.CartManager
+import com.example.doan.Utils.SessionManager
 import com.onesignal.OneSignal
 import com.onesignal.debug.LogLevel
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +19,7 @@ class UTETeaApplication : Application() {
 
     companion object {
         private const val ONESIGNAL_APP_ID = "e47a596f-789f-4573-b270-6cd10f557fd3"
+        private const val TAG = "UTETeaApplication"
     }
 
     override fun onCreate() {
@@ -38,6 +41,28 @@ class UTETeaApplication : Application() {
         // Yêu cầu quyền thông báo trong coroutine
         CoroutineScope(Dispatchers.Main).launch {
             OneSignal.Notifications.requestPermission(true)
+        }
+
+        // [FIX] Login OneSignal nếu user đã có session (để nhận push notification)
+        loginOneSignalIfNeeded()
+    }
+
+    /**
+     * Đăng nhập OneSignal với external_id nếu user đã có session.
+     * Điều này đảm bảo push notification hoạt động khi app khởi động lại.
+     */
+    private fun loginOneSignalIfNeeded() {
+        try {
+            val sessionManager = SessionManager(this)
+            if (sessionManager.isLoggedIn()) {
+                val userId = sessionManager.getUserId()
+                if (userId > 0) {
+                    OneSignal.login(userId.toString())
+                    Log.d(TAG, "OneSignal auto-login with userId: $userId")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error auto-login OneSignal", e)
         }
     }
 
