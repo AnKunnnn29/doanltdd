@@ -54,7 +54,6 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
 
     private lateinit var adapter: ManagerOrderAdapter
     private val allOrders = mutableListOf<Order>()
-    private val filteredOrders = mutableListOf<Order>()
     private val displayedOrders = mutableListOf<Order>()
     private val storeList = mutableListOf<Store>()
     private var currentStatus: String? = null
@@ -64,11 +63,14 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     private lateinit var webSocketManager: OrderWebSocketManager
     private var notificationSound: MediaPlayer? = null
     
-    // Pagination
-    private val PAGE_SIZE = 15
+    // Pagination - gọi API thực sự
+    private val PAGE_SIZE = 10
     private var currentPage = 0
+    private var totalPages = 0
+    private var totalElements = 0L
     private var hasMoreData = true
     private var isLoading = false
+    private var btnLoadMore: MaterialButton? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -199,6 +201,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         tvDoneCount = view.findViewById(R.id.tv_done_count)
         btnRefresh = view.findViewById(R.id.btn_refresh)
         tvConnectionStatus = view.findViewById(R.id.tv_connection_status)
+        btnLoadMore = view.findViewById(R.id.btn_load_more)
     }
 
     private fun setupRecyclerView() {
@@ -208,25 +211,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         adapter.setOnOrderActionListener(this)
         rvOrders.adapter = adapter
         
-        // Add scroll listener for pagination
-        rvOrders.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val visibleItemCount = layoutManager.childCount
-                val totalItemCount = layoutManager.itemCount
-                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
-                
-                // Load more when near the end
-                if (!isLoading && hasMoreData) {
-                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 3
-                        && firstVisibleItemPosition >= 0) {
-                        loadMoreOrders()
-                    }
-                }
-            }
-        })
+        // Không dùng scroll listener nữa, dùng nút "Xem thêm" thay thế
     }
 
     private fun setupListeners() {
@@ -241,6 +226,11 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
 
         cardStoreFilter.setOnClickListener {
             showStoreFilterDialog()
+        }
+        
+        // Nút xem thêm
+        btnLoadMore?.setOnClickListener {
+            loadMoreOrders()
         }
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -331,15 +321,31 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun loadOrders() {
-        if (!swipeRefresh.isRefreshing) {
+        // Reset pagination khi load mới
+        currentPage = 0
+        hasMoreData = true
+        allOrders.clear()
+        displayedOrders.clear()
+        adapter.notifyDataSetChanged()
+        
+        // Load trang đầu tiên
+        loadOrdersPage(0, isRefresh = true)
+    }
+    
+    private fun loadOrdersPage(page: Int, isRefresh: Boolean = false) {
+        if (isLoading) return
+        isLoading = true
+        
+        if (isRefresh && !swipeRefresh.isRefreshing) {
             progressBar.visibility = View.VISIBLE
         }
         emptyState.visibility = View.GONE
+        btnLoadMore?.visibility = View.GONE
 
-        Log.d(TAG, "Loading orders with status: $currentStatus")
+        Log.d(TAG, "Loading orders page $page with status: $currentStatus, size: $PAGE_SIZE")
 
         RetrofitClient.getInstance(requireContext()).apiService
-            .getManagerOrders(currentStatus, 0, 100)
+            .getManagerOrders(currentStatus, page, PAGE_SIZE)
             .enqueue(object : Callback<ApiResponse<PageResponse<Order>>> {
                 override fun onResponse(
                     call: Call<ApiResponse<PageResponse<Order>>>,
@@ -347,19 +353,53 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                 ) {
                     progressBar.visibility = View.GONE
                     swipeRefresh.isRefreshing = false
+                    isLoading = false
 
                     if (response.isSuccessful && response.body() != null) {
                         val apiResponse = response.body()!!
 
                         if (apiResponse.success && apiResponse.data != null) {
                             val pageResponse = apiResponse.data!!
-                            allOrders.clear()
-                            pageResponse.content?.let { allOrders.addAll(it) }
+                            
+                            // Cập nhật thông tin pagination
+                            totalPages = pageResponse.totalPages ?: 0
+                            totalElements = pageResponse.totalElements ?: 0
+                            currentPage = page
+                            hasMoreData = !pageResponse.isLast
+                            
+                            // Thêm orders vào danh sách
+                            pageResponse.content?.let { newOrders ->
+                                allOrders.addAll(newOrders)
+                                
+                                // Filter theo store nếu cần
+                                val filteredNewOrders = if (selectedStoreId != null) {
+                                    newOrders.filter { it.storeId == selectedStoreId }
+                                } else {
+                                    newOrders
+                                }
+                                displayedOrders.addAll(filteredNewOrders)
+                            }
 
-                            Log.d(TAG, "Orders loaded: ${allOrders.size}")
+                            Log.d(TAG, "Orders loaded: page=$page, total=${allOrders.size}, hasMore=$hasMoreData")
 
+                            adapter.notifyDataSetChanged()
                             updateStats()
-                            applyFilters()
+                            updateLoadMoreButton()
+                            
+                            // Animation chỉ cho lần load đầu
+                            if (page == 0) {
+                                rvOrders.scheduleLayoutAnimation()
+                            }
+                            
+                            // Hiển thị empty state nếu không có đơn
+                            if (displayedOrders.isEmpty()) {
+                                emptyState.visibility = View.VISIBLE
+                                view?.findViewById<TextView>(R.id.tv_empty_message)?.text =
+                                    if (selectedStoreId != null) "Không có đơn hàng tại chi nhánh này"
+                                    else "Đơn hàng mới sẽ xuất hiện ở đây"
+                            } else {
+                                emptyState.visibility = View.GONE
+                            }
                         } else {
                             val msg = apiResponse.message ?: "Không thể tải đơn hàng"
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -372,7 +412,11 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                 override fun onFailure(call: Call<ApiResponse<PageResponse<Order>>>, t: Throwable) {
                     progressBar.visibility = View.GONE
                     swipeRefresh.isRefreshing = false
-                    emptyState.visibility = View.VISIBLE
+                    isLoading = false
+                    
+                    if (displayedOrders.isEmpty()) {
+                        emptyState.visibility = View.VISIBLE
+                    }
 
                     Log.e(TAG, "Connection error: ${t.message}", t)
                     Toast.makeText(context, "Không thể kết nối Server", Toast.LENGTH_SHORT).show()
@@ -381,6 +425,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun updateStats() {
+        // Đếm từ danh sách đã load (có thể không chính xác 100% nếu chưa load hết)
         val ordersToCount = if (selectedStoreId != null) {
             allOrders.filter { it.storeId == selectedStoreId }
         } else {
@@ -397,81 +442,26 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun applyFilters() {
-        filteredOrders.clear()
-
-        val ordersToFilter = if (selectedStoreId != null) {
-            allOrders.filter { it.storeId == selectedStoreId }
-        } else {
-            allOrders
-        }
-        
-        // Sắp xếp thông minh:
-        // - Đơn đang xử lý (PENDING, MAKING, SHIPPING, READY): đơn đặt TRƯỚC lên đầu (để xử lý theo thứ tự)
-        // - Đơn đã hoàn thành/hủy (DONE, CANCELED): đơn MỚI NHẤT lên đầu
-        val processingStatuses = listOf("PENDING", "MAKING", "SHIPPING", "READY")
-        
-        val processingOrders = ordersToFilter
-            .filter { it.status in processingStatuses }
-            .sortedBy { it.createdAt } // Đơn cũ lên trước để xử lý
-            
-        val completedOrders = ordersToFilter
-            .filter { it.status !in processingStatuses }
-            .sortedByDescending { it.createdAt } // Đơn mới lên trước
-        
-        // Đơn đang xử lý hiển thị trước, sau đó là đơn đã hoàn thành
-        filteredOrders.addAll(processingOrders)
-        filteredOrders.addAll(completedOrders)
-        
-        // Reset pagination và clear displayed orders
-        currentPage = 0
-        displayedOrders.clear()
-        adapter.notifyDataSetChanged() // Clear adapter first
-        hasMoreData = true
-        isLoading = false
-        
-        // Load first page
-        loadMoreOrders()
-
-        updateStats()
-
-        if (filteredOrders.isEmpty()) {
-            emptyState.visibility = View.VISIBLE
-            view?.findViewById<TextView>(R.id.tv_empty_message)?.text =
-                if (selectedStoreId != null) "Không có đơn hàng tại chi nhánh này"
-                else "Đơn hàng mới sẽ xuất hiện ở đây"
-        } else {
-            emptyState.visibility = View.GONE
-        }
+        // Khi thay đổi filter store, cần reload từ đầu
+        loadOrders()
     }
     
     private fun loadMoreOrders() {
         if (isLoading || !hasMoreData) return
         
-        isLoading = true
-        
-        val startIndex = currentPage * PAGE_SIZE
-        val endIndex = minOf(startIndex + PAGE_SIZE, filteredOrders.size)
-        
-        if (startIndex >= filteredOrders.size) {
-            hasMoreData = false
-            isLoading = false
-            return
-        }
-        
-        // Copy items to avoid subList issues
-        val newOrders = filteredOrders.subList(startIndex, endIndex).toList()
-        displayedOrders.addAll(newOrders)
-        
-        // Use notifyDataSetChanged for safety
-        adapter.notifyDataSetChanged()
-        
-        currentPage++
-        hasMoreData = endIndex < filteredOrders.size
-        isLoading = false
-        
-        // Play animation only on first load
-        if (currentPage == 1) {
-            rvOrders.scheduleLayoutAnimation()
+        // Load trang tiếp theo từ API
+        loadOrdersPage(currentPage + 1)
+    }
+    
+    private fun updateLoadMoreButton() {
+        btnLoadMore?.apply {
+            if (hasMoreData) {
+                visibility = View.VISIBLE
+                val loaded = displayedOrders.size
+                text = "Xem thêm (đã tải $loaded đơn)"
+            } else {
+                visibility = View.GONE
+            }
         }
     }
 
@@ -554,7 +544,6 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         super.onDestroyView()
         // Clear lists to prevent memory leak
         allOrders.clear()
-        filteredOrders.clear()
         displayedOrders.clear()
         storeList.clear()
         
