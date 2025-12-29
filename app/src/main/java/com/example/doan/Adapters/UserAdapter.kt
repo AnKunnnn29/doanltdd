@@ -38,6 +38,7 @@ class UserAdapter(
     interface OnUserActionListener {
         fun onViewUser(user: User)
         fun onToggleUserStatus(user: User)
+        fun onDeleteUser(user: User)
     }
 
     fun setOnUserActionListener(listener: OnUserActionListener) {
@@ -88,6 +89,7 @@ class UserAdapter(
         private val chipUserRole: Chip = itemView.findViewById(R.id.chip_user_role)
         private val btnViewUser: MaterialButton = itemView.findViewById(R.id.btn_view_user)
         private val btnToggleStatus: MaterialButton = itemView.findViewById(R.id.btn_toggle_status)
+        private val btnDeleteUser: MaterialButton = itemView.findViewById(R.id.btn_delete_user)
 
         fun bind(user: User) {
             val displayName = user.fullName ?: user.username ?: "User"
@@ -168,6 +170,16 @@ class UserAdapter(
 
             btnToggleStatus.setOnClickListener {
                 listener?.onToggleUserStatus(user)
+            }
+            
+            // Delete button - ẩn nếu là MANAGER
+            if (user.role == "MANAGER") {
+                btnDeleteUser.visibility = View.GONE
+            } else {
+                btnDeleteUser.visibility = View.VISIBLE
+                btnDeleteUser.setOnClickListener {
+                    listener?.onDeleteUser(user)
+                }
             }
             
             // Card click

@@ -283,6 +283,9 @@ interface ApiService {
         @Query("size") size: Int
     ): Call<ApiResponse<PageResponse<User>>>
 
+    @DELETE("manager/users/{userId}")
+    fun deleteUser(@Path("userId") userId: Int): Call<ApiResponse<String>>
+
     // ==================== ADMIN APIs ====================
     @POST("admin/drinks")
     fun createDrink(@Body drink: Drink): Call<ApiResponse<Drink>>
