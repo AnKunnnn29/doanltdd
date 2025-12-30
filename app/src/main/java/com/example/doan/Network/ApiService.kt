@@ -8,6 +8,16 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    // ==================== OTP ====================
+    @POST("otp/send")
+    fun sendOtp(@Query("phone") phone: String): Call<ApiResponse<String>>
+
+    @POST("otp/verify")
+    fun verifyOtp(
+        @Query("phone") phone: String, 
+        @Query("code") code: String
+    ): Call<ApiResponse<Boolean>>
+
     // ==================== NOTIFICATIONS ====================
     @POST("notifications/send")
     fun sendCustomNotification(@Body request: NotificationRequestDto): Call<ApiResponse<String>>
