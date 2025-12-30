@@ -68,6 +68,8 @@ class HomeFragment : Fragment() {
     private lateinit var cartButton: FrameLayout
     private lateinit var cartBadge: TextView
     private lateinit var liveChatButton: FrameLayout
+    private lateinit var notificationButton: FrameLayout
+    private lateinit var notificationBadge: TextView
     private lateinit var deliveryCard: MaterialCardView
     private lateinit var pickupCard: MaterialCardView
     private lateinit var fabVoiceOrder: com.google.android.material.card.MaterialCardView
@@ -170,6 +172,7 @@ class HomeFragment : Fragment() {
         super.onResume()
         startAutoScroll()
         updateCartBadge()
+        updateNotificationBadge()
         
         // Kiểm tra và hiển thị gợi ý thông minh (Predictive Order)
         // Delay 1 giây để đảm bảo UI đã sẵn sàng
@@ -362,6 +365,8 @@ class HomeFragment : Fragment() {
         cartButton = view.findViewById(R.id.cart_button)
         cartBadge = view.findViewById(R.id.cart_badge)
         liveChatButton = view.findViewById(R.id.live_chat_button)
+        notificationButton = view.findViewById(R.id.notification_button)
+        notificationBadge = view.findViewById(R.id.notification_badge)
         bannerViewPager = view.findViewById(R.id.banner_viewpager)
         indicatorLayout = view.findViewById(R.id.indicator_layout)
         bestSellerRecyclerView = view.findViewById(R.id.best_seller_recycler_view)
@@ -407,8 +412,16 @@ class HomeFragment : Fragment() {
             startActivity(Intent(context, LiveChatActivity::class.java))
         }
 
+        // Notification button click
+        notificationButton.setOnClickListener {
+            startActivity(Intent(context, com.example.doan.Activities.NotificationActivity::class.java))
+        }
+
         // Update cart badge
         updateCartBadge()
+        
+        // Update notification badge
+        updateNotificationBadge()
     }
 
     private fun getGreetingMessage(): String {
@@ -428,6 +441,40 @@ class HomeFragment : Fragment() {
         } else {
             cartBadge.visibility = View.GONE
         }
+    }
+
+    /**
+     * Cập nhật badge số thông báo chưa đọc
+     */
+    private fun updateNotificationBadge() {
+        val sessionManager = SessionManager(requireContext())
+        if (!sessionManager.isLoggedIn()) {
+            notificationBadge.visibility = View.GONE
+            return
+        }
+        
+        RetrofitClient.getInstance(requireContext()).apiService.getUnreadNotificationCount()
+            .enqueue(object : Callback<ApiResponse<Map<String, Long>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<Map<String, Long>>>,
+                    response: Response<ApiResponse<Map<String, Long>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val count = response.body()?.data?.get("unreadCount") ?: 0L
+                        if (count > 0) {
+                            notificationBadge.visibility = View.VISIBLE
+                            notificationBadge.text = if (count > 99) "99+" else count.toString()
+                        } else {
+                            notificationBadge.visibility = View.GONE
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<Map<String, Long>>>, t: Throwable) {
+                    // Ignore error, just hide badge
+                    notificationBadge.visibility = View.GONE
+                }
+            })
     }
 
     private fun setupBannerCarousel() {

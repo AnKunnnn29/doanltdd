@@ -11,6 +11,30 @@ interface ApiService {
     // ==================== NOTIFICATIONS ====================
     @POST("notifications/send")
     fun sendCustomNotification(@Body request: NotificationRequestDto): Call<ApiResponse<String>>
+    
+    @GET("notifications")
+    fun getMyNotifications(): Call<ApiResponse<List<NotificationDto>>>
+    
+    @GET("notifications/paged")
+    fun getMyNotificationsPaged(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<NotificationDto>>>
+    
+    @GET("notifications/unread")
+    fun getUnreadNotifications(): Call<ApiResponse<List<NotificationDto>>>
+    
+    @GET("notifications/unread/count")
+    fun getUnreadNotificationCount(): Call<ApiResponse<Map<String, Long>>>
+    
+    @PUT("notifications/{id}/read")
+    fun markNotificationAsRead(@Path("id") id: Long): Call<ApiResponse<NotificationDto>>
+    
+    @PUT("notifications/read-all")
+    fun markAllNotificationsAsRead(): Call<ApiResponse<Map<String, Int>>>
+    
+    @DELETE("notifications/{id}")
+    fun deleteNotification(@Path("id") id: Long): Call<ApiResponse<String>>
 
     // ==================== CHATBOT ====================
     @POST("chatbot/message")
@@ -317,8 +341,8 @@ interface ApiService {
         @Path("storeId") storeId: Long
     ): Call<ApiResponse<User>>
 
-    @GET("manager/users/{userId}/is-super-manager")
-    fun isSuperManager(@Path("userId") userId: Int): Call<ApiResponse<Boolean>>
+    @GET("manager/users/{userId}/has-stores")
+    fun hasAssignedStores(@Path("userId") userId: Int): Call<ApiResponse<Boolean>>
 
     // ==================== ADMIN APIs ====================
     @POST("admin/drinks")

@@ -36,6 +36,12 @@ data class LiveConversation(
     @SerializedName("managerName")
     val managerName: String?,
     
+    @SerializedName("storeId")
+    val storeId: Long?,
+    
+    @SerializedName("storeName")
+    val storeName: String?,
+    
     @SerializedName("status")
     val status: String,
     
@@ -120,6 +126,12 @@ data class ConversationListItem(
     @SerializedName("userAvatar")
     val userAvatar: String?,
     
+    @SerializedName("storeId")
+    val storeId: Long?,
+    
+    @SerializedName("storeName")
+    val storeName: String?,
+    
     @SerializedName("status")
     val status: String,
     
@@ -145,7 +157,10 @@ data class StartConversationRequest(
     val subject: String?,
     
     @SerializedName("initialMessage")
-    val initialMessage: String?
+    val initialMessage: String?,
+    
+    @SerializedName("storeId")
+    val storeId: Long? // Chi nhánh user chọn để tư vấn
 )
 
 data class SendLiveMessageRequest(

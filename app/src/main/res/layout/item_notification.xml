@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardNotification"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Unread indicator dot -->
+        <View
+            android:id="@+id/viewUnreadIndicator"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/bg_unread_dot"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/ivNotificationIcon"
+            app:layout_constraintBottom_toBottomOf="@id/ivNotificationIcon" />
+
+        <!-- Icon -->
+        <ImageView
+            android:id="@+id/ivNotificationIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:src="@drawable/ic_notification"
+            android:padding="8dp"
+            android:background="@drawable/bg_icon_circle"
+            app:layout_constraintStart_toEndOf="@id/viewUnreadIndicator"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvNotificationTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:text="Tiêu đề thông báo"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintStart_toEndOf="@id/ivNotificationIcon"
+            app:layout_constraintEnd_toStartOf="@id/btnDeleteNotification"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Content -->
+        <TextView
+            android:id="@+id/tvNotificationContent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:text="Nội dung thông báo"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:maxLines="3"
+            android:ellipsize="end"
+            app:layout_constraintStart_toEndOf="@id/ivNotificationIcon"
+            app:layout_constraintEnd_toStartOf="@id/btnDeleteNotification"
+            app:layout_constraintTop_toBottomOf="@id/tvNotificationTitle" />
+
+        <!-- Time -->
+        <TextView
+            android:id="@+id/tvNotificationTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginStart="12dp"
+            android:text="2 giờ trước"
+            android:textColor="@color/text_hint"
+            android:textSize="11sp"
+            app:layout_constraintStart_toEndOf="@id/ivNotificationIcon"
+            app:layout_constraintTop_toBottomOf="@id/tvNotificationContent" />
+
+        <!-- Delete button -->
+        <ImageButton
+            android:id="@+id/btnDeleteNotification"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="Xóa thông báo"
+            app:tint="@color/text_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

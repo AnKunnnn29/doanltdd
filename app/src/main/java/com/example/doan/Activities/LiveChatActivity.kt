@@ -314,20 +314,71 @@ class LiveChatActivity : AppCompatActivity() {
         etMessage.text.clear()
         
         if (conversationId == null) {
-            // Start new conversation
-            startNewConversation(content)
+            // Start new conversation - cần chọn store trước
+            showStoreSelectionDialog(content)
         } else {
             // Send message to existing conversation
             sendMessageToConversation(content)
         }
     }
+    
+    private var allStores = mutableListOf<Store>()
+    private var selectedStoreId: Long? = null
+    
+    private fun showStoreSelectionDialog(initialMessage: String) {
+        if (allStores.isEmpty()) {
+            // Load stores first
+            progressBar.visibility = View.VISIBLE
+            RetrofitClient.getInstance(this).apiService.getStores()
+                .enqueue(object : Callback<ApiResponse<List<Store>>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<List<Store>>>,
+                        response: Response<ApiResponse<List<Store>>>
+                    ) {
+                        progressBar.visibility = View.GONE
+                        if (response.isSuccessful && response.body()?.data != null) {
+                            allStores = response.body()!!.data!!.toMutableList()
+                            displayStoreSelectionDialog(initialMessage)
+                        } else {
+                            Toast.makeText(this@LiveChatActivity, "Không thể tải danh sách chi nhánh", Toast.LENGTH_SHORT).show()
+                        }
+                    }
 
-    private fun startNewConversation(initialMessage: String) {
+                    override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                        progressBar.visibility = View.GONE
+                        Toast.makeText(this@LiveChatActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        } else {
+            displayStoreSelectionDialog(initialMessage)
+        }
+    }
+    
+    private fun displayStoreSelectionDialog(initialMessage: String) {
+        if (allStores.isEmpty()) {
+            Toast.makeText(this, "Không có chi nhánh nào", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val storeNames = allStores.map { "${it.storeName}\n${it.address}" }.toTypedArray()
+        
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("🏪 Chọn chi nhánh để được tư vấn")
+            .setItems(storeNames) { _, which ->
+                selectedStoreId = allStores[which].id.toLong()
+                startNewConversation(initialMessage, selectedStoreId!!)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+    private fun startNewConversation(initialMessage: String, storeId: Long) {
         progressBar.visibility = View.VISIBLE
         
         val request = StartConversationRequest(
             subject = "Hỗ trợ khách hàng",
-            initialMessage = initialMessage
+            initialMessage = initialMessage,
+            storeId = storeId
         )
         
         RetrofitClient.getInstance(this).apiService.startLiveConversation(request)
