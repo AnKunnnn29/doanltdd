@@ -113,6 +113,22 @@ class NotificationActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
             }
+            NotificationType.LIVE_CHAT -> {
+                // Mở màn hình Live Chat
+                notification.relatedId?.let { conversationId ->
+                    val intent = Intent(this, LiveChatActivity::class.java)
+                    intent.putExtra("conversationId", conversationId)
+                    startActivity(intent)
+                }
+            }
+            NotificationType.GROUP_CHAT -> {
+                // Mở màn hình Group Chat
+                notification.relatedId?.let { groupOrderId ->
+                    val intent = Intent(this, GroupChatActivity::class.java)
+                    intent.putExtra("groupOrderId", groupOrderId)
+                    startActivity(intent)
+                }
+            }
             NotificationType.PROMOTION -> {
                 // Có thể mở màn hình voucher
             }

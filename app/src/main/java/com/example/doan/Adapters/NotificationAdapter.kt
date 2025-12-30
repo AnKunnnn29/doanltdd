@@ -52,6 +52,8 @@ class NotificationAdapter(
             NotificationType.PROMOTION -> R.drawable.ic_promotion
             NotificationType.SYSTEM -> R.drawable.ic_system_notification
             NotificationType.CUSTOM -> R.drawable.ic_notification
+            NotificationType.LIVE_CHAT -> R.drawable.ic_support_agent
+            NotificationType.GROUP_CHAT -> R.drawable.ic_group_chat
         }
         holder.ivIcon.setImageResource(iconRes)
         

@@ -45,5 +45,11 @@ enum class NotificationType {
     SYSTEM,              // Thông báo hệ thống
     
     @SerializedName("CUSTOM")
-    CUSTOM               // Thông báo tùy chỉnh từ Manager
+    CUSTOM,              // Thông báo tùy chỉnh từ Manager
+    
+    @SerializedName("LIVE_CHAT")
+    LIVE_CHAT,           // Tin nhắn tư vấn mới
+    
+    @SerializedName("GROUP_CHAT")
+    GROUP_CHAT           // Tin nhắn nhóm mới
 }
