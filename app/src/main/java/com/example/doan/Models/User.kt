@@ -14,5 +14,13 @@ data class User(
     var isBlocked: Boolean = false,
     var createdAt: String? = null,
     var updatedAt: String? = null,
-    var orderCount: Int? = null
+    var orderCount: Int? = null,
+    // Thông tin về stores được quản lý (chỉ cho Manager)
+    var managedStores: List<ManagedStoreInfo>? = null,
+    var isSuperManager: Boolean? = null
+)
+
+data class ManagedStoreInfo(
+    var id: Long = 0,
+    var storeName: String? = null
 )

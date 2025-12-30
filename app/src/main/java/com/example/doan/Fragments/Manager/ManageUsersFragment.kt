@@ -7,9 +7,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -20,9 +22,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.doan.Adapters.UserAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.PageResponse
+import com.example.doan.Models.Store
 import com.example.doan.Models.User
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
 import retrofit2.Call
 import retrofit2.Callback
@@ -40,8 +44,12 @@ class ManageUsersFragment : Fragment() {
     private lateinit var tvTotalUsers: TextView
     private lateinit var tvManagers: TextView
     private lateinit var tvCustomers: TextView
+    
+    private lateinit var sessionManager: SessionManager
+    private var isAdmin = false
 
     private var allUsers = mutableListOf<User>()
+    private var allStores = mutableListOf<Store>()
     private var currentRoleFilter: String? = null
     private var currentPage = 0
 
@@ -51,6 +59,9 @@ class ManageUsersFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_manage_users, container, false)
+        
+        sessionManager = SessionManager(requireContext())
+        isAdmin = sessionManager.isAdmin()
 
         // Initialize views
         rvUsers = view.findViewById(R.id.rv_users)
@@ -78,6 +89,18 @@ class ManageUsersFragment : Fragment() {
             override fun onDeleteUser(user: User) {
                 confirmDeleteUser(user)
             }
+            
+            override fun onPromoteUser(user: User) {
+                showPromoteWithStoreSelectionDialog(user)
+            }
+            
+            override fun onDemoteUser(user: User) {
+                confirmDemoteUser(user)
+            }
+            
+            override fun onManageStores(user: User) {
+                showManageStoresDialog(user)
+            }
         })
         rvUsers.adapter = userAdapter
 
@@ -86,15 +109,14 @@ class ManageUsersFragment : Fragment() {
 
         // Load data
         loadUsers()
+        loadStores()
 
         return view
     }
 
     private fun setupListeners() {
-        // Swipe refresh
         swipeRefresh.setOnRefreshListener { loadUsers() }
 
-        // Search
         etSearchUser.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -103,10 +125,43 @@ class ManageUsersFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Filter
         btnFilterRole.setOnClickListener {
-            Toast.makeText(context, "Lọc theo vai trò - Coming soon", Toast.LENGTH_SHORT).show()
+            showRoleFilterDialog()
         }
+    }
+    
+    private fun showRoleFilterDialog() {
+        val roles = arrayOf("Tất cả", "Khách hàng (USER)", "Quản lý (MANAGER)", "Admin (ADMIN)")
+        val roleValues = arrayOf(null, "USER", "MANAGER", "ADMIN")
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("Lọc theo vai trò")
+            .setItems(roles) { _, which ->
+                currentRoleFilter = roleValues[which]
+                currentPage = 0
+                loadUsers()
+                btnFilterRole.text = if (which == 0) "Lọc vai trò" else roles[which]
+            }
+            .show()
+    }
+    
+    private fun loadStores() {
+        RetrofitClient.getInstance(requireContext()).apiService.getStores()
+            .enqueue(object : Callback<ApiResponse<List<Store>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<Store>>>,
+                    response: Response<ApiResponse<List<Store>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        allStores = response.body()?.data?.toMutableList() ?: mutableListOf()
+                        Log.d(TAG, "Loaded ${allStores.size} stores")
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                    Log.e(TAG, "Error loading stores", t)
+                }
+            })
     }
 
     private fun loadUsers() {
@@ -175,7 +230,11 @@ class ManageUsersFragment : Fragment() {
         var customers = 0
 
         allUsers.forEach { user ->
-            if (user.role == "MANAGER") managers++ else customers++
+            when (user.role) {
+                "MANAGER" -> managers++
+                "ADMIN" -> {}
+                else -> customers++
+            }
         }
 
         tvTotalUsers.text = total.toString()
@@ -222,6 +281,15 @@ class ManageUsersFragment : Fragment() {
     }
     
     private fun showUserDetailDialog(user: User) {
+        val managedStoresText = if (user.role == "MANAGER") {
+            val stores = user.managedStores
+            if (stores.isNullOrEmpty()) {
+                "Quản lý tất cả chi nhánh (Super Manager)"
+            } else {
+                "Chi nhánh: ${stores.joinToString(", ") { it.storeName ?: "N/A" }}"
+            }
+        } else ""
+        
         val info = buildString {
             append("ID: ${user.id}\n")
             append("Tên: ${user.fullName ?: "N/A"}\n")
@@ -230,6 +298,9 @@ class ManageUsersFragment : Fragment() {
             append("SĐT: ${user.phone ?: "N/A"}\n")
             append("Địa chỉ: ${user.address ?: "N/A"}\n")
             append("Vai trò: ${user.role}\n")
+            if (managedStoresText.isNotEmpty()) {
+                append("$managedStoresText\n")
+            }
             append("Hạng: ${user.memberTier ?: "N/A"}\n")
             append("Điểm: ${user.points}\n")
             append("Trạng thái: ${if (user.active) "Hoạt động" else "Không hoạt động"}\n")
@@ -238,11 +309,18 @@ class ManageUsersFragment : Fragment() {
             append("Cập nhật: ${user.updatedAt ?: "N/A"}")
         }
         
-        AlertDialog.Builder(requireContext())
+        val builder = AlertDialog.Builder(requireContext())
             .setTitle("Thông tin người dùng")
             .setMessage(info)
             .setPositiveButton("Đóng", null)
-            .show()
+        
+        if (isAdmin && user.role == "MANAGER") {
+            builder.setNeutralButton("Quản lý chi nhánh") { _, _ ->
+                showManageStoresDialog(user)
+            }
+        }
+        
+        builder.show()
     }
     
     private fun toggleUserBlock(user: User) {
@@ -274,7 +352,7 @@ class ManageUsersFragment : Fragment() {
                         if (apiResponse.success) {
                             val message = if (blocked) "Đã khóa tài khoản" else "Đã mở khóa tài khoản"
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            loadUsers() // Reload list
+                            loadUsers()
                         } else {
                             Toast.makeText(context, "Lỗi: ${apiResponse.message}", Toast.LENGTH_SHORT).show()
                         }
@@ -318,7 +396,7 @@ class ManageUsersFragment : Fragment() {
                         
                         if (apiResponse.success) {
                             Toast.makeText(context, "Đã xóa tài khoản thành công", Toast.LENGTH_SHORT).show()
-                            loadUsers() // Reload list
+                            loadUsers()
                         } else {
                             Toast.makeText(context, "Lỗi: ${apiResponse.message}", Toast.LENGTH_SHORT).show()
                         }
@@ -332,6 +410,259 @@ class ManageUsersFragment : Fragment() {
                 override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
                     showLoading(false)
                     Log.e(TAG, "Error deleting user", t)
+                    Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    
+    // ==================== PROMOTE USER WITH STORE SELECTION ====================
+    
+    private fun showPromoteWithStoreSelectionDialog(user: User) {
+        if (allStores.isEmpty()) {
+            Toast.makeText(context, "Đang tải danh sách chi nhánh...", Toast.LENGTH_SHORT).show()
+            loadStores()
+            return
+        }
+        
+        val selectedStoreIds = mutableSetOf<Int>()
+        
+        val scrollView = ScrollView(requireContext())
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 16)
+        }
+        
+        val descText = TextView(requireContext()).apply {
+            text = "Chọn chi nhánh để \"${user.fullName}\" quản lý:\n(Không chọn = Quản lý tất cả)"
+            setPadding(0, 0, 0, 24)
+        }
+        container.addView(descText)
+        
+        allStores.forEach { store ->
+            val checkBox = CheckBox(requireContext()).apply {
+                text = "${store.storeName}\n${store.address}"
+                tag = store.id
+                setPadding(0, 8, 0, 8)
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        selectedStoreIds.add(store.id)
+                    } else {
+                        selectedStoreIds.remove(store.id)
+                    }
+                }
+            }
+            container.addView(checkBox)
+        }
+        
+        scrollView.addView(container)
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("🎉 Nâng cấp lên Manager")
+            .setView(scrollView)
+            .setPositiveButton("Nâng cấp") { _, _ ->
+                performPromoteUserWithStores(user.id, selectedStoreIds.map { it.toLong() })
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    private fun performPromoteUserWithStores(userId: Int, storeIds: List<Long>) {
+        Log.d(TAG, "Promoting user $userId to Manager with stores: $storeIds")
+        showLoading(true)
+        
+        RetrofitClient.getInstance(requireContext()).apiService.promoteToManager(userId)
+            .enqueue(object : Callback<ApiResponse<User>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<User>>,
+                    response: Response<ApiResponse<User>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        if (storeIds.isNotEmpty()) {
+                            assignStoresToManager(userId, storeIds)
+                        } else {
+                            showLoading(false)
+                            Toast.makeText(context, "🎉 Đã nâng cấp thành Manager (quản lý tất cả)!", Toast.LENGTH_SHORT).show()
+                            loadUsers()
+                        }
+                    } else {
+                        showLoading(false)
+                        val errorMsg = response.body()?.message ?: "Không thể nâng cấp tài khoản"
+                        Toast.makeText(context, "Lỗi: $errorMsg", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<User>>, t: Throwable) {
+                    showLoading(false)
+                    Log.e(TAG, "Error promoting user", t)
+                    Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    private fun assignStoresToManager(userId: Int, storeIds: List<Long>) {
+        RetrofitClient.getInstance(requireContext()).apiService.assignStoresToManager(userId, storeIds)
+            .enqueue(object : Callback<ApiResponse<User>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<User>>,
+                    response: Response<ApiResponse<User>>
+                ) {
+                    showLoading(false)
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        Toast.makeText(context, "🎉 Đã nâng cấp thành Manager và gán ${storeIds.size} chi nhánh!", Toast.LENGTH_SHORT).show()
+                        loadUsers()
+                    } else {
+                        Toast.makeText(context, "Đã nâng cấp nhưng không thể gán chi nhánh", Toast.LENGTH_SHORT).show()
+                        loadUsers()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<User>>, t: Throwable) {
+                    showLoading(false)
+                    Log.e(TAG, "Error assigning stores", t)
+                    Toast.makeText(context, "Đã nâng cấp nhưng lỗi gán chi nhánh", Toast.LENGTH_SHORT).show()
+                    loadUsers()
+                }
+            })
+    }
+    
+    // ==================== MANAGE STORES FOR EXISTING MANAGER ====================
+    
+    private fun showManageStoresDialog(user: User) {
+        if (allStores.isEmpty()) {
+            Toast.makeText(context, "Đang tải danh sách chi nhánh...", Toast.LENGTH_SHORT).show()
+            loadStores()
+            return
+        }
+        
+        val currentStoreIds = user.managedStores?.map { it.id.toInt() } ?: emptyList()
+        val selectedStoreIds = currentStoreIds.toMutableSet()
+        
+        val scrollView = ScrollView(requireContext())
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 16)
+        }
+        
+        val currentStatus = if (currentStoreIds.isEmpty()) {
+            "Hiện tại: Quản lý tất cả chi nhánh (Super Manager)"
+        } else {
+            "Hiện tại: Quản lý ${currentStoreIds.size} chi nhánh"
+        }
+        val descText = TextView(requireContext()).apply {
+            text = "$currentStatus\n\nChọn chi nhánh để \"${user.fullName}\" quản lý:\n(Không chọn = Quản lý tất cả)"
+            setPadding(0, 0, 0, 24)
+        }
+        container.addView(descText)
+        
+        allStores.forEach { store ->
+            val checkBox = CheckBox(requireContext()).apply {
+                text = "${store.storeName}\n${store.address}"
+                tag = store.id
+                isChecked = currentStoreIds.contains(store.id)
+                setPadding(0, 8, 0, 8)
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        selectedStoreIds.add(store.id)
+                    } else {
+                        selectedStoreIds.remove(store.id)
+                    }
+                }
+            }
+            container.addView(checkBox)
+        }
+        
+        scrollView.addView(container)
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("🏪 Quản lý chi nhánh")
+            .setView(scrollView)
+            .setPositiveButton("Lưu") { _, _ ->
+                updateManagerStores(user.id, selectedStoreIds.map { it.toLong() })
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    private fun updateManagerStores(userId: Int, storeIds: List<Long>) {
+        Log.d(TAG, "Updating stores for manager $userId: $storeIds")
+        showLoading(true)
+        
+        RetrofitClient.getInstance(requireContext()).apiService.assignStoresToManager(userId, storeIds)
+            .enqueue(object : Callback<ApiResponse<User>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<User>>,
+                    response: Response<ApiResponse<User>>
+                ) {
+                    showLoading(false)
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val msg = if (storeIds.isEmpty()) {
+                            "Đã cập nhật: Quản lý tất cả chi nhánh"
+                        } else {
+                            "Đã cập nhật: Quản lý ${storeIds.size} chi nhánh"
+                        }
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        loadUsers()
+                    } else {
+                        val errorMsg = response.body()?.message ?: "Không thể cập nhật chi nhánh"
+                        Toast.makeText(context, "Lỗi: $errorMsg", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<User>>, t: Throwable) {
+                    showLoading(false)
+                    Log.e(TAG, "Error updating stores", t)
+                    Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    // ==================== DEMOTE USER ====================
+    
+    private fun confirmDemoteUser(user: User) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("⚠️ Hạ cấp xuống User")
+            .setMessage("Bạn có chắc muốn hạ cấp \"${user.fullName}\" xuống User thường?\n\nNgười này sẽ mất quyền quản lý tất cả chi nhánh.")
+            .setPositiveButton("Hạ cấp") { _, _ ->
+                performDemoteUser(user.id)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    private fun performDemoteUser(userId: Int) {
+        Log.d(TAG, "Demoting user $userId to User")
+        showLoading(true)
+        
+        RetrofitClient.getInstance(requireContext()).apiService.demoteToUser(userId)
+            .enqueue(object : Callback<ApiResponse<User>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<User>>,
+                    response: Response<ApiResponse<User>>
+                ) {
+                    showLoading(false)
+                    
+                    if (response.isSuccessful && response.body() != null) {
+                        val apiResponse = response.body()!!
+                        
+                        if (apiResponse.success) {
+                            Toast.makeText(context, "Đã hạ cấp xuống User thành công", Toast.LENGTH_SHORT).show()
+                            loadUsers()
+                        } else {
+                            Toast.makeText(context, "Lỗi: ${apiResponse.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e(TAG, "Demote error: $errorBody")
+                        Toast.makeText(context, "Không thể hạ cấp tài khoản", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<User>>, t: Throwable) {
+                    showLoading(false)
+                    Log.e(TAG, "Error demoting user", t)
                     Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })

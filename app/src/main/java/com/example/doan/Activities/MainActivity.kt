@@ -61,9 +61,9 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
             val sessionManager = SessionManager(this)
 
-            // YÊU CẦU: Chuyển hướng người dùng quản lý sang màn hình riêng.
-            if (sessionManager.isLoggedIn() && sessionManager.isManager()) {
-                Log.d(TAG, "Manager detected, redirecting to ManagerActivity")
+            // YÊU CẦU: Chuyển hướng người dùng quản lý (MANAGER hoặc ADMIN) sang màn hình riêng.
+            if (sessionManager.isLoggedIn() && (sessionManager.isManager() || sessionManager.isAdmin())) {
+                Log.d(TAG, "Manager/Admin detected (role: ${sessionManager.getRole()}), redirecting to ManagerActivity")
                 startActivity(Intent(this, ManagerActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                 })

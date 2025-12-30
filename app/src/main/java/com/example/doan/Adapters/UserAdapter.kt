@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Models.User
 import com.example.doan.R
+import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
@@ -19,6 +20,8 @@ class UserAdapter(
 ) : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     private var listener: OnUserActionListener? = null
+    private val sessionManager = SessionManager(context)
+    private val isCurrentUserAdmin = sessionManager.isAdmin()
 
     // Màu avatar dựa trên tên
     private val avatarColors = listOf(
@@ -39,6 +42,9 @@ class UserAdapter(
         fun onViewUser(user: User)
         fun onToggleUserStatus(user: User)
         fun onDeleteUser(user: User)
+        fun onPromoteUser(user: User)
+        fun onDemoteUser(user: User)
+        fun onManageStores(user: User)
     }
 
     fun setOnUserActionListener(listener: OnUserActionListener) {
@@ -90,6 +96,9 @@ class UserAdapter(
         private val btnViewUser: MaterialButton = itemView.findViewById(R.id.btn_view_user)
         private val btnToggleStatus: MaterialButton = itemView.findViewById(R.id.btn_toggle_status)
         private val btnDeleteUser: MaterialButton = itemView.findViewById(R.id.btn_delete_user)
+        private val btnPromoteUser: MaterialButton = itemView.findViewById(R.id.btn_promote_user)
+        private val layoutManageStores: View = itemView.findViewById(R.id.layout_manage_stores)
+        private val btnManageStores: MaterialButton = itemView.findViewById(R.id.btn_manage_stores)
 
         fun bind(user: User) {
             val displayName = user.fullName ?: user.username ?: "User"
@@ -125,8 +134,13 @@ class UserAdapter(
             tvOrderCount.text = "${user.orderCount ?: 0} đơn"
 
             // Role chip với màu sắc
+            val managedStoresInfo = if (user.role == "MANAGER") {
+                val stores = user.managedStores
+                if (stores.isNullOrEmpty()) " (Tất cả)" else " (${stores.size} CN)"
+            } else ""
+            
             chipUserRole.text = when (user.role) {
-                "MANAGER" -> "Quản lý"
+                "MANAGER" -> "Quản lý$managedStoresInfo"
                 "ADMIN" -> "Admin"
                 else -> "Khách hàng"
             }
@@ -146,40 +160,96 @@ class UserAdapter(
                 }
             }
 
-            // Status button
-            if (user.isBlocked) {
-                btnToggleStatus.text = "Mở khóa"
-                btnToggleStatus.setIconResource(R.drawable.ic_lock_open)
-                btnToggleStatus.setTextColor(context.getColor(R.color.success))
-                btnToggleStatus.setIconTintResource(R.color.success)
-                btnToggleStatus.setStrokeColorResource(R.color.success)
-                itemView.alpha = 0.7f
+            // Status button - ẩn nếu là ADMIN (không được khóa Admin)
+            if (user.role == "ADMIN") {
+                btnToggleStatus.visibility = View.GONE
             } else {
-                btnToggleStatus.text = "Khóa tài khoản"
-                btnToggleStatus.setIconResource(R.drawable.ic_lock)
-                btnToggleStatus.setTextColor(context.getColor(R.color.error))
-                btnToggleStatus.setIconTintResource(R.color.error)
-                btnToggleStatus.setStrokeColorResource(R.color.error)
-                itemView.alpha = 1.0f
+                btnToggleStatus.visibility = View.VISIBLE
+                if (user.isBlocked) {
+                    btnToggleStatus.text = "Mở khóa"
+                    btnToggleStatus.setIconResource(R.drawable.ic_lock_open)
+                    btnToggleStatus.setTextColor(context.getColor(R.color.success))
+                    btnToggleStatus.setIconTintResource(R.color.success)
+                    btnToggleStatus.setStrokeColorResource(R.color.success)
+                    itemView.alpha = 0.7f
+                } else {
+                    btnToggleStatus.text = "Khóa"
+                    btnToggleStatus.setIconResource(R.drawable.ic_lock)
+                    btnToggleStatus.setTextColor(context.getColor(R.color.error))
+                    btnToggleStatus.setIconTintResource(R.color.error)
+                    btnToggleStatus.setStrokeColorResource(R.color.error)
+                    itemView.alpha = 1.0f
+                }
+                btnToggleStatus.setOnClickListener {
+                    listener?.onToggleUserStatus(user)
+                }
             }
 
             // Click listeners
             btnViewUser.setOnClickListener {
                 listener?.onViewUser(user)
             }
-
-            btnToggleStatus.setOnClickListener {
-                listener?.onToggleUserStatus(user)
+            
+            // Delete button - chỉ ADMIN mới xóa được MANAGER, không ai xóa được ADMIN
+            when {
+                user.role == "ADMIN" -> {
+                    // Không ai được xóa ADMIN
+                    btnDeleteUser.visibility = View.GONE
+                }
+                user.role == "MANAGER" && !isCurrentUserAdmin -> {
+                    // Manager không được xóa Manager khác
+                    btnDeleteUser.visibility = View.GONE
+                }
+                else -> {
+                    btnDeleteUser.visibility = View.VISIBLE
+                    btnDeleteUser.setOnClickListener {
+                        listener?.onDeleteUser(user)
+                    }
+                }
             }
             
-            // Delete button - ẩn nếu là MANAGER
-            if (user.role == "MANAGER") {
-                btnDeleteUser.visibility = View.GONE
-            } else {
-                btnDeleteUser.visibility = View.VISIBLE
-                btnDeleteUser.setOnClickListener {
-                    listener?.onDeleteUser(user)
+            // Promote/Demote button - CHỈ ADMIN mới thấy
+            if (isCurrentUserAdmin && user.role != "ADMIN") {
+                btnPromoteUser.visibility = View.VISIBLE
+                
+                if (user.role == "MANAGER") {
+                    btnPromoteUser.text = "Hạ cấp"
+                    btnPromoteUser.setIconResource(R.drawable.ic_arrow_down)
+                    btnPromoteUser.setTextColor(context.getColor(R.color.warning))
+                    btnPromoteUser.setIconTintResource(R.color.warning)
+                    btnPromoteUser.setStrokeColorResource(R.color.warning)
+                    btnPromoteUser.setOnClickListener {
+                        listener?.onDemoteUser(user)
+                    }
+                } else {
+                    btnPromoteUser.text = "Nâng cấp Manager"
+                    btnPromoteUser.setIconResource(R.drawable.ic_arrow_up)
+                    btnPromoteUser.setTextColor(context.getColor(R.color.success))
+                    btnPromoteUser.setIconTintResource(R.color.success)
+                    btnPromoteUser.setStrokeColorResource(R.color.success)
+                    btnPromoteUser.setOnClickListener {
+                        listener?.onPromoteUser(user)
+                    }
                 }
+            } else {
+                // Manager không thấy nút promote/demote
+                btnPromoteUser.visibility = View.GONE
+            }
+            
+            // Manage Stores button - CHỈ ADMIN mới thấy và chỉ cho MANAGER
+            if (isCurrentUserAdmin && user.role == "MANAGER") {
+                layoutManageStores.visibility = View.VISIBLE
+                val storeCount = user.managedStores?.size ?: 0
+                btnManageStores.text = if (storeCount > 0) {
+                    "Quản lý chi nhánh ($storeCount)"
+                } else {
+                    "Gán chi nhánh"
+                }
+                btnManageStores.setOnClickListener {
+                    listener?.onManageStores(user)
+                }
+            } else {
+                layoutManageStores.visibility = View.GONE
             }
             
             // Card click

@@ -35,22 +35,23 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manager)
 
-        // Check if user is manager
+        // Check if user is manager or admin
         sessionManager = SessionManager(this)
-        if (!sessionManager.isManager()) {
+        if (!sessionManager.isManager() && !sessionManager.isAdmin()) {
             Toast.makeText(this, "Bạn không có quyền truy cập!", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
         }
 
-        // Setup UI
+        // Setup UI - hiển thị role phù hợp
         val userNameTextView = findViewById<TextView>(R.id.manager_user_name)
         val fullName = sessionManager.getFullName()
+        val roleLabel = if (sessionManager.isAdmin()) "Admin" else "Manager"
         userNameTextView.text = if (!fullName.isNullOrEmpty()) {
-            "Hi, $fullName (Manager)"
+            "Hi, $fullName ($roleLabel)"
         } else {
-            "Hi, Manager"
+            "Hi, $roleLabel"
         }
 
         // Setup Forecast/Warning Button với animation

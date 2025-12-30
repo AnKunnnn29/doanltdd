@@ -286,6 +286,40 @@ interface ApiService {
     @DELETE("manager/users/{userId}")
     fun deleteUser(@Path("userId") userId: Int): Call<ApiResponse<String>>
 
+    @PUT("manager/users/{userId}/promote")
+    fun promoteToManager(@Path("userId") userId: Int): Call<ApiResponse<User>>
+
+    @PUT("manager/users/{userId}/demote")
+    fun demoteToUser(@Path("userId") userId: Int): Call<ApiResponse<User>>
+
+    // ==================== MANAGER STORE ASSIGNMENT ====================
+    @GET("manager/my-stores")
+    fun getMyManagedStores(): Call<ApiResponse<List<Store>>>
+
+    @GET("manager/users/{userId}/stores")
+    fun getManagedStores(@Path("userId") userId: Int): Call<ApiResponse<List<Store>>>
+
+    @POST("manager/users/{userId}/stores/{storeId}")
+    fun assignStoreToManager(
+        @Path("userId") userId: Int,
+        @Path("storeId") storeId: Long
+    ): Call<ApiResponse<User>>
+
+    @PUT("manager/users/{userId}/stores")
+    fun assignStoresToManager(
+        @Path("userId") userId: Int,
+        @Body storeIds: List<Long>
+    ): Call<ApiResponse<User>>
+
+    @DELETE("manager/users/{userId}/stores/{storeId}")
+    fun removeStoreFromManager(
+        @Path("userId") userId: Int,
+        @Path("storeId") storeId: Long
+    ): Call<ApiResponse<User>>
+
+    @GET("manager/users/{userId}/is-super-manager")
+    fun isSuperManager(@Path("userId") userId: Int): Call<ApiResponse<Boolean>>
+
     // ==================== ADMIN APIs ====================
     @POST("admin/drinks")
     fun createDrink(@Body drink: Drink): Call<ApiResponse<Drink>>

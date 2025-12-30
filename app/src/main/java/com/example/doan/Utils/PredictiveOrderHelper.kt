@@ -26,6 +26,7 @@ class PredictiveOrderHelper(private val context: Context) {
         private const val KEY_LAST_SHOWN = "last_shown_time"
         private const val KEY_DISMISSED_COUNT = "dismissed_count"
         private const val KEY_LAST_DISMISSED_DRINK = "last_dismissed_drink"
+        private const val KEY_LAST_SESSION_ID = "last_session_id"
         
         // Không hiển thị lại trong vòng 2 giờ nếu user đã dismiss
         private const val MIN_INTERVAL_HOURS = 2L
@@ -35,6 +36,13 @@ class PredictiveOrderHelper(private val context: Context) {
         // Session-based flag: Tắt trong phiên hiện tại (reset khi tắt app)
         @Volatile
         private var disabledForSession = false
+        
+        // Flag để tránh gọi API nhiều lần trong cùng 1 session
+        @Volatile
+        private var hasCheckedThisSession = false
+        
+        // Session ID để track phiên hiện tại
+        private val currentSessionId = System.currentTimeMillis()
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
