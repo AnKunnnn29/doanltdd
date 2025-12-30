@@ -160,28 +160,36 @@ class UserAdapter(
                 }
             }
 
-            // Status button - ẩn nếu là ADMIN (không được khóa Admin)
-            if (user.role == "ADMIN") {
-                btnToggleStatus.visibility = View.GONE
-            } else {
-                btnToggleStatus.visibility = View.VISIBLE
-                if (user.isBlocked) {
-                    btnToggleStatus.text = "Mở khóa"
-                    btnToggleStatus.setIconResource(R.drawable.ic_lock_open)
-                    btnToggleStatus.setTextColor(context.getColor(R.color.success))
-                    btnToggleStatus.setIconTintResource(R.color.success)
-                    btnToggleStatus.setStrokeColorResource(R.color.success)
-                    itemView.alpha = 0.7f
-                } else {
-                    btnToggleStatus.text = "Khóa"
-                    btnToggleStatus.setIconResource(R.drawable.ic_lock)
-                    btnToggleStatus.setTextColor(context.getColor(R.color.error))
-                    btnToggleStatus.setIconTintResource(R.color.error)
-                    btnToggleStatus.setStrokeColorResource(R.color.error)
-                    itemView.alpha = 1.0f
+            // Status button - ẩn nếu là ADMIN hoặc Manager không được khóa Manager khác
+            when {
+                user.role == "ADMIN" -> {
+                    // Không ai được khóa ADMIN
+                    btnToggleStatus.visibility = View.GONE
                 }
-                btnToggleStatus.setOnClickListener {
-                    listener?.onToggleUserStatus(user)
+                user.role == "MANAGER" && !isCurrentUserAdmin -> {
+                    // Manager không được khóa Manager khác
+                    btnToggleStatus.visibility = View.GONE
+                }
+                else -> {
+                    btnToggleStatus.visibility = View.VISIBLE
+                    if (user.isBlocked) {
+                        btnToggleStatus.text = "Mở khóa"
+                        btnToggleStatus.setIconResource(R.drawable.ic_lock_open)
+                        btnToggleStatus.setTextColor(context.getColor(R.color.success))
+                        btnToggleStatus.setIconTintResource(R.color.success)
+                        btnToggleStatus.setStrokeColorResource(R.color.success)
+                        itemView.alpha = 0.7f
+                    } else {
+                        btnToggleStatus.text = "Khóa"
+                        btnToggleStatus.setIconResource(R.drawable.ic_lock)
+                        btnToggleStatus.setTextColor(context.getColor(R.color.error))
+                        btnToggleStatus.setIconTintResource(R.color.error)
+                        btnToggleStatus.setStrokeColorResource(R.color.error)
+                        itemView.alpha = 1.0f
+                    }
+                    btnToggleStatus.setOnClickListener {
+                        listener?.onToggleUserStatus(user)
+                    }
                 }
             }
 

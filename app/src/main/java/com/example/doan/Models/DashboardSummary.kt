@@ -22,7 +22,14 @@ data class DashboardSummary(
     var canceledOrders: Long = 0,
     
     @SerializedName("topSellingDrinks")
-    var topSellingDrinks: List<TopSellingDrink>? = null
+    var topSellingDrinks: List<TopSellingDrink>? = null,
+    
+    // Thông tin stores được quản lý (cho Manager)
+    @SerializedName("managedStores")
+    var managedStores: List<ManagedStoreInfo>? = null,
+    
+    @SerializedName("isAdmin")
+    var isAdmin: Boolean? = false
 ) : Serializable {
     
     data class TopSellingDrink(
@@ -34,5 +41,16 @@ data class DashboardSummary(
         
         @SerializedName("revenue")
         val revenue: BigDecimal = BigDecimal.ZERO
+    ) : Serializable
+    
+    data class ManagedStoreInfo(
+        @SerializedName("id")
+        val id: Long = 0,
+        
+        @SerializedName("storeName")
+        val storeName: String? = null,
+        
+        @SerializedName("address")
+        val address: String? = null
     ) : Serializable
 }
