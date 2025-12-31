@@ -32,8 +32,8 @@
         android:id="@+id/btn_select_image"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginBottom="24dp"
-        android:text="Chọn ảnh sản phẩm"
+        android:layout_marginBottom="8dp"
+        android:text="Chọn ảnh từ thiết bị"
         android:textStyle="bold"
         android:textColor="@color/wine_primary"
         app:icon="@android:drawable/ic_menu_camera"
@@ -43,6 +43,19 @@
         app:strokeWidth="1dp"
         app:cornerRadius="28dp"
         style="@style/Widget.Material3.Button.OutlinedButton" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_upload_image"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="24dp"
+        android:text="📤 Upload ảnh lên server"
+        android:textStyle="bold"
+        android:textColor="@color/wine_light_surface"
+        android:backgroundTint="@color/wine_accent"
+        app:cornerRadius="28dp"
+        app:elevation="4dp"
+        android:visibility="gone" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -153,7 +166,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:hint="URL ảnh"
+        android:hint="URL ảnh (hoặc upload ở trên)"
+        app:helperText="Nhập URL trực tiếp hoặc chọn ảnh rồi upload"
+        app:helperTextEnabled="true"
         app:hintTextColor="@color/wine_primary"
         app:boxStrokeColor="@color/wine_primary"
         app:startIconDrawable="@android:drawable/ic_menu_gallery"

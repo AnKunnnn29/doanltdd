@@ -19,14 +19,21 @@ import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
+import java.io.FileOutputStream
 
 class AddEditDrinkActivity : AppCompatActivity() {
 
     private lateinit var imgDrink: ImageView
     private lateinit var btnSelectImage: MaterialButton
+    private lateinit var btnUploadImage: MaterialButton
     private lateinit var editName: TextInputEditText
     private lateinit var editDescription: TextInputEditText
     private lateinit var editPrice: TextInputEditText
@@ -67,6 +74,7 @@ class AddEditDrinkActivity : AppCompatActivity() {
     private fun initViews() {
         imgDrink = findViewById(R.id.img_drink)
         btnSelectImage = findViewById(R.id.btn_select_image)
+        btnUploadImage = findViewById(R.id.btn_upload_image)
         editName = findViewById(R.id.edit_name)
         editDescription = findViewById(R.id.edit_description)
         editPrice = findViewById(R.id.edit_price)
@@ -80,6 +88,14 @@ class AddEditDrinkActivity : AppCompatActivity() {
     private fun setupListeners() {
         btnSelectImage.setOnClickListener {
             openImagePicker()
+        }
+        
+        btnUploadImage.setOnClickListener {
+            if (selectedImageUri != null) {
+                uploadSelectedImage()
+            } else {
+                Toast.makeText(this, "Vui lòng chọn ảnh trước", Toast.LENGTH_SHORT).show()
+            }
         }
 
         btnCancel.setOnClickListener {
@@ -161,9 +177,95 @@ class AddEditDrinkActivity : AppCompatActivity() {
             data?.data?.let { uri ->
                 selectedImageUri = uri
                 imgDrink.setImageURI(uri)
-                // For now, we'll use the URL from editImageUrl
-                // In production, you'd upload the image to a server
+                // Hiện nút upload khi đã chọn ảnh
+                btnUploadImage.visibility = View.VISIBLE
+                Toast.makeText(this, "Đã chọn ảnh. Nhấn 'Upload ảnh' để tải lên server", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+    
+    /**
+     * Upload ảnh đã chọn lên server
+     */
+    private fun uploadSelectedImage() {
+        val uri = selectedImageUri ?: return
+        
+        showLoading(true)
+        
+        try {
+            // Tạo file tạm từ Uri
+            val inputStream = contentResolver.openInputStream(uri)
+            val tempFile = File.createTempFile("drink_image", ".jpg", cacheDir)
+            val outputStream = FileOutputStream(tempFile)
+            inputStream?.copyTo(outputStream)
+            inputStream?.close()
+            outputStream.close()
+            
+            // Tạo MultipartBody.Part
+            val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
+            val imagePart = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
+            
+            // Lấy tên drink để đặt tên file
+            val drinkName = editName.text.toString().trim().ifEmpty { "drink" }
+            val drinkNameBody = drinkName.toRequestBody("text/plain".toMediaTypeOrNull())
+            
+            // Gọi API upload
+            RetrofitClient.getInstance(this).apiService.uploadDrinkImage(imagePart, drinkNameBody)
+                .enqueue(object : Callback<ApiResponse<Map<String, String>>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<Map<String, String>>>,
+                        response: Response<ApiResponse<Map<String, String>>>
+                    ) {
+                        showLoading(false)
+                        tempFile.delete() // Xóa file tạm
+                        
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            val imageUrl = response.body()?.data?.get("imageUrl")
+                            if (imageUrl != null) {
+                                // Điền URL vào ô nhập
+                                editImageUrl.setText(imageUrl)
+                                currentImageUrl = imageUrl
+                                
+                                // Load ảnh từ URL mới
+                                Glide.with(this@AddEditDrinkActivity)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.ic_image_placeholder)
+                                    .error(R.drawable.ic_broken_image)
+                                    .into(imgDrink)
+                                
+                                Toast.makeText(
+                                    this@AddEditDrinkActivity,
+                                    "Upload ảnh thành công!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                
+                                // Ẩn nút upload sau khi thành công
+                                btnUploadImage.visibility = View.GONE
+                                selectedImageUri = null
+                            }
+                        } else {
+                            Toast.makeText(
+                                this@AddEditDrinkActivity,
+                                "Lỗi upload: ${response.body()?.message ?: response.message()}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                    
+                    override fun onFailure(call: Call<ApiResponse<Map<String, String>>>, t: Throwable) {
+                        showLoading(false)
+                        tempFile.delete()
+                        Toast.makeText(
+                            this@AddEditDrinkActivity,
+                            "Lỗi kết nối: ${t.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                })
+            
+        } catch (e: Exception) {
+            showLoading(false)
+            Toast.makeText(this, "Lỗi xử lý ảnh: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

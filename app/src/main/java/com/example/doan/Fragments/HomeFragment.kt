@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import com.example.doan.Activities.AccountActivity
 import com.example.doan.Activities.CartActivity
 import com.example.doan.Activities.ChatbotActivity
@@ -76,6 +77,16 @@ class HomeFragment : Fragment() {
     private lateinit var fabChatbot: com.google.android.material.card.MaterialCardView
     private lateinit var fabSpinWheel: com.google.android.material.card.MaterialCardView
     private lateinit var fabGroupOrder: com.google.android.material.card.MaterialCardView
+    
+    // Smart Suggestion Card
+    private lateinit var cardSmartSuggestion: MaterialCardView
+    private lateinit var imgSuggestionDrink: ImageView
+    private lateinit var tvSuggestionMessage: TextView
+    private lateinit var tvSuggestionDrinkName: TextView
+    private lateinit var tvSuggestionReason: TextView
+    private lateinit var btnAddSuggestion: com.google.android.material.button.MaterialButton
+    private lateinit var btnCloseSuggestion: ImageView
+    private var currentPredictedDrink: com.example.doan.Models.PredictedDrink? = null
     
     // Seasonal effects
     private var rootContainer: RelativeLayout? = null
@@ -186,28 +197,128 @@ class HomeFragment : Fragment() {
     /**
      * Kiểm tra và hiển thị gợi ý món dự đoán khi mở app
      * Dựa trên lịch sử đặt hàng và thói quen của user
+     * Hiển thị dưới dạng card trên Home thay vì dialog popup
      */
     private fun checkPredictiveOrder() {
         val sessionManager = SessionManager(requireContext())
         if (!sessionManager.isLoggedIn()) {
             Log.d("HomeFragment", "User not logged in, skipping predictive order")
+            cardSmartSuggestion.visibility = View.GONE
             return
         }
         
-        Log.d("HomeFragment", "Checking predictive order for user: ${sessionManager.getUserId()}")
+        Log.d("HomeFragment", "=== CHECKING PREDICTIVE ORDER ===")
+        Log.d("HomeFragment", "User ID: ${sessionManager.getUserId()}")
         
-        val helper = PredictiveOrderHelper(requireContext())
-        // Uncomment dòng dưới để reset và test lại từ đầu
-        // helper.clearPreferences()
+        // Gọi API lấy prediction
+        RetrofitClient.getInstance(requireContext()).apiService.getPredictiveOrder(null)
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.PredictiveOrderResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.PredictiveOrderResponse>>,
+                    response: Response<ApiResponse<com.example.doan.Models.PredictiveOrderResponse>>
+                ) {
+                    if (!isAdded || context == null) {
+                        Log.d("HomeFragment", "Fragment not attached, skipping")
+                        return
+                    }
+                    
+                    Log.d("HomeFragment", "API Response code: ${response.code()}")
+                    Log.d("HomeFragment", "API Response success: ${response.body()?.success}")
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val prediction = response.body()?.data
+                        Log.d("HomeFragment", "Prediction data: hasPrediction=${prediction?.hasPrediction}, message=${prediction?.message}")
+                        Log.d("HomeFragment", "Predicted drink: ${prediction?.predictedDrink?.drinkName}")
+                        
+                        if (prediction != null && prediction.hasPrediction && prediction.predictedDrink != null) {
+                            Log.d("HomeFragment", ">>> SHOWING SMART SUGGESTION CARD <<<")
+                            showSmartSuggestionCard(prediction)
+                        } else {
+                            Log.d("HomeFragment", "No prediction available, hiding card")
+                            cardSmartSuggestion.visibility = View.GONE
+                        }
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("HomeFragment", "Prediction API error: ${response.code()}, body: $errorBody")
+                        cardSmartSuggestion.visibility = View.GONE
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.PredictiveOrderResponse>>, t: Throwable) {
+                    Log.e("HomeFragment", "Prediction API failed: ${t.message}", t)
+                    if (isAdded) {
+                        cardSmartSuggestion.visibility = View.GONE
+                    }
+                }
+            })
+    }
+    
+    /**
+     * Hiển thị card gợi ý thông minh trên Home
+     */
+    private fun showSmartSuggestionCard(prediction: com.example.doan.Models.PredictiveOrderResponse) {
+        val drink = prediction.predictedDrink ?: return
+        currentPredictedDrink = drink
         
-        helper.checkAndShowPrediction(
-            activity = requireActivity() as AppCompatActivity,
-            weather = null, // Có thể tích hợp API thời tiết sau
-            forceShow = true, // Luôn hiển thị gợi ý khi mở app
-            onAddToCart = { predictedDrink ->
+        Log.d("HomeFragment", "showSmartSuggestionCard: ${drink.drinkName}")
+        
+        // Hiển thị card với animation
+        cardSmartSuggestion.visibility = View.VISIBLE
+        cardSmartSuggestion.alpha = 0f
+        cardSmartSuggestion.animate()
+            .alpha(1f)
+            .setDuration(300)
+            .start()
+        
+        // Set message
+        tvSuggestionMessage.text = prediction.message ?: "Có phải bạn muốn gọi lại..."
+        
+        // Set drink name
+        tvSuggestionDrinkName.text = drink.drinkName ?: "Sản phẩm"
+        
+        // Set reason (lấy reason đầu tiên)
+        val reason = prediction.triggerReasons?.firstOrNull() ?: ""
+        tvSuggestionReason.text = reason
+        tvSuggestionReason.visibility = if (reason.isNotEmpty()) View.VISIBLE else View.GONE
+        
+        // Load ảnh sản phẩm
+        Log.d("HomeFragment", "Loading drink image: ${drink.drinkImage}")
+        if (!drink.drinkImage.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(drink.drinkImage)
+                .placeholder(R.drawable.ic_image_placeholder)
+                .error(R.drawable.ic_broken_image)
+                .centerCrop()
+                .into(imgSuggestionDrink)
+        }
+        
+        // Nút thêm vào giỏ
+        btnAddSuggestion.setOnClickListener {
+            currentPredictedDrink?.let { predictedDrink ->
                 addPredictedDrinkToCart(predictedDrink)
+                // Ẩn card sau khi thêm
+                hideSmartSuggestionCard()
             }
-        )
+        }
+        
+        // Nút đóng
+        btnCloseSuggestion.setOnClickListener {
+            hideSmartSuggestionCard()
+        }
+    }
+    
+    /**
+     * Ẩn card gợi ý với animation
+     */
+    private fun hideSmartSuggestionCard() {
+        cardSmartSuggestion.animate()
+            .alpha(0f)
+            .setDuration(200)
+            .withEndAction {
+                cardSmartSuggestion.visibility = View.GONE
+            }
+            .start()
+        currentPredictedDrink = null
     }
     
     /**
@@ -377,6 +488,15 @@ class HomeFragment : Fragment() {
         fabChatbot = view.findViewById(R.id.fab_chatbot)
         fabSpinWheel = view.findViewById(R.id.fab_spin_wheel)
         fabGroupOrder = view.findViewById(R.id.fab_group_order)
+        
+        // Smart Suggestion Card
+        cardSmartSuggestion = view.findViewById(R.id.card_smart_suggestion)
+        imgSuggestionDrink = view.findViewById(R.id.img_suggestion_drink)
+        tvSuggestionMessage = view.findViewById(R.id.tv_suggestion_message)
+        tvSuggestionDrinkName = view.findViewById(R.id.tv_suggestion_drink_name)
+        tvSuggestionReason = view.findViewById(R.id.tv_suggestion_reason)
+        btnAddSuggestion = view.findViewById(R.id.btn_add_suggestion)
+        btnCloseSuggestion = view.findViewById(R.id.btn_close_suggestion)
     }
 
     private fun setupHeader() {

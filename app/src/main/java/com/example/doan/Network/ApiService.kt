@@ -372,6 +372,13 @@ interface ApiService {
 
     @DELETE("admin/drinks/{id}")
     fun deleteDrink(@Path("id") id: Long): Call<ApiResponse<Void>>
+    
+    @Multipart
+    @POST("admin/drinks/upload-image")
+    fun uploadDrinkImage(
+        @Part file: MultipartBody.Part,
+        @Part("drinkName") drinkName: RequestBody
+    ): Call<ApiResponse<Map<String, String>>>
 
     @GET("admin/categories")
     fun getAdminCategories(): Call<ApiResponse<List<Category>>>
