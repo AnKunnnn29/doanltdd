@@ -50,6 +50,16 @@ interface ApiService {
     @POST("chatbot/message")
     fun sendChatMessage(@Body request: ChatRequest): Call<ApiResponse<ChatResponse>>
 
+    // ==================== WEATHER (PUBLIC) ====================
+    @GET("weather")
+    fun getPublicWeather(): Call<ApiResponse<WeatherResponse>>
+    
+    @GET("weather/city")
+    fun getPublicWeatherByCity(
+        @Query("city") city: String,
+        @Query("country") country: String = "VN"
+    ): Call<ApiResponse<WeatherResponse>>
+
     // ==================== LIVE CHAT ====================
     @POST("chat/conversations")
     fun startLiveConversation(@Body request: StartConversationRequest): Call<ApiResponse<LiveConversation>>
@@ -289,6 +299,16 @@ interface ApiService {
     @GET("manager/forecast/overload")
     fun getOverloadWarnings(): Call<ApiResponse<List<OverloadWarning>>>
 
+    // ==================== MANAGER WEATHER APIs ====================
+    @GET("manager/weather")
+    fun getCurrentWeather(): Call<ApiResponse<WeatherResponse>>
+    
+    @GET("manager/weather/city")
+    fun getWeatherByCity(
+        @Query("city") city: String,
+        @Query("country") country: String = "VN"
+    ): Call<ApiResponse<WeatherResponse>>
+
     @GET("manager/orders")
     fun getManagerOrders(
         @Query("status") status: String?,
@@ -423,6 +443,33 @@ interface ApiService {
     
     @DELETE("reviews/{reviewId}")
     fun deleteReview(@Path("reviewId") reviewId: Long): Call<ApiResponse<String>>
+
+    // ==================== MANAGER REVIEW MANAGEMENT ====================
+    @GET("manager/reviews")
+    fun getManagerReviews(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<ReviewManagement>>>
+    
+    @GET("manager/reviews/drink/{drinkId}")
+    fun getManagerReviewsByDrink(
+        @Path("drinkId") drinkId: Long,
+        @Query("includeBackup") includeBackup: Boolean = true,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<ReviewManagement>>>
+    
+    @GET("manager/reviews/drink/{drinkId}/statistics")
+    fun getReviewStatistics(@Path("drinkId") drinkId: Long): Call<ApiResponse<ReviewStatistics>>
+    
+    @GET("manager/reviews/backup")
+    fun getBackupReviews(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<ReviewManagement>>>
+    
+    @DELETE("manager/reviews/{reviewId}")
+    fun deleteReviewByAdmin(@Path("reviewId") reviewId: Long): Call<ApiResponse<String>>
 
     // ==================== LOYALTY / SPIN WHEEL ====================
     @GET("loyalty/points")

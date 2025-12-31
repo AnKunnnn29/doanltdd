@@ -66,17 +66,24 @@ class HomeFragment : Fragment() {
     private lateinit var greetingTextView: TextView
     private lateinit var avatarInitialTextView: TextView
     private lateinit var avatarCard: MaterialCardView
-    private lateinit var cartButton: FrameLayout
-    private lateinit var cartBadge: TextView
     private lateinit var liveChatButton: FrameLayout
     private lateinit var notificationButton: FrameLayout
     private lateinit var notificationBadge: TextView
     private lateinit var deliveryCard: MaterialCardView
     private lateinit var pickupCard: MaterialCardView
-    private lateinit var fabVoiceOrder: com.google.android.material.card.MaterialCardView
-    private lateinit var fabChatbot: com.google.android.material.card.MaterialCardView
-    private lateinit var fabSpinWheel: com.google.android.material.card.MaterialCardView
-    private lateinit var fabGroupOrder: com.google.android.material.card.MaterialCardView
+    private lateinit var fabVoiceOrder: FrameLayout
+    private lateinit var fabChatbot: FrameLayout
+    private lateinit var fabSpinWheel: FrameLayout
+    private lateinit var fabGroupOrder: FrameLayout
+    
+    // Glow ring views for animation
+    private var voiceGlowRing: View? = null
+    private var chatbotGlowRing: View? = null
+    private var spinGlowRing: View? = null
+    private var groupGlowRing: View? = null
+    
+    // Icon views for spin animation
+    private var icSpin: ImageView? = null
     
     // Smart Suggestion Card
     private lateinit var cardSmartSuggestion: MaterialCardView
@@ -91,6 +98,13 @@ class HomeFragment : Fragment() {
     // Seasonal effects
     private var rootContainer: RelativeLayout? = null
     private var snowfallView: SnowfallView? = null
+    
+    // Weather Card (in header)
+    private var weatherCardContainer: LinearLayout? = null
+    private var tvWeatherEmoji: TextView? = null
+    private var tvTemperature: TextView? = null
+    private var tvWeatherDesc: TextView? = null
+    private var currentWeatherData: com.example.doan.Models.WeatherResponse? = null
 
     private lateinit var bannerAdapter: BannerAdapter
     private lateinit var bestSellerAdapter: ProductCarouselAdapter
@@ -136,6 +150,7 @@ class HomeFragment : Fragment() {
         setupBannerCarousel()
         setupRecyclerViews()
         loadData()
+        loadWeather()
         setupViewAllButtons(view)
         setupDeliveryPickupButtons()
         setupVoiceOrder()
@@ -182,7 +197,6 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         startAutoScroll()
-        updateCartBadge()
         updateNotificationBadge()
         
         // Kiểm tra và hiển thị gợi ý thông minh (Predictive Order)
@@ -430,10 +444,9 @@ class HomeFragment : Fragment() {
                             InAppNotification.cartAdded(act, drink.drinkName ?: "Sản phẩm")
                         }
                         
-                        // Update cart badge
+                        // Update cart count in cache
                         val cartItems = response.body()?.data?.items?.size ?: 0
                         DataCache.cartItemCount = cartItems
-                        updateCartBadge()
                     } else {
                         val errorMsg = response.body()?.message ?: "Không thể thêm vào giỏ hàng"
                         val errorBody = response.errorBody()?.string()
@@ -473,8 +486,6 @@ class HomeFragment : Fragment() {
         greetingTextView = view.findViewById(R.id.greeting_text)
         avatarInitialTextView = view.findViewById(R.id.avatar_initial)
         avatarCard = view.findViewById(R.id.avatar_card)
-        cartButton = view.findViewById(R.id.cart_button)
-        cartBadge = view.findViewById(R.id.cart_badge)
         liveChatButton = view.findViewById(R.id.live_chat_button)
         notificationButton = view.findViewById(R.id.notification_button)
         notificationBadge = view.findViewById(R.id.notification_badge)
@@ -489,6 +500,15 @@ class HomeFragment : Fragment() {
         fabSpinWheel = view.findViewById(R.id.fab_spin_wheel)
         fabGroupOrder = view.findViewById(R.id.fab_group_order)
         
+        // Glow ring views
+        voiceGlowRing = view.findViewById(R.id.voice_glow_ring)
+        chatbotGlowRing = view.findViewById(R.id.chatbot_glow_ring)
+        spinGlowRing = view.findViewById(R.id.spin_glow_ring)
+        groupGlowRing = view.findViewById(R.id.group_glow_ring)
+        
+        // Icon views
+        icSpin = view.findViewById(R.id.ic_spin)
+        
         // Smart Suggestion Card
         cardSmartSuggestion = view.findViewById(R.id.card_smart_suggestion)
         imgSuggestionDrink = view.findViewById(R.id.img_suggestion_drink)
@@ -497,6 +517,12 @@ class HomeFragment : Fragment() {
         tvSuggestionReason = view.findViewById(R.id.tv_suggestion_reason)
         btnAddSuggestion = view.findViewById(R.id.btn_add_suggestion)
         btnCloseSuggestion = view.findViewById(R.id.btn_close_suggestion)
+        
+        // Weather Card (in header)
+        weatherCardContainer = view.findViewById(R.id.weather_card_container)
+        tvWeatherEmoji = view.findViewById(R.id.tv_weather_emoji)
+        tvTemperature = view.findViewById(R.id.tv_temperature)
+        tvWeatherDesc = view.findViewById(R.id.tv_weather_desc)
     }
 
     private fun setupHeader() {
@@ -522,11 +548,6 @@ class HomeFragment : Fragment() {
             startActivity(Intent(context, AccountActivity::class.java))
         }
 
-        // Cart button click
-        cartButton.setOnClickListener {
-            startActivity(Intent(context, CartActivity::class.java))
-        }
-
         // Live Chat button click
         liveChatButton.setOnClickListener {
             startActivity(Intent(context, LiveChatActivity::class.java))
@@ -536,9 +557,6 @@ class HomeFragment : Fragment() {
         notificationButton.setOnClickListener {
             startActivity(Intent(context, com.example.doan.Activities.NotificationActivity::class.java))
         }
-
-        // Update cart badge
-        updateCartBadge()
         
         // Update notification badge
         updateNotificationBadge()
@@ -550,16 +568,6 @@ class HomeFragment : Fragment() {
             hour < 12 -> "Chào buổi sáng ☀️"
             hour < 18 -> "Chào buổi chiều 🌤️"
             else -> "Chào buổi tối 🌙"
-        }
-    }
-
-    private fun updateCartBadge() {
-        val cartCount = DataCache.cartItemCount ?: 0
-        if (cartCount > 0) {
-            cartBadge.visibility = View.VISIBLE
-            cartBadge.text = if (cartCount > 99) "99+" else cartCount.toString()
-        } else {
-            cartBadge.visibility = View.GONE
         }
     }
 
@@ -904,34 +912,96 @@ class HomeFragment : Fragment() {
     
     /**
      * Animation bounce-in cho 4 quick action buttons khi mở app
+     * Với hiệu ứng stagger và glow ring pulse
      */
     private fun animateQuickActionsOnStart() {
-        val bounceAnim = android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in)
+        // Stagger animation cho từng button
+        val buttons = listOf(fabVoiceOrder, fabChatbot, fabSpinWheel, fabGroupOrder)
+        val glowRings = listOf(voiceGlowRing, chatbotGlowRing, spinGlowRing, groupGlowRing)
         
-        // Delay khác nhau cho mỗi button để tạo hiệu ứng stagger
-        fabVoiceOrder.postDelayed({
-            fabVoiceOrder.startAnimation(bounceAnim)
-        }, 100)
+        buttons.forEachIndexed { index, button ->
+            button.alpha = 0f
+            button.translationX = 100f
+            
+            button.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration(500)
+                .setStartDelay((index * 100).toLong())
+                .setInterpolator(android.view.animation.OvershootInterpolator(1.5f))
+                .start()
+        }
         
-        fabChatbot.postDelayed({
-            fabChatbot.startAnimation(android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in))
-        }, 200)
+        // Start glow ring pulse animation
+        glowRings.forEachIndexed { index, ring ->
+            ring?.let {
+                it.postDelayed({
+                    startGlowPulseAnimation(it)
+                }, (index * 100 + 500).toLong())
+            }
+        }
         
-        fabSpinWheel.postDelayed({
-            fabSpinWheel.startAnimation(android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in))
-        }, 300)
-        
-        fabGroupOrder.postDelayed({
-            fabGroupOrder.startAnimation(android.view.animation.AnimationUtils.loadAnimation(context, R.anim.bounce_in))
-        }, 400)
+        // Start spin icon rotation animation
+        icSpin?.let { startSpinIconRotation(it) }
     }
     
     /**
-     * Animation pulse khi click button
+     * Glow ring pulse animation - hiệu ứng phát sáng nhẹ
+     */
+    private fun startGlowPulseAnimation(view: View) {
+        val scaleX = android.animation.ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.15f, 1f)
+        val scaleY = android.animation.ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.15f, 1f)
+        val alpha = android.animation.ObjectAnimator.ofFloat(view, "alpha", 0.3f, 0.8f, 0.3f)
+        
+        val animatorSet = android.animation.AnimatorSet()
+        animatorSet.playTogether(scaleX, scaleY, alpha)
+        animatorSet.duration = 2000
+        animatorSet.interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+        animatorSet.addListener(object : android.animation.AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: android.animation.Animator) {
+                if (isAdded && view.isAttachedToWindow) {
+                    animatorSet.start()
+                }
+            }
+        })
+        animatorSet.start()
+    }
+    
+    /**
+     * Spin icon rotation animation - icon vòng quay xoay liên tục
+     */
+    private fun startSpinIconRotation(view: View) {
+        val rotation = android.animation.ObjectAnimator.ofFloat(view, "rotation", 0f, 360f)
+        rotation.duration = 3000
+        rotation.repeatCount = android.animation.ValueAnimator.INFINITE
+        rotation.interpolator = android.view.animation.LinearInterpolator()
+        rotation.start()
+    }
+    
+    /**
+     * Animation scale + bounce khi click button
      */
     private fun animateButtonClick(view: View) {
-        val pulseAnim = android.view.animation.AnimationUtils.loadAnimation(context, R.anim.pulse)
-        view.startAnimation(pulseAnim)
+        view.animate()
+            .scaleX(0.85f)
+            .scaleY(0.85f)
+            .setDuration(100)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1.1f)
+                    .scaleY(1.1f)
+                    .setDuration(150)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(2f))
+                    .withEndAction {
+                        view.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(100)
+                            .start()
+                    }
+                    .start()
+            }
+            .start()
     }
     
     private fun checkActiveGroupOrderAndShow() {
@@ -1059,10 +1129,9 @@ class HomeFragment : Fragment() {
                             Toast.LENGTH_LONG
                         ).show()
                         
-                        // Update cart badge
+                        // Update cart count in cache
                         val cartItems = response.body()?.data?.items?.size ?: 0
                         DataCache.cartItemCount = cartItems
-                        updateCartBadge()
                     } else {
                         Toast.makeText(context, "Khong the them vao gio hang", Toast.LENGTH_SHORT).show()
                     }
@@ -1073,5 +1142,84 @@ class HomeFragment : Fragment() {
                     Toast.makeText(context, "Loi ket noi", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+    
+    /**
+     * Load thời tiết hiện tại và hiển thị trên header
+     */
+    private fun loadWeather() {
+        RetrofitClient.getInstance(requireContext()).apiService.getPublicWeather()
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.WeatherResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.WeatherResponse>>,
+                    response: Response<ApiResponse<com.example.doan.Models.WeatherResponse>>
+                ) {
+                    if (!isAdded || context == null) return
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val weather = response.body()?.data
+                        if (weather != null) {
+                            currentWeatherData = weather
+                            displayWeatherCard(weather)
+                        }
+                    } else {
+                        Log.e("HomeFragment", "Weather API error: ${response.code()}")
+                        weatherCardContainer?.visibility = View.GONE
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.WeatherResponse>>, t: Throwable) {
+                    Log.e("HomeFragment", "Weather API failed: ${t.message}")
+                    if (isAdded) {
+                        weatherCardContainer?.visibility = View.GONE
+                    }
+                }
+            })
+    }
+    
+    /**
+     * Hiển thị thời tiết trên header với card đẹp
+     */
+    private fun displayWeatherCard(weather: com.example.doan.Models.WeatherResponse) {
+        weatherCardContainer?.visibility = View.VISIBLE
+        
+        // Emoji
+        tvWeatherEmoji?.text = getWeatherEmoji(weather.condition)
+        
+        // Temperature
+        tvTemperature?.text = "${weather.temperature?.toInt() ?: "--"}°C"
+        
+        // Description
+        tvWeatherDesc?.text = getWeatherDescription(weather.condition)
+    }
+    
+    /**
+     * Lấy mô tả tiếng Việt cho thời tiết
+     */
+    private fun getWeatherDescription(condition: String?): String {
+        return when (condition?.lowercase()) {
+            "clear" -> "Trời nắng"
+            "clouds" -> "Có mây"
+            "rain", "drizzle" -> "Có mưa"
+            "thunderstorm" -> "Giông bão"
+            "snow" -> "Có tuyết"
+            "mist", "fog", "haze" -> "Sương mù"
+            else -> "Dễ chịu"
+        }
+    }
+    
+    /**
+     * Lấy emoji dựa trên condition
+     */
+    private fun getWeatherEmoji(condition: String?): String {
+        return when (condition?.lowercase()) {
+            "clear" -> "☀️"
+            "clouds" -> "☁️"
+            "rain", "drizzle" -> "🌧️"
+            "thunderstorm" -> "⛈️"
+            "snow" -> "❄️"
+            "mist", "fog", "haze" -> "🌫️"
+            else -> "🌤️"
+        }
     }
 }

@@ -1,89 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center">
+    android:layout_margin="24dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="16dp">
 
-    <TextView
-        android:id="@+id/tvResultTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🎉 Chúc mừng!"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/wine_primary" />
-
-    <TextView
-        android:id="@+id/tvResultMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Bạn nhận được voucher giảm 50%"
-        android:textSize="16sp"
-        android:textColor="@color/black"
-        android:gravity="center" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Mã voucher của bạn:"
-        android:textSize="14sp"
-        android:textColor="@color/gray" />
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@color/wine_neutral_light">
-
-        <TextView
-            android:id="@+id/tvResultVoucherCode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="12dp"
-            android:text="ABC123XYZ0"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/wine_primary"
-            android:fontFamily="monospace"
-            android:letterSpacing="0.1" />
-
-    </androidx.cardview.widget.CardView>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCopyCode"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="📋 Copy mã"
-        android:textSize="14sp"
-        app:cornerRadius="20dp"
-        app:strokeColor="@color/wine_primary" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Nhập mã này khi thanh toán để được giảm giá"
-        android:textSize="12sp"
-        android:textColor="@color/gray"
-        android:gravity="center" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCloseResult"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Đóng"
-        android:backgroundTint="@color/wine_primary"
-        app:cornerRadius="24dp" />
+        android:gravity="center"
+        android:orientation="vertical">
 
-</LinearLayout>
+        <!-- Header với confetti effect -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_spin_result_header">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="32dp"
+                android:paddingBottom="24dp">
+
+                <!-- Animated emoji -->
+                <TextView
+                    android:id="@+id/tvResultEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎉"
+                    android:textSize="56sp" />
+
+                <TextView
+                    android:id="@+id/tvResultTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Chúc mừng!"
+                    android:textColor="@color/white"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/tvResultMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Bạn nhận được voucher giảm 50%"
+                android:textColor="@color/wine_dark_background"
+                android:textSize="17sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="🎁 Mã voucher của bạn"
+                android:textColor="@color/wine_neutral_dark"
+                android:textSize="14sp" />
+
+            <!-- Voucher code card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="#FFF8E1"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#FFB300"
+                app:strokeWidth="2dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏷️"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tvResultVoucherCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:fontFamily="monospace"
+                        android:letterSpacing="0.15"
+                        android:text="ABC123XYZ0"
+                        android:textColor="#E65100"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCopyCode"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginTop="16dp"
+                android:text="📋 Copy mã"
+                android:textSize="14sp"
+                app:cornerRadius="22dp"
+                app:strokeColor="#FF6F00"
+                app:strokeWidth="2dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="💡 Nhập mã này khi thanh toán\nđể được giảm giá"
+                android:textColor="@color/wine_neutral_dark"
+                android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCloseResult"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="24dp"
+                android:backgroundTint="#FF6F00"
+                android:text="Tuyệt vời! 🎊"
+                android:textSize="16sp"
+                app:cornerRadius="26dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

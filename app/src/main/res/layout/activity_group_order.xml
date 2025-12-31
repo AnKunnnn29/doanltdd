@@ -3,20 +3,113 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color">
+    android:background="#F5F5F5">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary_color"
-            app:navigationIcon="@drawable/ic_back"
-            app:title="Đặt hàng nhóm"
-            app:titleTextColor="@android:color/white" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_group_order_header"
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                app:navigationIcon="@drawable/ic_back"
+                app:navigationIconTint="@color/white"
+                app:title="Đặt hàng nhóm"
+                app:titleTextColor="@color/white" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                app:cardBackgroundColor="#20FFFFFF"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#40FFFFFF"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👥 Mã mời bạn bè"
+                        android:textColor="#B0FFFFFF"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp">
+
+                        <TextView
+                            android:id="@+id/tv_invite_code"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.3"
+                            android:paddingHorizontal="24dp"
+                            android:paddingVertical="12dp"
+                            android:text="ABC123"
+                            android:textColor="#5C6BC0"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btn_copy_code"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:text="Sao chép"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <Button
+                            android:id="@+id/btn_share_code"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="8dp"
+                            android:backgroundTint="@color/white"
+                            android:text="Chia sẻ"
+                            android:textColor="#5C6BC0"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_expires_at"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Hết hạn sau: 60 phút"
+                        android:textColor="#FFCC80"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -30,81 +123,12 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Invite Code Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                android:layout_marginBottom="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Mã mời bạn bè"
-                        android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray" />
-
-                    <TextView
-                        android:id="@+id/tv_invite_code"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="ABC123"
-                        android:textSize="32sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/primary_color"
-                        android:letterSpacing="0.2" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/btn_copy_code"
-                            android:layout_width="wrap_content"
-                            android:layout_height="40dp"
-                            android:text="Sao chép"
-                            android:textSize="12sp"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-                        <Button
-                            android:id="@+id/btn_share_code"
-                            android:layout_width="wrap_content"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:text="Chia sẻ"
-                            android:textSize="12sp"
-                            style="@style/Widget.MaterialComponents.Button" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/tv_expires_at"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Hết hạn sau: 60 phút"
-                        android:textSize="12sp"
-                        android:textColor="@android:color/holo_orange_dark" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Status Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                android:layout_marginBottom="16dp">
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -129,9 +153,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Đang mở"
+                            android:textColor="@android:color/holo_green_dark"
                             android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/holo_green_dark" />
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -152,18 +176,17 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Chưa chọn"
-                            android:textSize="14sp"
-                            android:textColor="@android:color/darker_gray" />
+                            android:textColor="@android:color/darker_gray"
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Members Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="0dp"
@@ -175,11 +198,11 @@
 
                 <Button
                     android:id="@+id/btn_chat"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:text="💬 Chat"
-                    android:textSize="12sp"
-                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -189,12 +212,11 @@
                 android:layout_marginBottom="16dp"
                 android:orientation="horizontal" />
 
-            <!-- Items Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="0dp"
@@ -206,11 +228,11 @@
 
                 <Button
                     android:id="@+id/btn_add_item"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:text="+ Thêm món"
-                    android:textSize="12sp"
-                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -228,11 +250,11 @@
                 android:textColor="@android:color/darker_gray"
                 android:visibility="gone" />
 
-            <!-- Total Section -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                app:cardBackgroundColor="#5C6BC0"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
@@ -247,6 +269,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Tổng cộng:"
+                        android:textColor="@color/white"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -255,30 +278,27 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0 VNĐ"
+                        android:textColor="@color/white"
                         android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/primary_color" />
+                        android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Spacer for bottom buttons -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="80dp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Action Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:orientation="vertical"
         android:background="@android:color/white"
         android:elevation="8dp"
+        android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Host Actions -->
         <LinearLayout
             android:id="@+id/ll_host_actions"
             android:layout_width="match_parent"
@@ -288,40 +308,38 @@
 
             <Button
                 android:id="@+id/btn_lock_unlock"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="Khóa đơn"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                android:text="Khóa đơn" />
 
             <Button
                 android:id="@+id/btn_checkout"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="Thanh toán"
-                android:backgroundTint="@color/primary_color" />
+                android:layout_weight="1"
+                android:backgroundTint="#5C6BC0"
+                android:text="Thanh toán" />
         </LinearLayout>
 
-        <!-- Member Actions -->
         <Button
             android:id="@+id/btn_leave"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:text="Rời khỏi nhóm"
             android:textColor="@android:color/holo_red_dark"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:visibility="gone" />
 
-        <!-- Cancel Button (Host only) -->
         <Button
             android:id="@+id/btn_cancel"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:text="Hủy phiên"
             android:textColor="@android:color/holo_red_dark"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:visibility="gone" />
     </LinearLayout>
 

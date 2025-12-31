@@ -322,6 +322,7 @@
             android:id="@+id/card_top_selling"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="@color/wine_light_surface">
@@ -370,6 +371,59 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Chưa có dữ liệu"
+                    android:textColor="@color/wine_neutral_dark"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+        
+        <!-- Top Rated Drinks -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_top_rated"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/wine_light_surface">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="⭐ Top Đánh Giá Cao"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_top_rated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+
+                <TextView
+                    android:id="@+id/tv_no_rated_data"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Chưa có đánh giá"
                     android:textColor="@color/wine_neutral_dark"
                     android:textSize="14sp"
                     android:gravity="center"

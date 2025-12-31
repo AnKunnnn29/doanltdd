@@ -24,6 +24,9 @@ data class DashboardSummary(
     @SerializedName("topSellingDrinks")
     var topSellingDrinks: List<TopSellingDrink>? = null,
     
+    @SerializedName("topRatedDrinks")
+    var topRatedDrinks: List<TopRatedDrink>? = null,
+    
     // Thông tin stores được quản lý (cho Manager)
     @SerializedName("managedStores")
     var managedStores: List<ManagedStoreInfo>? = null,
@@ -41,6 +44,23 @@ data class DashboardSummary(
         
         @SerializedName("revenue")
         val revenue: BigDecimal = BigDecimal.ZERO
+    ) : Serializable
+    
+    data class TopRatedDrink(
+        @SerializedName("drinkId")
+        val drinkId: Long = 0,
+        
+        @SerializedName("drinkName")
+        val drinkName: String? = null,
+        
+        @SerializedName("drinkImage")
+        val drinkImage: String? = null,
+        
+        @SerializedName("averageRating")
+        val averageRating: Double = 0.0,
+        
+        @SerializedName("totalReviews")
+        val totalReviews: Long = 0
     ) : Serializable
     
     data class ManagedStoreInfo(

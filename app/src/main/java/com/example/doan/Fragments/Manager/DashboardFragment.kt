@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Adapters.TopSellingDrinkAdapter
+import com.example.doan.Adapters.TopRatedDrinkAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.DashboardSummary
 import com.example.doan.Models.RevenueStatistics
@@ -49,13 +50,16 @@ class DashboardFragment : Fragment() {
     private lateinit var rbDaily: Chip
     private lateinit var rbMonthly: Chip
     private lateinit var rvTopSelling: RecyclerView
+    private lateinit var rvTopRated: RecyclerView
     private lateinit var tvNoData: TextView
+    private lateinit var tvNoRatedData: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var cardTotalRevenue: MaterialCardView
     private lateinit var cardTotalOrders: MaterialCardView
     private lateinit var cardPendingOrders: MaterialCardView
     private lateinit var cardChart: MaterialCardView
     private lateinit var cardTopSelling: MaterialCardView
+    private lateinit var cardTopRated: MaterialCardView
 
     private var statistics: RevenueStatistics? = null
 
@@ -83,21 +87,28 @@ class DashboardFragment : Fragment() {
         rbDaily = view.findViewById(R.id.rb_daily)
         rbMonthly = view.findViewById(R.id.rb_monthly)
         rvTopSelling = view.findViewById(R.id.rv_top_selling)
+        rvTopRated = view.findViewById(R.id.rv_top_rated)
         tvNoData = view.findViewById(R.id.tv_no_data)
+        tvNoRatedData = view.findViewById(R.id.tv_no_rated_data)
         progressBar = view.findViewById(R.id.progress_bar)
         cardTotalRevenue = view.findViewById(R.id.card_total_revenue)
         cardTotalOrders = view.findViewById(R.id.card_total_orders)
         cardPendingOrders = view.findViewById(R.id.card_pending_orders)
         cardChart = view.findViewById(R.id.card_chart)
         cardTopSelling = view.findViewById(R.id.card_top_selling)
+        cardTopRated = view.findViewById(R.id.card_top_rated)
 
         rvTopSelling.layoutManager = LinearLayoutManager(context)
+        rvTopRated.layoutManager = LinearLayoutManager(context)
         rvTopSelling.layoutAnimation = android.view.animation.AnimationUtils.loadLayoutAnimation(
+            context, R.anim.layout_animation_fall_down
+        )
+        rvTopRated.layoutAnimation = android.view.animation.AnimationUtils.loadLayoutAnimation(
             context, R.anim.layout_animation_fall_down
         )
         
         // Initial state for animations
-        listOf(cardTotalRevenue, cardTotalOrders, cardPendingOrders, cardChart, cardTopSelling).forEach {
+        listOf(cardTotalRevenue, cardTotalOrders, cardPendingOrders, cardChart, cardTopSelling, cardTopRated).forEach {
             it.alpha = 0f
             it.translationY = 50f
         }
@@ -153,7 +164,7 @@ class DashboardFragment : Fragment() {
     }
 
     private fun animateCardsIn() {
-        val cards = listOf(cardTotalRevenue, cardTotalOrders, cardPendingOrders, cardChart, cardTopSelling)
+        val cards = listOf(cardTotalRevenue, cardTotalOrders, cardPendingOrders, cardChart, cardTopSelling, cardTopRated)
         cards.forEachIndexed { index, card ->
             card.animate()
                 .alpha(1f)
@@ -190,6 +201,9 @@ class DashboardFragment : Fragment() {
                             tvTotalRevenue.text = currencyFormat.format(data.totalRevenue)
                             tvTotalOrders.text = data.totalOrders.toString()
                             tvPendingOrders.text = data.pendingOrders.toString()
+                            
+                            // Display top rated drinks
+                            displayTopRatedDrinks(data.topRatedDrinks)
                             
                             // Animate cards after data loaded
                             animateCardsIn()
@@ -345,6 +359,21 @@ class DashboardFragment : Fragment() {
         val adapter = TopSellingDrinkAdapter(requireContext(), drinks)
         rvTopSelling.adapter = adapter
         rvTopSelling.scheduleLayoutAnimation()
+    }
+    
+    private fun displayTopRatedDrinks(drinks: List<DashboardSummary.TopRatedDrink>?) {
+        if (drinks.isNullOrEmpty()) {
+            rvTopRated.visibility = View.GONE
+            tvNoRatedData.visibility = View.VISIBLE
+            return
+        }
+
+        rvTopRated.visibility = View.VISIBLE
+        tvNoRatedData.visibility = View.GONE
+
+        val adapter = TopRatedDrinkAdapter(requireContext(), drinks)
+        rvTopRated.adapter = adapter
+        rvTopRated.scheduleLayoutAnimation()
     }
 
     private fun showNoData() {

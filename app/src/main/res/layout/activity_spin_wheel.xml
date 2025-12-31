@@ -3,49 +3,101 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/wine_primary">
+    android:background="@drawable/bg_spin_wheel_gradient"
+    android:orientation="vertical">
 
-    <!-- Toolbar -->
+    <!-- Toolbar với thiết kế trong suốt -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/wine_primary"
+        android:background="@android:color/transparent"
         app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="@color/white"
         app:title="Vòng Quay May Mắn"
         app:titleTextColor="@color/white" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:gravity="center_horizontal"
+            android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Points Info -->
-            <androidx.cardview.widget.CardView
+            <!-- Header với emoji và animation -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎰"
+                    android:textSize="36sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Thử vận may!"
+                    android:textColor="@color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="🎰"
+                    android:textSize="36sp" />
+
+            </LinearLayout>
+
+            <!-- Points Card với thiết kế mới -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                android:layout_marginBottom="16dp">
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
+                    android:padding="20dp">
+
+                    <!-- Points Icon -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        app:cardBackgroundColor="#FFF8E1"
+                        app:cardCornerRadius="28dp"
+                        app:cardElevation="0dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="⭐"
+                            android:textSize="28sp" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -53,87 +105,166 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Điểm tích lũy"
-                            android:textColor="@color/gray"
+                            android:textColor="@color/wine_neutral_dark"
                             android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/tvCurrentPoints"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
                             android:text="0 điểm"
-                            android:textColor="@color/wine_primary"
+                            android:textColor="#FF6F00"
                             android:textSize="28sp"
                             android:textStyle="bold" />
 
                     </LinearLayout>
 
-                    <TextView
+                    <!-- Cost indicator -->
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Cần 5 điểm\nđể quay"
-                        android:textColor="@color/gray"
-                        android:textSize="12sp"
-                        android:gravity="center" />
+                        app:cardBackgroundColor="#E8F5E9"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="8dp"
+                            android:text="5⭐/lượt"
+                            android:textColor="#2E7D32"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
-            <!-- Spin Wheel -->
-            <com.example.doan.Views.SpinWheelView
-                android:id="@+id/spinWheel"
-                android:layout_width="300dp"
-                android:layout_height="300dp"
-                android:layout_marginVertical="24dp" />
+            <!-- Spin Wheel với glow effect -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp">
 
-            <!-- Spin Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSpin"
-                android:layout_width="200dp"
-                android:layout_height="56dp"
-                android:text="QUAY NGAY"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:backgroundTint="@color/orange"
-                app:cornerRadius="28dp"
-                android:enabled="false" />
+                <!-- Glow ring -->
+                <View
+                    android:id="@+id/spin_glow"
+                    android:layout_width="340dp"
+                    android:layout_height="340dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_spin_glow_ring" />
+
+                <com.example.doan.Views.SpinWheelView
+                    android:id="@+id/spinWheel"
+                    android:layout_width="300dp"
+                    android:layout_height="300dp"
+                    android:layout_gravity="center" />
+
+            </FrameLayout>
+
+            <!-- Spin Button với thiết kế mới -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="220dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="12dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSpin"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
+                    android:background="@drawable/bg_spin_button_gradient"
+                    android:enabled="false"
+                    android:text="🎯 QUAY NGAY"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="32dp" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tvSpinHint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:text="Tích đủ 5 điểm để quay"
-                android:textColor="@color/white"
+                android:textColor="#B0FFFFFF"
                 android:textSize="14sp" />
 
-            <!-- Available Vouchers -->
-            <TextView
+            <!-- Vouchers Section với thiết kế mới -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Voucher của bạn"
-                android:textColor="@color/white"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="28dp"
+                app:cardBackgroundColor="#20FFFFFF"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#40FFFFFF"
+                app:strokeWidth="1dp">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvVouchers"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <TextView
-                android:id="@+id/tvNoVouchers"
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🎁"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Voucher của bạn"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvVouchers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/tvNoVouchers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:alpha="0.8"
+                        android:gravity="center"
+                        android:text="Chưa có voucher nào\nHãy quay để nhận voucher! 🍀"
+                        android:textColor="@color/white"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Spacer -->
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Chưa có voucher nào. Hãy quay để nhận voucher!"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:alpha="0.7" />
+                android:layout_height="24dp" />
 
         </LinearLayout>
 

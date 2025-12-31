@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="8dp"
-    android:layout_marginVertical="4dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:rippleColor="#205C6BC0">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,75 +16,117 @@
         android:orientation="horizontal"
         android:padding="12dp">
 
-        <ImageView
-            android:id="@+id/iv_drink_image"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/placeholder_drink" />
+        <!-- Drink Image -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
 
+            <ImageView
+                android:id="@+id/iv_drink_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder_drink" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Info -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginStart="12dp"
+            android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_user_name"
+            <!-- User badge -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Người đặt"
-                android:textSize="11sp"
-                android:textColor="@color/primary_color"
-                android:background="@drawable/bg_tag"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp" />
+                app:cardBackgroundColor="#E8EAF6"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp">
+
+                <TextView
+                    android:id="@+id/tv_user_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="👤 Người đặt"
+                    android:textColor="#5C6BC0"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tv_drink_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Tên đồ uống"
-                android:textSize="14sp"
-                android:textStyle="bold"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
                 android:maxLines="2"
-                android:ellipsize="end" />
+                android:text="Tên đồ uống"
+                android:textColor="@color/wine_dark_background"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_size"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Size: M"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray" />
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:text="Size M"
+                    android:textSize="11sp"
+                    app:chipBackgroundColor="#E3F2FD"
+                    app:chipCornerRadius="14dp"
+                    app:chipMinHeight="28dp"
+                    app:chipStrokeWidth="0dp" />
+
+                <TextView
+                    android:id="@+id/tv_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tv_toppings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Topping: ..."
+                android:layout_marginTop="2dp"
+                android:text="🧋 Topping: ..."
+                android:textColor="@color/wine_neutral_dark"
                 android:textSize="12sp"
-                android:textColor="@android:color/darker_gray"
                 android:visibility="gone" />
 
             <TextView
                 android:id="@+id/tv_note"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ghi chú: ..."
-                android:textSize="11sp"
-                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="2dp"
                 android:fontFamily="sans-serif-light"
+                android:text="📝 Ghi chú: ..."
+                android:textColor="@color/wine_neutral_dark"
+                android:textSize="11sp"
                 android:visibility="gone" />
+
         </LinearLayout>
 
+        <!-- Price & Actions -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="end">
+            android:gravity="end|center_vertical"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -91,39 +135,60 @@
 
                 <ImageView
                     android:id="@+id/btn_edit_item"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
                     android:src="@drawable/ic_edit"
-                    android:padding="2dp"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="#5C6BC0" />
 
                 <ImageView
                     android:id="@+id/btn_delete_item"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
                     android:src="@drawable/ic_delete"
-                    android:padding="2dp"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="#F44336" />
+
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_quantity"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="x1"
-                android:textSize="14sp" />
+                app:cardBackgroundColor="#F5F5F5"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+
+                <TextView
+                    android:id="@+id/tv_quantity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="x1"
+                    android:textColor="@color/wine_dark_background"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tv_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:text="0 VNĐ"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_color" />
+                android:textColor="#5C6BC0"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
         </LinearLayout>
+
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+
+</com.google.android.material.card.MaterialCardView>

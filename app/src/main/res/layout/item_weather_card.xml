@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_weather"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/wine_light_surface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header: Thời tiết + Icon -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Weather Icon -->
+            <ImageView
+                android:id="@+id/img_weather_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="Weather icon"
+                tools:src="@drawable/ic_image_placeholder" />
+
+            <!-- Temperature & Condition -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_temperature"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/wine_primary"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        tools:text="32°C" />
+
+                    <TextView
+                        android:id="@+id/tv_weather_emoji"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textSize="24sp"
+                        tools:text="☀️" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_weather_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/wine_neutral_dark"
+                    android:textSize="14sp"
+                    tools:text="Trời nắng, mây rải rác" />
+
+                <TextView
+                    android:id="@+id/tv_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_location"
+                    android:drawablePadding="4dp"
+                    android:textColor="@color/wine_neutral_dark"
+                    android:textSize="12sp"
+                    app:drawableTint="@color/wine_neutral_dark"
+                    tools:text="TP. Hồ Chí Minh" />
+            </LinearLayout>
+
+            <!-- Humidity & Wind -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_humidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/wine_neutral_dark"
+                    android:textSize="12sp"
+                    tools:text="💧 75%" />
+
+                <TextView
+                    android:id="@+id/tv_wind"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/wine_neutral_dark"
+                    android:textSize="12sp"
+                    tools:text="💨 3.5 m/s" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/wine_neutral_light" />
+
+        <!-- Business Insight / Recommendation -->
+        <LinearLayout
+            android:id="@+id/layout_recommendation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_recommendation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/wine_dark_background"
+                android:textSize="13sp"
+                tools:text="Thời tiết nóng - Đồ uống mát sẽ được ưa chuộng hôm nay!" />
+        </LinearLayout>
+
+        <!-- Suggested Drinks Chips -->
+        <HorizontalScrollView
+            android:id="@+id/scroll_suggested_drinks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_drinks"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true">
+
+                <!-- Chips will be added programmatically -->
+
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

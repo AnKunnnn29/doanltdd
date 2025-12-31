@@ -34,6 +34,7 @@ class ManagerSettingsFragment : Fragment() {
     private lateinit var cardUsers: MaterialCardView
     private lateinit var cardVouchers: MaterialCardView
     private lateinit var cardNotifications: MaterialCardView
+    private lateinit var cardReviews: MaterialCardView
     private lateinit var cardLogout: MaterialCardView
 
     override fun onCreateView(
@@ -56,6 +57,7 @@ class ManagerSettingsFragment : Fragment() {
         cardVouchers = view.findViewById(R.id.card_vouchers)
         cardLogout = view.findViewById(R.id.card_logout)
         cardNotifications = view.findViewById(R.id.card_notifications)
+        cardReviews = view.findViewById(R.id.card_reviews)
 
         // Load manager info
         loadManagerInfo()
@@ -73,7 +75,7 @@ class ManagerSettingsFragment : Fragment() {
     }
 
     private fun animateCardsIn() {
-        val cards = listOf(cardStore, cardUsers, cardVouchers, cardNotifications, cardLogout)
+        val cards = listOf(cardStore, cardUsers, cardVouchers, cardNotifications, cardReviews, cardLogout)
         cards.forEachIndexed { index, card ->
             card.alpha = 0f
             card.translationX = -50f
@@ -160,6 +162,11 @@ class ManagerSettingsFragment : Fragment() {
         // Notifications management card
         cardNotifications.setOnClickListener {
             navigateToFragment(NotificationManagerFragment())
+        }
+        
+        // Reviews management card
+        cardReviews.setOnClickListener {
+            navigateToFragment(ManageReviewsFragment())
         }
 
         // Logout card

@@ -62,6 +62,8 @@
 
     <color name="wine_neutral_dark">#666666</color>
 
+    <color name="wine_background">#F5F5F5</color>
+
     <color name="wine_accent_gold">#FFD700</color>
 
     <color name="gray">#9E9E9E</color>

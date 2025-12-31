@@ -3,89 +3,264 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_color">
+    android:background="#F5F5F5"
+    android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <!-- Header với gradient -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/primary_color"
-        app:navigationIcon="@drawable/ic_back"
-        app:title="Tham gia đơn nhóm"
-        app:titleTextColor="@android:color/white" />
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_join_group_header"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/ic_back"
+            app:navigationIconTint="@color/white"
+            app:title=""
+            app:titleTextColor="@color/white" />
+
+        <!-- Header content -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingBottom="32dp">
+
+            <!-- Animated icon -->
+            <FrameLayout
+                android:layout_width="100dp"
+                android:layout_height="100dp">
+
+                <View
+                    android:id="@+id/join_pulse_ring"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_join_pulse_ring" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="40dp"
+                    app:cardElevation="8dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🔗"
+                        android:textSize="36sp" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Tham gia đơn nhóm"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Nhập mã 6 ký tự từ bạn bè"
+                android:textColor="#B0FFFFFF"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center">
+        android:padding="24dp">
 
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_group"
-            android:tint="@color/primary_color" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Nhập mã mời"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Nhập mã 6 ký tự từ bạn bè để tham gia đặt hàng cùng"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            android:gravity="center" />
-
-        <com.google.android.material.textfield.TextInputLayout
+        <!-- Input Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:hint="Mã mời"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_invite_code"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textCapCharacters"
-                android:maxLength="10"
-                android:textSize="24sp"
                 android:gravity="center"
-                android:letterSpacing="0.3" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:orientation="vertical"
+                android:padding="24dp">
 
-        <Button
-            android:id="@+id/btn_join"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎫 Nhập mã mời"
+                    android:textColor="@color/wine_dark_background"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Mã mời"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxStrokeColor="#2196F3"
+                    app:hintTextColor="#2196F3"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_invite_code"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:inputType="textCapCharacters"
+                        android:letterSpacing="0.4"
+                        android:maxLength="10"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_join"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="20dp"
+                    android:backgroundTint="#2196F3"
+                    android:text="🚀 Tham gia ngay"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="28dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Divider -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="24dp"
-            android:text="Tham gia"
-            android:textSize="16sp"
-            android:backgroundTint="@color/primary_color" />
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="— hoặc —"
-            android:textColor="@android:color/darker_gray" />
+            android:layout_marginVertical="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#E0E0E0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:text="hoặc"
+                android:textColor="@color/wine_neutral_dark"
+                android:textSize="14sp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#E0E0E0" />
+
+        </LinearLayout>
+
+        <!-- Create New Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_create_new"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#F3E5F5"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:rippleColor="#805C6BC0"
+            app:strokeColor="#5C6BC0"
+            app:strokeWidth="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:cardBackgroundColor="#5C6BC0"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="4dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="➕"
+                        android:textSize="20sp" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tạo phiên mới"
+                        android:textColor="#5C6BC0"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Tự tạo đơn nhóm và mời bạn bè"
+                        android:textColor="@color/wine_neutral_dark"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="#5C6BC0" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Hidden button for backward compatibility -->
         <Button
             android:id="@+id/btn_create_new"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="16dp"
-            android:text="Tạo phiên mới"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
     </LinearLayout>
 
 </LinearLayout>

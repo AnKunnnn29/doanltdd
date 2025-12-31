@@ -46,6 +46,7 @@ class VoiceOrderDialog(
     private lateinit var btnConfirm: MaterialButton
     private lateinit var btnRetry: MaterialButton
     private lateinit var pulseView: View
+    private lateinit var pulseViewMiddle: View
     private lateinit var tvProductSuggestions: TextView
     private lateinit var cardSuggestions: MaterialCardView
     private lateinit var dividerSimilar: View
@@ -54,6 +55,7 @@ class VoiceOrderDialog(
     private lateinit var layoutQuantitySize: android.widget.LinearLayout
     
     private var pulseAnimator: ObjectAnimator? = null
+    private var pulseMiddleAnimator: ObjectAnimator? = null
     private var currentResult: VoiceOrderHelper.VoiceOrderResult? = null
     
     fun show() {
@@ -98,6 +100,7 @@ class VoiceOrderDialog(
         btnConfirm = view.findViewById(R.id.btn_confirm)
         btnRetry = view.findViewById(R.id.btn_retry)
         pulseView = view.findViewById(R.id.pulse_view)
+        pulseViewMiddle = view.findViewById(R.id.pulse_view_middle)
         tvProductSuggestions = view.findViewById(R.id.tv_product_suggestions)
         cardSuggestions = view.findViewById(R.id.card_suggestions)
         dividerSimilar = view.findViewById(R.id.divider_similar)
@@ -161,16 +164,34 @@ class VoiceOrderDialog(
     
     private fun startPulseAnimation() {
         pulseView.visibility = View.VISIBLE
+        pulseViewMiddle.visibility = View.VISIBLE
         
-        pulseAnimator = ObjectAnimator.ofFloat(pulseView, "scaleX", 1f, 1.5f).apply {
-            duration = 1000
+        // Outer ring animation
+        pulseAnimator = ObjectAnimator.ofFloat(pulseView, "scaleX", 1f, 1.4f).apply {
+            duration = 1200
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
             interpolator = AccelerateDecelerateInterpolator()
             
             addUpdateListener {
                 pulseView.scaleY = pulseView.scaleX
-                pulseView.alpha = 1.5f - pulseView.scaleX
+                pulseView.alpha = 1.4f - pulseView.scaleX * 0.5f
+            }
+            
+            start()
+        }
+        
+        // Middle ring animation (slightly delayed)
+        pulseMiddleAnimator = ObjectAnimator.ofFloat(pulseViewMiddle, "scaleX", 1f, 1.3f).apply {
+            duration = 1000
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            startDelay = 200
+            
+            addUpdateListener {
+                pulseViewMiddle.scaleY = pulseViewMiddle.scaleX
+                pulseViewMiddle.alpha = 1.3f - pulseViewMiddle.scaleX * 0.4f
             }
             
             start()
@@ -179,7 +200,9 @@ class VoiceOrderDialog(
     
     private fun stopPulseAnimation() {
         pulseAnimator?.cancel()
+        pulseMiddleAnimator?.cancel()
         pulseView.visibility = View.GONE
+        pulseViewMiddle.visibility = View.GONE
     }
     
     // VoiceOrderListener callbacks
@@ -322,6 +345,8 @@ class VoiceOrderDialog(
         voiceHelper?.destroy()
         voiceHelper = null
         stopPulseAnimation()
+        pulseAnimator = null
+        pulseMiddleAnimator = null
     }
     
     fun dismiss() {

@@ -1,66 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:layout_margin="6dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:rippleColor="#205C6BC0">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="vertical"
-        android:padding="8dp"
-        android:gravity="center">
+        android:padding="12dp">
 
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/iv_member_avatar"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_person"
-                android:background="@drawable/circle_background"
-                android:padding="8dp" />
+            <!-- Avatar với gradient background -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardBackgroundColor="#E8EAF6"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp">
 
-            <ImageView
-                android:id="@+id/iv_host_badge"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                <ImageView
+                    android:id="@+id/iv_member_avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_person"
+                    app:tint="#5C6BC0" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Host badge -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_host_badge"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:layout_gravity="bottom|end"
-                android:src="@drawable/ic_star"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:cardBackgroundColor="#FFD54F"
+                app:cardCornerRadius="11dp"
+                app:cardElevation="2dp">
+
+                <ImageView
+                    android:id="@+id/iv_host_badge"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_star"
+                    app:tint="#E65100" />
+
+            </com.google.android.material.card.MaterialCardView>
+
         </FrameLayout>
 
         <TextView
             android:id="@+id/tv_member_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Tên"
-            android:textSize="12sp"
-            android:maxWidth="70dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
             android:maxLines="1"
-            android:ellipsize="end" />
+            android:maxWidth="80dp"
+            android:text="Tên"
+            android:textColor="@color/wine_dark_background"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tv_item_count"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0 món"
-            android:textSize="10sp"
-            android:textColor="@android:color/darker_gray" />
+            android:layout_marginTop="4dp"
+            app:cardBackgroundColor="#E8F5E9"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:id="@+id/tv_item_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:text="0 món"
+                android:textColor="#2E7D32"
+                android:textSize="11sp" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <ImageView
             android:id="@+id/btn_kick_member"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginTop="4dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="6dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Kick member"
+            android:padding="4dp"
             android:src="@drawable/ic_close"
             android:visibility="gone"
-            android:contentDescription="Kick member" />
+            app:tint="#F44336" />
+
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+
+</com.google.android.material.card.MaterialCardView>

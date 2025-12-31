@@ -68,11 +68,12 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
+                <!-- Greeting -->
                 <TextView
                     android:id="@+id/greeting_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chào buổi sáng ☀️"
+                    android:text="Chào buổi sáng"
                     android:textColor="#B0FFFFFF"
                     android:textSize="13sp" />
 
@@ -88,10 +89,57 @@
                     tools:text="Nguyễn Văn A" />
             </LinearLayout>
 
-            <!-- Notification và Cart icons -->
+            <!-- Weather Card đẹp -->
+            <LinearLayout
+                android:id="@+id/weather_card_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_weather_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tv_weather_emoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="22sp"
+                    tools:text="☀️" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_temperature"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:text="32°C" />
+
+                    <TextView
+                        android:id="@+id/tv_weather_desc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#B0FFFFFF"
+                        android:textSize="11sp"
+                        tools:text="Trời nắng" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Notification và Chat icons -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -119,7 +167,6 @@
                     android:id="@+id/notification_button"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:focusable="true">
@@ -134,39 +181,6 @@
 
                     <TextView
                         android:id="@+id/notification_badge"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_gravity="top|end"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginEnd="2dp"
-                        android:background="@drawable/bg_badge"
-                        android:gravity="center"
-                        android:text="0"
-                        android:textColor="@color/white"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
-                </FrameLayout>
-
-                <!-- Cart Button với badge -->
-                <FrameLayout
-                    android:id="@+id/cart_button"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_gravity="center"
-                        android:contentDescription="Giỏ hàng"
-                        android:src="@drawable/ic_shopping_cart"
-                        app:tint="@color/white" />
-
-                    <TextView
-                        android:id="@+id/cart_badge"
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:layout_gravity="top|end"
@@ -593,169 +607,244 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Quick Actions - Hàng dọc bên phải -->
-    <LinearLayout
-        android:id="@+id/quick_actions_container"
+    <!-- Quick Actions - Thiết kế Premium với Animation -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/quick_actions_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_below="@id/app_bar_home"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="16dp"
-        android:orientation="vertical"
-        android:padding="4dp">
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="180dp"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="12dp"
+        app:cardBackgroundColor="#F5F5F5">
 
-        <!-- 🎤 Voice Order Button -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/fab_voice_order"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginBottom="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
-            app:rippleColor="#40FFFFFF"
-            app:cardBackgroundColor="@android:color/transparent">
+        <LinearLayout
+            android:id="@+id/quick_actions_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_quick_actions_container"
+            android:orientation="vertical"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="12dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/ripple_fab_voice"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
+            <!-- 🎤 Voice Order Button - Premium Design -->
+            <FrameLayout
+                android:id="@+id/fab_voice_order"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
+                android:focusable="true">
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_mic"
-                    app:tint="@color/white" />
+                <!-- Glow Ring Animation -->
+                <View
+                    android:id="@+id/voice_glow_ring"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_glow_ring_red_animated" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Giọng nói"
-                    android:textColor="@color/white"
-                    android:textSize="7sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:rippleColor="#60FFFFFF">
 
-        <!-- 🤖 Chatbot Button -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/fab_chatbot"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginBottom="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
-            app:rippleColor="#40FFFFFF"
-            app:cardBackgroundColor="@android:color/transparent">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/ripple_fab_voice_premium"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="4dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/ripple_fab_chatbot"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
+                        <ImageView
+                            android:id="@+id/ic_voice"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_mic"
+                            app:tint="@color/white" />
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_bot"
-                    app:tint="@color/white" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Giọng nói"
+                            android:textColor="@color/white"
+                            android:textSize="7sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Trợ lý AI"
-                    android:textColor="@color/white"
-                    android:textSize="7sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            <!-- 🤖 AI Assistant Button - Premium Design -->
+            <FrameLayout
+                android:id="@+id/fab_chatbot"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
+                android:focusable="true">
 
-        <!-- 🎰 Spin Wheel Button -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/fab_spin_wheel"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginBottom="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
-            app:rippleColor="#40FFFFFF"
-            app:cardBackgroundColor="@android:color/transparent">
+                <!-- Glow Ring Animation -->
+                <View
+                    android:id="@+id/chatbot_glow_ring"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_glow_ring_teal_animated" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/ripple_fab_spin"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:rippleColor="#60FFFFFF">
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_star"
-                    app:tint="@color/white" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/ripple_fab_chatbot_premium"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="4dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Vòng quay"
-                    android:textColor="@color/white"
-                    android:textSize="7sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                        <ImageView
+                            android:id="@+id/ic_chatbot"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_smart_toy"
+                            app:tint="@color/white" />
 
-        <!-- 👥 Group Order Button -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/fab_group_order"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
-            app:rippleColor="#40FFFFFF"
-            app:cardBackgroundColor="@android:color/transparent">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Trợ lý AI"
+                            android:textColor="@color/white"
+                            android:textSize="7sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/ripple_fab_group"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="6dp">
+            <!-- 🎰 Spin Wheel Button - Premium Design with Rotation -->
+            <FrameLayout
+                android:id="@+id/fab_spin_wheel"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
+                android:focusable="true">
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_group"
-                    app:tint="@color/white" />
+                <!-- Glow Ring Animation -->
+                <View
+                    android:id="@+id/spin_glow_ring"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_glow_ring_orange_animated" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Đặt nhóm"
-                    android:textColor="@color/white"
-                    android:textSize="7sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:rippleColor="#60FFFFFF">
 
-    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/ripple_fab_spin_premium"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="4dp">
+
+                        <ImageView
+                            android:id="@+id/ic_spin"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_star"
+                            app:tint="@color/white" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Vòng quay"
+                            android:textColor="@color/white"
+                            android:textSize="7sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
+
+            <!-- 👥 Group Order Button - Premium Design -->
+            <FrameLayout
+                android:id="@+id/fab_group_order"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:clickable="true"
+                android:focusable="true">
+
+                <!-- Glow Ring Animation -->
+                <View
+                    android:id="@+id/group_glow_ring"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_glow_ring_indigo_animated" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:rippleColor="#60FFFFFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/ripple_fab_group_premium"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="4dp">
+
+                        <ImageView
+                            android:id="@+id/ic_group"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_group"
+                            app:tint="@color/white" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Đặt nhóm"
+                            android:textColor="@color/white"
+                            android:textSize="7sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </RelativeLayout>

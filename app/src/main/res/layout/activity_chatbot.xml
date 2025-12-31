@@ -1,22 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="#F8F9FA">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <!-- Custom Header với gradient -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/wine_primary"
-            app:titleTextColor="@color/white"
-            app:navigationIconTint="@color/white" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chatbot_header_gradient"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                app:navigationIconTint="@color/white"
+                app:title=""
+                app:titleTextColor="@color/white" />
+
+            <!-- Bot Avatar và Info -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
+
+                <!-- Avatar với animation -->
+                <FrameLayout
+                    android:layout_width="72dp"
+                    android:layout_height="72dp">
+
+                    <View
+                        android:id="@+id/bot_pulse_ring"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_chatbot_pulse_ring" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_gravity="center"
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="8dp"
+                        app:cardBackgroundColor="@color/white">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_smart_toy"
+                            app:tint="#26A69A" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Trợ lý UTE Tea"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/bg_online_dot" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Đang hoạt động"
+                        android:textColor="#B0FFFFFF"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -29,40 +113,43 @@
             android:id="@+id/rvChat"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:padding="8dp"
             android:clipToPadding="false"
-            app:layout_constraintTop_toTopOf="parent"
+            android:padding="12dp"
             app:layout_constraintBottom_toTopOf="@id/suggestionsScroll"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Suggestion Chips -->
+        <!-- Suggestion Chips với thiết kế mới -->
         <HorizontalScrollView
             android:id="@+id/suggestionsScroll"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:elevation="4dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="10dp"
             android:scrollbars="none"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            android:background="@color/wine_neutral_light"
             app:layout_constraintBottom_toTopOf="@id/inputLayout"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupSuggestions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleLine="true"
-                app:chipSpacingHorizontal="8dp">
+                app:chipSpacingHorizontal="8dp"
+                app:singleLine="true">
 
+                <!-- Mood chips với màu sắc đẹp -->
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipMood"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="💭 Tâm trạng"
                     app:chipBackgroundColor="#FFF3E0"
+                    app:chipCornerRadius="18dp"
                     app:chipStrokeColor="#FF9800"
                     app:chipStrokeWidth="1dp" />
 
@@ -70,9 +157,10 @@
                     android:id="@+id/chipTired"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="😴 Mệt mỏi"
                     app:chipBackgroundColor="#E3F2FD"
+                    app:chipCornerRadius="18dp"
                     app:chipStrokeColor="#2196F3"
                     app:chipStrokeWidth="1dp" />
 
@@ -80,9 +168,10 @@
                     android:id="@+id/chipHappy"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="😊 Vui vẻ"
                     app:chipBackgroundColor="#E8F5E9"
+                    app:chipCornerRadius="18dp"
                     app:chipStrokeColor="#4CAF50"
                     app:chipStrokeWidth="1dp" />
 
@@ -90,9 +179,10 @@
                     android:id="@+id/chipHotWeather"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="🥵 Trời nóng"
                     app:chipBackgroundColor="#FFEBEE"
+                    app:chipCornerRadius="18dp"
                     app:chipStrokeColor="#F44336"
                     app:chipStrokeWidth="1dp" />
 
@@ -100,9 +190,10 @@
                     android:id="@+id/chipEnergy"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⚡ Cần năng lượng"
+                    android:layout_height="36dp"
+                    android:text="⚡ Năng lượng"
                     app:chipBackgroundColor="#FFF8E1"
+                    app:chipCornerRadius="18dp"
                     app:chipStrokeColor="#FFC107"
                     app:chipStrokeWidth="1dp" />
 
@@ -110,101 +201,128 @@
                     android:id="@+id/chipMenu"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="📋 Menu"
-                    app:chipBackgroundColor="@color/white"
-                    app:chipStrokeColor="@color/wine_primary"
+                    app:chipBackgroundColor="#F3E5F5"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="#9C27B0"
                     app:chipStrokeWidth="1dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipHot"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="🔥 Món hot"
-                    app:chipBackgroundColor="@color/white"
-                    app:chipStrokeColor="@color/wine_primary"
+                    app:chipBackgroundColor="#FCE4EC"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="#E91E63"
                     app:chipStrokeWidth="1dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipPromo"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="🎁 Khuyến mãi"
-                    app:chipBackgroundColor="@color/white"
-                    app:chipStrokeColor="@color/wine_primary"
+                    app:chipBackgroundColor="#E0F7FA"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="#00BCD4"
                     app:chipStrokeWidth="1dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipStore"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="📍 Cửa hàng"
-                    app:chipBackgroundColor="@color/white"
-                    app:chipStrokeColor="@color/wine_primary"
+                    app:chipBackgroundColor="#E8EAF6"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="#3F51B5"
                     app:chipStrokeWidth="1dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipOrder"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="📦 Đơn hàng"
-                    app:chipBackgroundColor="@color/white"
-                    app:chipStrokeColor="@color/wine_primary"
+                    app:chipBackgroundColor="#EFEBE9"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="#795548"
                     app:chipStrokeWidth="1dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipHelp"
                     style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:text="❓ Trợ giúp"
-                    app:chipBackgroundColor="@color/white"
-                    app:chipStrokeColor="@color/wine_primary"
+                    app:chipBackgroundColor="#ECEFF1"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="#607D8B"
                     app:chipStrokeWidth="1dp" />
 
             </com.google.android.material.chip.ChipGroup>
 
         </HorizontalScrollView>
 
-        <LinearLayout
+        <!-- Input Layout với thiết kế mới -->
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/inputLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp"
-            android:background="@color/white"
-            android:elevation="8dp"
+            android:layout_margin="12dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
-            <EditText
-                android:id="@+id/etMessage"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Nhập tin nhắn..."
-                android:padding="12dp"
-                android:background="@drawable/bg_chat_input"
-                android:maxLines="4"
-                android:imeOptions="actionSend"
-                android:inputType="textMultiLine" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="6dp">
 
-            <ImageButton
-                android:id="@+id/btnSend"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_send_button"
-                android:src="@drawable/ic_send"
-                android:contentDescription="Gửi"
-                app:tint="@color/white" />
+                <EditText
+                    android:id="@+id/etMessage"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="Nhập tin nhắn..."
+                    android:imeOptions="actionSend"
+                    android:inputType="textMultiLine"
+                    android:maxLines="4"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp"
+                    android:textSize="15sp" />
 
-        </LinearLayout>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp">
+
+                    <ImageButton
+                        android:id="@+id/btnSend"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_chatbot_send_button"
+                        android:contentDescription="Gửi"
+                        android:src="@drawable/ic_send"
+                        app:tint="@color/white" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

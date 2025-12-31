@@ -3,248 +3,371 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="24dp"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="16dp">
+    android:layout_margin="20dp"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="24dp"
+    app:cardBackgroundColor="@color/white">
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="24dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Đặt hàng bằng giọng nói"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Nói tên sản phẩm bên dưới"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
-
-        <!-- Top 3 Best Sellers -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_suggestions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/background_light">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🔥 Top 3 bán chạy:"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_product_suggestions"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:lineSpacingExtra="4dp"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <FrameLayout
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="24dp">
-
-            <View
-                android:id="@+id/pulse_view"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_pulse_circle"
-                android:visibility="gone" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center"
-                app:cardCornerRadius="40dp"
-                app:cardElevation="8dp"
-                app:strokeWidth="0dp">
-
-                <ImageView
-                    android:id="@+id/iv_mic"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/wine_neutral_light"
-                    android:padding="20dp"
-                    android:src="@drawable/ic_mic"
-                    app:tint="@color/wine_primary" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/tv_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Nhấn mic để bắt đầu"
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/tv_speech_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:minHeight="48dp"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="italic" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_result"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:visibility="gone"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:strokeColor="@color/wine_primary"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tv_result_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Kết quả tìm kiếm:"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_product_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textColor="@color/wine_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:id="@+id/layout_quantity_size"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tv_quantity"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/tv_size"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-
-                </LinearLayout>
-
-                <!-- Similar products section -->
-                <View
-                    android:id="@+id/divider_similar"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="12dp"
-                    android:background="@color/divider"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/tv_similar_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Sản phẩm tương tự:"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"
-                    android:visibility="gone" />
-
-                <LinearLayout
-                    android:id="@+id/layout_similar_products"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:orientation="vertical"
-                    android:visibility="gone" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:orientation="horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_retry"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:text="Nói lại"
-                app:cornerRadius="24dp" />
+            <!-- Header với gradient -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_voice_header_gradient"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="28dp"
+                android:paddingBottom="20dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_confirm"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:enabled="false"
-                android:text="Thêm vào giỏ"
-                app:cornerRadius="24dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎤"
+                    android:textSize="32sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Đặt hàng bằng giọng nói"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Nói tên sản phẩm để tìm kiếm"
+                    android:textColor="#B0FFFFFF"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Top 3 Best Sellers với animation -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_suggestions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#FFF8F0"
+                    app:strokeColor="#FFE0B2"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🔥"
+                                android:textSize="18sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="Top 3 bán chạy"
+                                android:textColor="#E65100"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tv_product_suggestions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:lineSpacingExtra="6dp"
+                            android:textColor="@color/wine_dark_background"
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Mic Button với hiệu ứng pulse đẹp -->
+                <FrameLayout
+                    android:layout_width="160dp"
+                    android:layout_height="160dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="28dp">
+
+                    <!-- Outer pulse ring -->
+                    <View
+                        android:id="@+id/pulse_view"
+                        android:layout_width="160dp"
+                        android:layout_height="160dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_voice_pulse_ring"
+                        android:visibility="gone" />
+
+                    <!-- Middle ring -->
+                    <View
+                        android:id="@+id/pulse_view_middle"
+                        android:layout_width="130dp"
+                        android:layout_height="130dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_voice_pulse_ring_middle"
+                        android:visibility="gone" />
+
+                    <!-- Mic button -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:layout_gravity="center"
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="12dp"
+                        app:cardBackgroundColor="@android:color/transparent">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_voice_mic_gradient"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:id="@+id/iv_mic"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_mic"
+                                app:tint="@color/white" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </FrameLayout>
+
+                <!-- Status text với animation -->
+                <TextView
+                    android:id="@+id/tv_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:text="Nhấn mic để bắt đầu"
+                    android:textColor="@color/wine_neutral_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Speech text hiển thị -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#F5F5F5">
+
+                    <TextView
+                        android:id="@+id/tv_speech_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:minHeight="56dp"
+                        android:padding="16dp"
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="18sp"
+                        android:textStyle="italic" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Result Card với thiết kế mới -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:strokeColor="@color/wine_primary"
+                    app:strokeWidth="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="4dp"
+                                android:layout_height="20dp"
+                                android:background="@color/wine_primary" />
+
+                            <TextView
+                                android:id="@+id/tv_result_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Kết quả tìm kiếm"
+                                android:textColor="@color/wine_dark_background"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tv_product_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:textColor="@color/wine_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:id="@+id/layout_quantity_size"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_quantity"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:chipBackgroundColor="#E8F5E9"
+                                app:chipStrokeWidth="0dp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_size"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                app:chipBackgroundColor="#E3F2FD"
+                                app:chipStrokeWidth="0dp" />
+
+                        </LinearLayout>
+
+                        <!-- Quantity và Size text backup -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/tv_quantity"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:textColor="@color/wine_neutral_dark"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/tv_size"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/wine_neutral_dark"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <!-- Similar products section -->
+                        <View
+                            android:id="@+id/divider_similar"
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="16dp"
+                            android:background="#E0E0E0"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tv_similar_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="💡 Có phải bạn muốn tìm:"
+                            android:textColor="@color/wine_neutral_dark"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/layout_similar_products"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="vertical"
+                            android:visibility="gone" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Action Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_retry"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:text="🔄 Nói lại"
+                        android:textSize="14sp"
+                        app:cornerRadius="26dp"
+                        app:strokeColor="@color/wine_primary"
+                        app:strokeWidth="2dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_confirm"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/wine_primary"
+                        android:enabled="false"
+                        android:text="🛒 Thêm vào giỏ"
+                        android:textSize="14sp"
+                        app:cornerRadius="26dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
-
-    </LinearLayout>
 
     </ScrollView>
 
