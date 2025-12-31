@@ -8,6 +8,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -15,12 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Adapters.LiveChatAdapter
+import com.example.doan.Adapters.StoreSelectAdapter
 import com.example.doan.Models.*
 import com.example.doan.Network.LiveChatWebSocketManager
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,6 +48,8 @@ class LiveChatActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "LiveChatActivity"
         const val EXTRA_CONVERSATION_ID = "conversation_id"
+        const val EXTRA_STORE_ID = "store_id"
+        const val EXTRA_STORE_NAME = "store_name"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +67,15 @@ class LiveChatActivity : AppCompatActivity() {
         
         // Check if opening existing conversation or starting new
         conversationId = intent.getLongExtra(EXTRA_CONVERSATION_ID, -1).takeIf { it > 0 }
+        
+        // Check if store is pre-selected (from ManageStoresFragment)
+        val preSelectedStoreId = intent.getLongExtra(EXTRA_STORE_ID, -1).takeIf { it > 0 }
+        val preSelectedStoreName = intent.getStringExtra(EXTRA_STORE_NAME)
+        
+        if (preSelectedStoreId != null) {
+            selectedStoreId = preSelectedStoreId
+            toolbar.subtitle = "Chi nhánh: $preSelectedStoreName"
+        }
         
         if (conversationId != null) {
             loadConversation(conversationId!!)
@@ -93,21 +107,58 @@ class LiveChatActivity : AppCompatActivity() {
                             conversationId = activeConversation.id
                             loadConversation(activeConversation.id)
                         } else {
-                            // No active conversation, show empty state
-                            tvEmpty.visibility = View.VISIBLE
-                            tvEmpty.text = "Nhập tin nhắn để bắt đầu cuộc hội thoại với nhân viên hỗ trợ"
-                            tvStatus.text = "Sẵn sàng hỗ trợ"
+                            // No active conversation
+                            showEmptyStateAndSelectStore()
                         }
                     } else {
-                        tvEmpty.visibility = View.VISIBLE
-                        tvEmpty.text = "Nhập tin nhắn để bắt đầu cuộc hội thoại với nhân viên hỗ trợ"
+                        showEmptyStateAndSelectStore()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<List<ConversationListItem>>>, t: Throwable) {
                     progressBar.visibility = View.GONE
-                    tvEmpty.visibility = View.VISIBLE
-                    tvEmpty.text = "Nhập tin nhắn để bắt đầu cuộc hội thoại với nhân viên hỗ trợ"
+                    showEmptyStateAndSelectStore()
+                }
+            })
+    }
+    
+    private fun showEmptyStateAndSelectStore() {
+        tvEmpty.visibility = View.VISIBLE
+        
+        if (selectedStoreId != null) {
+            // Đã chọn store rồi
+            tvEmpty.text = "Nhập tin nhắn để bắt đầu cuộc hội thoại với nhân viên hỗ trợ"
+            tvStatus.text = "Sẵn sàng hỗ trợ"
+        } else {
+            // Chưa chọn store - hiển thị BottomSheet chọn store
+            tvEmpty.text = "Vui lòng chọn chi nhánh để được tư vấn"
+            tvStatus.text = "Chọn chi nhánh"
+            
+            // Load stores và hiển thị BottomSheet
+            loadStoresAndShowSelection()
+        }
+    }
+    
+    private fun loadStoresAndShowSelection() {
+        progressBar.visibility = View.VISIBLE
+        RetrofitClient.getInstance(this).apiService.getStores()
+            .enqueue(object : Callback<ApiResponse<List<Store>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<Store>>>,
+                    response: Response<ApiResponse<List<Store>>>
+                ) {
+                    progressBar.visibility = View.GONE
+                    if (response.isSuccessful && response.body()?.data != null) {
+                        allStores = response.body()!!.data!!.toMutableList()
+                        displayStoreSelectionBottomSheet()
+                    } else {
+                        Toast.makeText(this@LiveChatActivity, "Không thể tải danh sách chi nhánh", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(this@LiveChatActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
                 }
             })
     }
@@ -190,8 +241,9 @@ class LiveChatActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        val isManager = sessionManager.isManager()
-        chatAdapter = LiveChatAdapter(currentUserId, isManager)
+        // isManager hoặc isAdmin đều được coi là "staff"
+        val isStaff = sessionManager.isManager() || sessionManager.isAdmin()
+        chatAdapter = LiveChatAdapter(currentUserId, isStaff)
         recyclerView.apply {
             layoutManager = LinearLayoutManager(this@LiveChatActivity).apply {
                 stackFromEnd = true
@@ -214,14 +266,14 @@ class LiveChatActivity : AppCompatActivity() {
     private fun setupWebSocket() {
         webSocketManager = LiveChatWebSocketManager.getInstance()
         
-        val isManager = sessionManager.isManager()
+        val isStaff = sessionManager.isManager() || sessionManager.isAdmin()
         
         webSocketManager.setOnNewMessageListener { message ->
             runOnUiThread {
-                // Chỉ thêm tin nhắn từ phía đối phương
-                // Nếu là Manager: chỉ thêm tin từ USER
-                // Nếu là User: chỉ thêm tin từ MANAGER
-                val shouldAdd = if (isManager) {
+                // Chỉ thêm tin nhắn từ phía đối phương (tránh duplicate với optimistic update)
+                // Nếu là Staff (Manager/Admin): chỉ thêm tin từ USER hoặc SYSTEM
+                // Nếu là User: chỉ thêm tin từ MANAGER hoặc SYSTEM
+                val shouldAdd = if (isStaff) {
                     message.isFromUser() || message.isSystem()
                 } else {
                     message.isFromManager() || message.isSystem()
@@ -314,8 +366,14 @@ class LiveChatActivity : AppCompatActivity() {
         etMessage.text.clear()
         
         if (conversationId == null) {
-            // Start new conversation - cần chọn store trước
-            showStoreSelectionDialog(content)
+            // Start new conversation
+            if (selectedStoreId != null) {
+                // Store đã được chọn sẵn, bắt đầu conversation luôn
+                startNewConversation(content, selectedStoreId!!)
+            } else {
+                // Cần chọn store trước
+                showStoreSelectionDialog(content)
+            }
         } else {
             // Send message to existing conversation
             sendMessageToConversation(content)
@@ -324,8 +382,12 @@ class LiveChatActivity : AppCompatActivity() {
     
     private var allStores = mutableListOf<Store>()
     private var selectedStoreId: Long? = null
+    private var pendingMessage: String? = null
+    private var storeSelectionBottomSheet: BottomSheetDialog? = null
     
     private fun showStoreSelectionDialog(initialMessage: String) {
+        pendingMessage = initialMessage
+        
         if (allStores.isEmpty()) {
             // Load stores first
             progressBar.visibility = View.VISIBLE
@@ -338,7 +400,7 @@ class LiveChatActivity : AppCompatActivity() {
                         progressBar.visibility = View.GONE
                         if (response.isSuccessful && response.body()?.data != null) {
                             allStores = response.body()!!.data!!.toMutableList()
-                            displayStoreSelectionDialog(initialMessage)
+                            displayStoreSelectionBottomSheet()
                         } else {
                             Toast.makeText(this@LiveChatActivity, "Không thể tải danh sách chi nhánh", Toast.LENGTH_SHORT).show()
                         }
@@ -350,26 +412,52 @@ class LiveChatActivity : AppCompatActivity() {
                     }
                 })
         } else {
-            displayStoreSelectionDialog(initialMessage)
+            displayStoreSelectionBottomSheet()
         }
     }
     
-    private fun displayStoreSelectionDialog(initialMessage: String) {
+    private fun displayStoreSelectionBottomSheet() {
         if (allStores.isEmpty()) {
             Toast.makeText(this, "Không có chi nhánh nào", Toast.LENGTH_SHORT).show()
             return
         }
         
-        val storeNames = allStores.map { "${it.storeName}\n${it.address}" }.toTypedArray()
+        storeSelectionBottomSheet = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
+        val sheetView = layoutInflater.inflate(R.layout.bottom_sheet_select_store, null)
         
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("🏪 Chọn chi nhánh để được tư vấn")
-            .setItems(storeNames) { _, which ->
-                selectedStoreId = allStores[which].id.toLong()
-                startNewConversation(initialMessage, selectedStoreId!!)
+        val rvStores = sheetView.findViewById<RecyclerView>(R.id.rv_stores)
+        val btnClose = sheetView.findViewById<ImageView>(R.id.btn_close)
+        
+        val storeAdapter = StoreSelectAdapter(this, allStores) { selectedStore ->
+            selectedStoreId = selectedStore.id.toLong()
+            toolbar.subtitle = "🏪 ${selectedStore.storeName}"
+            storeSelectionBottomSheet?.dismiss()
+            
+            // Cập nhật UI
+            tvEmpty.text = "Nhập tin nhắn để bắt đầu cuộc hội thoại với nhân viên hỗ trợ"
+            tvStatus.text = "Sẵn sàng hỗ trợ tại ${selectedStore.storeName}"
+            
+            // Nếu có tin nhắn đang chờ, gửi luôn
+            pendingMessage?.let { message ->
+                startNewConversation(message, selectedStoreId!!)
+                pendingMessage = null
             }
-            .setNegativeButton("Hủy", null)
-            .show()
+        }
+        
+        rvStores.layoutManager = LinearLayoutManager(this)
+        rvStores.adapter = storeAdapter
+        
+        btnClose.setOnClickListener {
+            storeSelectionBottomSheet?.dismiss()
+        }
+        
+        storeSelectionBottomSheet?.setContentView(sheetView)
+        storeSelectionBottomSheet?.show()
+    }
+    
+    private fun displayStoreSelectionDialog(initialMessage: String) {
+        // Deprecated - use displayStoreSelectionBottomSheet instead
+        showStoreSelectionDialog(initialMessage)
     }
 
     private fun startNewConversation(initialMessage: String, storeId: Long) {
@@ -392,10 +480,30 @@ class LiveChatActivity : AppCompatActivity() {
                     if (response.isSuccessful && response.body()?.data != null) {
                         val conversation = response.body()!!.data!!
                         conversationId = conversation.id
+                        
+                        // Subscribe to WebSocket trước
+                        webSocketManager.subscribeToConversation(conversation.id)
+                        
+                        // Hiển thị conversation
                         displayConversation(conversation)
                         
-                        // Subscribe to WebSocket
-                        webSocketManager.subscribeToConversation(conversation.id)
+                        // Nếu conversation không có messages (API không trả về), thêm tin nhắn local
+                        if (conversation.messages.isNullOrEmpty()) {
+                            val isStaff = sessionManager.isManager() || sessionManager.isAdmin()
+                            val localMessage = LiveMessage(
+                                id = System.currentTimeMillis(),
+                                conversationId = conversation.id,
+                                senderId = currentUserId,
+                                senderName = sessionManager.getFullName(),
+                                senderAvatar = null,
+                                content = initialMessage,
+                                senderType = if (isStaff) "MANAGER" else "USER",
+                                isRead = false,
+                                createdAt = null
+                            )
+                            chatAdapter.addMessage(localMessage)
+                            scrollToBottom()
+                        }
                         
                         tvEmpty.visibility = View.GONE
                         Toast.makeText(this@LiveChatActivity, "Đã gửi yêu cầu hỗ trợ", Toast.LENGTH_SHORT).show()
@@ -418,7 +526,7 @@ class LiveChatActivity : AppCompatActivity() {
             content = content
         )
         
-        val isManager = sessionManager.isManager()
+        val isStaff = sessionManager.isManager() || sessionManager.isAdmin()
         
         // Add message locally first (optimistic update)
         val localMessage = LiveMessage(
@@ -428,7 +536,7 @@ class LiveChatActivity : AppCompatActivity() {
             senderName = sessionManager.getFullName(),
             senderAvatar = null,
             content = content,
-            senderType = if (isManager) "MANAGER" else "USER",
+            senderType = if (isStaff) "MANAGER" else "USER",
             isRead = false,
             createdAt = null
         )

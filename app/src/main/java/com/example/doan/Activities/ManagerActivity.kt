@@ -2,6 +2,7 @@ package com.example.doan.Activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -18,11 +19,17 @@ import com.example.doan.Fragments.Manager.ManageChatsFragment
 import com.example.doan.Fragments.Manager.ManageDrinksFragment
 import com.example.doan.Fragments.Manager.ManageOrdersFragment
 import com.example.doan.Fragments.Manager.ManagerSettingsFragment
+import com.example.doan.Models.ApiResponse
+import com.example.doan.Models.Store
+import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationBarView
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
 
@@ -30,6 +37,7 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
     private var selectedItemId = R.id.nav_manager_dashboard
     private lateinit var btnForecast: MaterialCardView
     private lateinit var badgeWarning: TextView
+    private lateinit var tvManagedStores: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +65,10 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         // Setup Forecast/Warning Button với animation
         btnForecast = findViewById(R.id.btn_forecast)
         badgeWarning = findViewById(R.id.badge_warning)
+        tvManagedStores = findViewById(R.id.tv_managed_stores)
+        
+        // Load chi nhánh quản lý
+        loadManagedStores()
         
         // Bắt đầu animation nhấp nháy cho badge
         startWarningAnimation()
@@ -99,6 +111,43 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         val pulseAnim = AnimationUtils.loadAnimation(this, R.anim.pulse_warning)
         badgeWarning.startAnimation(pulseAnim)
         btnForecast.startAnimation(pulseAnim)
+    }
+    
+    private fun loadManagedStores() {
+        // Admin quản lý tất cả
+        if (sessionManager.isAdmin()) {
+            tvManagedStores.text = "🏪 Quản lý tất cả chi nhánh"
+            return
+        }
+        
+        RetrofitClient.getInstance(this).apiService
+            .getMyManagedStores()
+            .enqueue(object : Callback<ApiResponse<List<Store>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<Store>>>,
+                    response: Response<ApiResponse<List<Store>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val stores = response.body()?.data ?: emptyList()
+                        if (stores.isEmpty()) {
+                            tvManagedStores.text = "⚠️ Chưa được gán chi nhánh"
+                        } else if (stores.size == 1) {
+                            tvManagedStores.text = "🏪 ${stores[0].storeName}"
+                        } else {
+                            val storeNames = stores.take(2).joinToString(", ") { it.storeName ?: "N/A" }
+                            val suffix = if (stores.size > 2) " +${stores.size - 2}" else ""
+                            tvManagedStores.text = "🏪 $storeNames$suffix"
+                        }
+                    } else {
+                        tvManagedStores.text = "🏪 Không thể tải chi nhánh"
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                    Log.e(TAG, "Error loading managed stores: ${t.message}")
+                    tvManagedStores.text = "🏪 Lỗi kết nối"
+                }
+            })
     }
     
     override fun onResume() {

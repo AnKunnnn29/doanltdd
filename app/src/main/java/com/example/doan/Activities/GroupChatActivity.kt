@@ -129,9 +129,12 @@ class GroupChatActivity : AppCompatActivity() {
         
         webSocketManager.setOnNewMessageListener { message ->
             runOnUiThread {
-                // Chỉ thêm tin nhắn từ người khác (tin nhắn của mình đã được thêm local)
-                if (message.senderId != currentUserId || 
-                    message.messageType != GroupChatMessageType.TEXT) {
+                // Chỉ thêm tin nhắn từ người khác hoặc tin nhắn hệ thống
+                // Tin nhắn TEXT của mình đã được thêm local (optimistic update)
+                val isMyTextMessage = message.senderId == currentUserId && 
+                                      message.messageType == GroupChatMessageType.TEXT
+                
+                if (!isMyTextMessage) {
                     chatAdapter.addMessage(message)
                     scrollToBottom()
                     tvEmpty.visibility = View.GONE

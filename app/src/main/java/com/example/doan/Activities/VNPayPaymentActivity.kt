@@ -29,6 +29,7 @@ class VNPayPaymentActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private var paymentUrl: String? = null
     private var orderRequestJson: String? = null
+    private var cartItemIds: LongArray? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +37,7 @@ class VNPayPaymentActivity : AppCompatActivity() {
 
         paymentUrl = intent.getStringExtra("PAYMENT_URL")
         orderRequestJson = intent.getStringExtra("ORDER_REQUEST")
+        cartItemIds = intent.getLongArrayExtra("CART_ITEM_IDS")
         
         if (paymentUrl.isNullOrEmpty()) {
             Toast.makeText(this, "URL thanh toán không hợp lệ", Toast.LENGTH_SHORT).show()
@@ -214,18 +216,47 @@ class VNPayPaymentActivity : AppCompatActivity() {
     }
     
     private fun clearCartOnServer() {
-        val userId = SessionManager(this).getUserId()
-        if (userId == -1) return
-        
-        RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong())
-            .enqueue(object : Callback<ApiResponse<Void>> {
-                override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
-                    Log.d("VNPayPayment", "Cart cleared: ${response.isSuccessful}")
-                }
-                override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
-                    Log.e("VNPayPayment", "Error clearing cart", t)
-                }
-            })
+        // FIX: Chỉ xóa những sản phẩm đã mua, giữ lại các sản phẩm khác trong giỏ hàng
+        val itemIds = cartItemIds
+        if (itemIds != null && itemIds.isNotEmpty()) {
+            removeSelectedItemsFromCart(itemIds)
+        } else {
+            // Fallback: xóa toàn bộ giỏ hàng nếu không có danh sách items
+            val userId = SessionManager(this).getUserId()
+            if (userId == -1) return
+            
+            RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong())
+                .enqueue(object : Callback<ApiResponse<Void>> {
+                    override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                        Log.d("VNPayPayment", "Cart cleared: ${response.isSuccessful}")
+                    }
+                    override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                        Log.e("VNPayPayment", "Error clearing cart", t)
+                    }
+                })
+        }
+    }
+
+    /**
+     * Xóa từng sản phẩm đã mua khỏi giỏ hàng
+     */
+    private fun removeSelectedItemsFromCart(itemIds: LongArray) {
+        for (cartItemId in itemIds) {
+            RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)
+                .enqueue(object : Callback<ApiResponse<Void>> {
+                    override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                        if (!response.isSuccessful) {
+                            Log.e("VNPayPayment", "Failed to remove cart item: $cartItemId")
+                        } else {
+                            Log.d("VNPayPayment", "Removed cart item: $cartItemId")
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                        Log.e("VNPayPayment", "Error removing cart item: $cartItemId", t)
+                    }
+                })
+        }
     }
     
     private fun handlePaymentFailure() {

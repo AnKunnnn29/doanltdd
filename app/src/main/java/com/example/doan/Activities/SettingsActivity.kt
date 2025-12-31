@@ -2,9 +2,11 @@ package com.example.doan.Activities
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -15,6 +17,9 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import com.example.doan.Models.ApiResponse
+import com.example.doan.Models.Store
+import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.KeyStoreManager
 import com.example.doan.Utils.SeasonalEffectManager
@@ -23,6 +28,9 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputLayout
 import com.onesignal.OneSignal
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -39,6 +47,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var layoutSeasonDropdown: TextInputLayout
     private lateinit var dropdownSeason: AutoCompleteTextView
     private lateinit var sessionManager: SessionManager
+
+    // Manager info views
+    private lateinit var layoutManagerInfo: LinearLayout
+    private lateinit var tvRoleValue: TextView
+    private lateinit var tvManagedStores: TextView
     
     // Danh sách các mùa với emoji và tên
     private val seasonItems = mutableListOf<Pair<SeasonalEffectManager.Season, String>>()
@@ -106,6 +119,9 @@ class SettingsActivity : AppCompatActivity() {
 
         // Seasonal Effects Settings
         setupSeasonalEffectsSettings(sharedPreferences)
+
+        // Setup Manager Info (chỉ hiển thị cho MANAGER/ADMIN)
+        setupManagerInfo()
 
         findViewById<TextView>(R.id.tv_about).setOnClickListener {
             showAboutDialog()
@@ -242,6 +258,90 @@ class SettingsActivity : AppCompatActivity() {
             )
             .setPositiveButton("Đóng", null)
             .show()
+    }
+
+    /**
+     * Setup thông tin quản lý cho MANAGER/ADMIN
+     */
+    private fun setupManagerInfo() {
+        layoutManagerInfo = findViewById(R.id.layout_manager_info)
+        tvRoleValue = findViewById(R.id.tv_role_value)
+        tvManagedStores = findViewById(R.id.tv_managed_stores)
+
+        val role = sessionManager.getRole()
+        
+        // Chỉ hiển thị cho MANAGER hoặc ADMIN
+        if (role == "MANAGER" || role == "ADMIN") {
+            layoutManagerInfo.visibility = View.VISIBLE
+            
+            // Hiển thị vai trò
+            val roleDisplay = when (role) {
+                "ADMIN" -> "🔑 Quản trị viên (Admin)"
+                "MANAGER" -> "👔 Quản lý cửa hàng (Manager)"
+                else -> role ?: "N/A"
+            }
+            tvRoleValue.text = roleDisplay
+            
+            // Load danh sách cửa hàng quản lý
+            loadManagedStores()
+        } else {
+            layoutManagerInfo.visibility = View.GONE
+        }
+    }
+
+    /**
+     * Load danh sách cửa hàng mà Manager đang quản lý
+     */
+    private fun loadManagedStores() {
+        tvManagedStores.text = "Đang tải..."
+        
+        RetrofitClient.getInstance(this).apiService.getMyManagedStores()
+            .enqueue(object : Callback<ApiResponse<List<Store>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<Store>>>,
+                    response: Response<ApiResponse<List<Store>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val stores = response.body()?.data ?: emptyList()
+                        displayManagedStores(stores)
+                    } else {
+                        val role = sessionManager.getRole()
+                        if (role == "ADMIN") {
+                            tvManagedStores.text = "📍 Quản lý tất cả cửa hàng"
+                        } else {
+                            tvManagedStores.text = "Chưa được phân công cửa hàng"
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                    Log.e("SettingsActivity", "Error loading managed stores", t)
+                    tvManagedStores.text = "Không thể tải thông tin"
+                }
+            })
+    }
+
+    /**
+     * Hiển thị danh sách cửa hàng
+     */
+    private fun displayManagedStores(stores: List<Store>) {
+        if (stores.isEmpty()) {
+            val role = sessionManager.getRole()
+            if (role == "ADMIN") {
+                tvManagedStores.text = "📍 Quản lý tất cả cửa hàng"
+            } else {
+                tvManagedStores.text = "Chưa được phân công cửa hàng"
+            }
+            return
+        }
+
+        val storeText = stores.mapIndexed { index, store ->
+            val name = store.storeName ?: "Chi nhánh ${store.id}"
+            val address = store.address?.let { "\n   📍 $it" } ?: ""
+            "${index + 1}. $name$address"
+        }.joinToString("\n\n")
+
+        tvManagedStores.text = storeText
     }
 
     /**

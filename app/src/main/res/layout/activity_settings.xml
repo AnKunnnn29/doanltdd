@@ -25,6 +25,82 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- Thông tin quản lý (chỉ hiển thị cho MANAGER/ADMIN) -->
+            <LinearLayout
+                android:id="@+id/layout_manager_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/TextAppearance.Material3.LabelLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👤 Thông tin quản lý"
+                    android:textColor="?attr/colorPrimary"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"/>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/tv_role_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Vai trò:"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary"/>
+
+                        <TextView
+                            android:id="@+id/tv_role_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Manager"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorPrimary"
+                            android:paddingBottom="12dp"/>
+
+                        <TextView
+                            android:id="@+id/tv_stores_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🏪 Cửa hàng quản lý:"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary"/>
+
+                        <TextView
+                            android:id="@+id/tv_managed_stores"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Đang tải..."
+                            android:textSize="15sp"
+                            android:paddingTop="4dp"/>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp"/>
+
+            </LinearLayout>
+
             <TextView
                 style="@style/TextAppearance.Material3.LabelLarge"
                 android:layout_width="wrap_content"

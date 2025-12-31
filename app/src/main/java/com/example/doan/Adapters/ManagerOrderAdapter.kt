@@ -46,7 +46,7 @@ class ManagerOrderAdapter(
         // Order info
         holder.tvOrderId.text = "Đơn hàng #${order.id}"
         holder.tvCustomerName.text = order.userName ?: "Khách hàng"
-        holder.tvStoreName.text = order.storeName ?: "Cửa hàng"
+        holder.tvStoreName.text = "🏪 ${order.storeName ?: "Chưa xác định"}"
 
         // Date
         order.createdAt?.let { dateTimeStr ->

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/wine_light_surface"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/wine_neutral_light"
+    android:clickable="true"
+    android:focusable="true"
+    app:rippleColor="@color/wine_neutral_light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:gravity="center_vertical">
+
+        <!-- Store Icon -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/wine_neutral_light">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="☕"
+                android:textSize="24sp"
+                android:gravity="center" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Store Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_store_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Houjicha - Quận 1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/wine_dark_background"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/wine_neutral_dark" />
+
+                <TextView
+                    android:id="@+id/tv_store_address"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="123 Đường ABC, Quận 1"
+                    android:textSize="12sp"
+                    android:textColor="@color/wine_neutral_dark"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    app:tint="@color/wine_neutral_dark" />
+
+                <TextView
+                    android:id="@+id/tv_store_hours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="8:00 - 22:00"
+                    android:textSize="12sp"
+                    android:textColor="@color/wine_neutral_dark" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Arrow -->
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_forward"
+            app:tint="@color/wine_primary" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -44,6 +44,19 @@
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
+            <!-- Hiển thị chi nhánh quản lý -->
+            <TextView
+                android:id="@+id/tv_managed_stores"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="🏪 Đang tải chi nhánh..."
+                android:textColor="@color/wine_light_surface"
+                android:textSize="12sp"
+                android:alpha="0.85"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
         </LinearLayout>
 
         <!-- Forecast/Warning Button với Badge -->

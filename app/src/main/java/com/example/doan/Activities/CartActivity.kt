@@ -910,7 +910,8 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
                 if(response.isSuccessful && response.body()?.success == true) {
                     val order = response.body()?.data
-                    clearCartOnServerAsync()
+                    // FIX: Chỉ xóa những sản phẩm đã mua, giữ lại các sản phẩm khác trong giỏ hàng
+                    removeSelectedItemsFromCart(items)
                     appliedVoucher = null
                     appliedSpinVoucher = null
 
@@ -975,12 +976,17 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                         if (!paymentUrl.isNullOrEmpty()) {
                             loadingDialog.dismiss()
 
+                            // Lấy danh sách cartItemIds đã chọn để xóa sau khi thanh toán thành công
+                            val selectedItems = cartAdapter.getSelectedItems()
+                            val cartItemIds = selectedItems.mapNotNull { it.id }
+
                             // Mở WebView để thanh toán, truyền thêm orderRequest để tạo đơn sau
                             val intent = Intent(this@CartActivity, VNPayPaymentActivity::class.java)
                             intent.putExtra("PAYMENT_URL", paymentUrl)
                             intent.putExtra("ORDER_REQUEST", com.google.gson.Gson().toJson(orderRequest))
                             intent.putExtra("VOUCHER_CODE", appliedVoucher?.code)
                             intent.putExtra("SPIN_VOUCHER_CODE", appliedSpinVoucher?.voucherCode)
+                            intent.putExtra("CART_ITEM_IDS", cartItemIds.toLongArray())
                             startActivity(intent)
                             finish()
                         } else {
@@ -1062,6 +1068,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             )
         }
 
+        // Lấy danh sách cartItemIds đã chọn để xóa sau khi thanh toán thành công
+        val cartItemIds = items.mapNotNull { it.id }
+
         val intent = Intent(this, VietQRActivity::class.java).apply {
             putExtra("ORDER_ID", System.currentTimeMillis())
             putExtra("TOTAL_AMOUNT", totalAmount.toDouble())
@@ -1069,13 +1078,42 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             putExtra("ORDER_ITEMS", com.google.gson.Gson().toJson(orderSummaryItems))
             putExtra("VOUCHER_CODE", appliedVoucher?.code)
             putExtra("SPIN_VOUCHER_CODE", appliedSpinVoucher?.voucherCode)
+            putExtra("CART_ITEM_IDS", cartItemIds.toLongArray())
         }
         startActivity(intent)
         // Không finish() để user có thể quay lại khi hủy thanh toán
     }
 
     /**
-     * FIX: Gọi async không chờ response - tránh chậm UI
+     * FIX: Chỉ xóa những sản phẩm đã được chọn mua, giữ lại các sản phẩm khác trong giỏ hàng
+     */
+    private fun removeSelectedItemsFromCart(selectedItems: List<CartItem>) {
+        if (selectedItems.isEmpty()) return
+
+        // Xóa từng item đã được chọn mua
+        for (item in selectedItems) {
+            item.id?.let { cartItemId ->
+                RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)
+                    .enqueue(object : Callback<ApiResponse<Void>> {
+                        override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                            if (!response.isSuccessful) {
+                                Log.e("CartActivity", "Failed to remove cart item: $cartItemId")
+                            } else {
+                                Log.d("CartActivity", "Removed cart item: $cartItemId")
+                            }
+                        }
+
+                        override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                            Log.e("CartActivity", "Error removing cart item: $cartItemId", t)
+                        }
+                    })
+            }
+        }
+    }
+
+    /**
+     * @deprecated Sử dụng removeSelectedItemsFromCart() thay thế
+     * Giữ lại để tương thích với code cũ nếu cần xóa toàn bộ giỏ hàng
      */
     private fun clearCartOnServerAsync() {
         val userId = SessionManager(this).getUserId()

@@ -153,9 +153,18 @@ interface ApiService {
     // ==================== STORES & BRANCHES ====================
     @GET("stores")
     fun getStores(): Call<ApiResponse<List<Store>>>
+    
+    @GET("stores/with-managers")
+    fun getStoresWithManagers(): Call<ApiResponse<List<StoreWithManagers>>>
 
     @GET("stores/{id}")
     fun getStoreById(@Path("id") id: Int): Call<ApiResponse<Store>>
+    
+    @GET("stores/{id}/managers")
+    fun getStoreManagers(@Path("id") id: Int): Call<ApiResponse<List<User>>>
+    
+    @GET("stores/admins")
+    fun getAllAdmins(): Call<ApiResponse<List<User>>>
 
     @GET("stores/search")
     fun searchStores(@Query("keyword") keyword: String): Call<ApiResponse<List<Store>>>

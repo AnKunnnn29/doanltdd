@@ -59,6 +59,7 @@ class VietQRActivity : AppCompatActivity() {
     private var orderItems: List<OrderSummaryItem> = emptyList()
     private lateinit var orderSummaryAdapter: OrderSummaryAdapter
     private var orderRequestJson: String? = null
+    private var cartItemIds: LongArray? = null
     
     // Track API calls for cancellation
     private var createOrderCall: Call<ApiResponse<Order>>? = null
@@ -120,6 +121,7 @@ class VietQRActivity : AppCompatActivity() {
         orderId = intent.getLongExtra("ORDER_ID", System.currentTimeMillis())
         totalAmount = intent.getDoubleExtra("TOTAL_AMOUNT", 0.0)
         orderRequestJson = intent.getStringExtra("ORDER_REQUEST")
+        cartItemIds = intent.getLongArrayExtra("CART_ITEM_IDS")
         
         // Parse order items from intent
         val itemsJson = intent.getStringExtra("ORDER_ITEMS")
@@ -335,20 +337,49 @@ class VietQRActivity : AppCompatActivity() {
     }
     
     private fun clearCartOnServer() {
-        val userId = SessionManager(this).getUserId()
-        if (userId == -1) return
-        
-        clearCartCall = RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong())
-        clearCartCall?.enqueue(object : Callback<ApiResponse<Void>> {
-            override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
-                Log.d(TAG, "Cart cleared: ${response.isSuccessful}")
-            }
-            override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
-                if (!call.isCanceled) {
-                    Log.e(TAG, "Error clearing cart", t)
+        // FIX: Chỉ xóa những sản phẩm đã mua, giữ lại các sản phẩm khác trong giỏ hàng
+        val itemIds = cartItemIds
+        if (itemIds != null && itemIds.isNotEmpty()) {
+            removeSelectedItemsFromCart(itemIds)
+        } else {
+            // Fallback: xóa toàn bộ giỏ hàng nếu không có danh sách items
+            val userId = SessionManager(this).getUserId()
+            if (userId == -1) return
+            
+            clearCartCall = RetrofitClient.getInstance(this).apiService.clearCart(userId.toLong())
+            clearCartCall?.enqueue(object : Callback<ApiResponse<Void>> {
+                override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                    Log.d(TAG, "Cart cleared: ${response.isSuccessful}")
                 }
-            }
-        })
+                override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                    if (!call.isCanceled) {
+                        Log.e(TAG, "Error clearing cart", t)
+                    }
+                }
+            })
+        }
+    }
+
+    /**
+     * Xóa từng sản phẩm đã mua khỏi giỏ hàng
+     */
+    private fun removeSelectedItemsFromCart(itemIds: LongArray) {
+        for (cartItemId in itemIds) {
+            RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)
+                .enqueue(object : Callback<ApiResponse<Void>> {
+                    override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                        if (!response.isSuccessful) {
+                            Log.e(TAG, "Failed to remove cart item: $cartItemId")
+                        } else {
+                            Log.d(TAG, "Removed cart item: $cartItemId")
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                        Log.e(TAG, "Error removing cart item: $cartItemId", t)
+                    }
+                })
+        }
     }
 
     private fun navigateToOrderHistory() {

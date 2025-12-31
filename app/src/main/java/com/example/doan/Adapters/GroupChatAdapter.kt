@@ -78,8 +78,15 @@ class GroupChatAdapter(
     }
 
     fun addMessage(message: GroupChatMessageDto) {
-        // Kiểm tra trùng lặp
-        if (messages.none { it.id == message.id }) {
+        // Kiểm tra trùng lặp - dựa vào id hoặc (senderId + content + thời gian gần nhau)
+        val isDuplicate = messages.any { existing ->
+            existing.id == message.id || 
+            (existing.senderId == message.senderId && 
+             existing.content == message.content &&
+             existing.messageType == message.messageType)
+        }
+        
+        if (!isDuplicate) {
             messages.add(message)
             notifyItemInserted(messages.size - 1)
         }

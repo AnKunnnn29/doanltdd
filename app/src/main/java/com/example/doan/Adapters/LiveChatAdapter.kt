@@ -72,8 +72,18 @@ class LiveChatAdapter(
     }
 
     fun addMessage(message: LiveMessage) {
-        messages.add(message)
-        notifyItemInserted(messages.size - 1)
+        // Kiểm tra trùng lặp - dựa vào id hoặc (senderId + content + senderType)
+        val isDuplicate = messages.any { existing ->
+            existing.id == message.id || 
+            (existing.senderId == message.senderId && 
+             existing.content == message.content &&
+             existing.senderType == message.senderType)
+        }
+        
+        if (!isDuplicate) {
+            messages.add(message)
+            notifyItemInserted(messages.size - 1)
+        }
     }
 
     inner class SentMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

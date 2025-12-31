@@ -28,6 +28,7 @@ import com.example.doan.Models.Store
 import com.example.doan.Network.OrderWebSocketManager
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.SessionManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -51,13 +52,16 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     private lateinit var tvDoneCount: TextView
     private lateinit var btnRefresh: MaterialButton
     private var tvConnectionStatus: TextView? = null
+    private var tvHeaderText: TextView? = null
 
     private lateinit var adapter: ManagerOrderAdapter
     private val allOrders = mutableListOf<Order>()
     private val displayedOrders = mutableListOf<Order>()
     private val storeList = mutableListOf<Store>()
+    private val managedStoreIds = mutableListOf<Long>() // Chi nhánh được gán cho manager
     private var currentStatus: String? = null
     private var selectedStoreId: Long? = null
+    private var isAdmin = false
     
     // WebSocket Manager
     private lateinit var webSocketManager: OrderWebSocketManager
@@ -84,6 +88,13 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         setupListeners()
         setupWebSocket()
         animateViewsIn()
+        
+        // Check if admin
+        val sessionManager = SessionManager(requireContext())
+        isAdmin = sessionManager.isAdmin()
+        
+        // Load managed stores first, then load orders
+        loadManagedStores()
         loadStores()
         loadOrders()
 
@@ -202,6 +213,47 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         btnRefresh = view.findViewById(R.id.btn_refresh)
         tvConnectionStatus = view.findViewById(R.id.tv_connection_status)
         btnLoadMore = view.findViewById(R.id.btn_load_more)
+        tvHeaderText = view.findViewById(R.id.header_text)
+    }
+    
+    private fun loadManagedStores() {
+        // Admin quản lý tất cả
+        if (isAdmin) {
+            tvHeaderText?.text = "Quản Lý Đơn Hàng\n(Tất cả chi nhánh)"
+            return
+        }
+        
+        RetrofitClient.getInstance(requireContext()).apiService
+            .getMyManagedStores()
+            .enqueue(object : Callback<ApiResponse<List<Store>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<Store>>>,
+                    response: Response<ApiResponse<List<Store>>>
+                ) {
+                    if (!isAdded) return
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val stores = response.body()?.data ?: emptyList()
+                        managedStoreIds.clear()
+                        managedStoreIds.addAll(stores.mapNotNull { it.id?.toLong() })
+                        
+                        // Update header với chi nhánh quản lý
+                        if (stores.isEmpty()) {
+                            tvHeaderText?.text = "Quản Lý Đơn Hàng\n⚠️ Chưa được gán chi nhánh"
+                        } else if (stores.size == 1) {
+                            tvHeaderText?.text = "Quản Lý Đơn Hàng\n🏪 ${stores[0].storeName}"
+                        } else {
+                            val storeNames = stores.take(2).joinToString(", ") { it.storeName ?: "N/A" }
+                            val suffix = if (stores.size > 2) " +${stores.size - 2}" else ""
+                            tvHeaderText?.text = "Quản Lý Đơn Hàng\n🏪 $storeNames$suffix"
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<Store>>>, t: Throwable) {
+                    Log.e(TAG, "Error loading managed stores: ${t.message}")
+                }
+            })
     }
 
     private fun setupRecyclerView() {
