@@ -48,6 +48,7 @@ import com.example.doan.Utils.SeasonalEffectManager
 import com.example.doan.Utils.SessionManager
 import com.example.doan.Utils.SnowfallView
 import com.example.doan.Utils.VoiceOrderDialog
+import com.example.doan.Utils.DraggableViewHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
 import retrofit2.Call
@@ -75,6 +76,9 @@ class HomeFragment : Fragment() {
     private lateinit var fabChatbot: FrameLayout
     private lateinit var fabSpinWheel: FrameLayout
     private lateinit var fabGroupOrder: FrameLayout
+    
+    // Quick Actions Card - draggable
+    private var quickActionsCard: MaterialCardView? = null
     
     // Glow ring views for animation
     private var voiceGlowRing: View? = null
@@ -500,6 +504,10 @@ class HomeFragment : Fragment() {
         fabSpinWheel = view.findViewById(R.id.fab_spin_wheel)
         fabGroupOrder = view.findViewById(R.id.fab_group_order)
         
+        // Quick Actions Card - setup draggable
+        quickActionsCard = view.findViewById(R.id.quick_actions_card)
+        setupDraggableQuickActions(view)
+        
         // Glow ring views
         voiceGlowRing = view.findViewById(R.id.voice_glow_ring)
         chatbotGlowRing = view.findViewById(R.id.chatbot_glow_ring)
@@ -523,6 +531,17 @@ class HomeFragment : Fragment() {
         tvWeatherEmoji = view.findViewById(R.id.tv_weather_emoji)
         tvTemperature = view.findViewById(R.id.tv_temperature)
         tvWeatherDesc = view.findViewById(R.id.tv_weather_desc)
+    }
+    
+    /**
+     * Setup khả năng kéo thả cho Quick Actions Card
+     * Cho phép user kéo card đến bất kỳ vị trí nào trên màn hình
+     */
+    private fun setupDraggableQuickActions(view: View) {
+        val parentView = view as? RelativeLayout ?: return
+        quickActionsCard?.let { card ->
+            DraggableViewHelper.makeDraggableWithSnapToEdge(card, parentView)
+        }
     }
 
     private fun setupHeader() {

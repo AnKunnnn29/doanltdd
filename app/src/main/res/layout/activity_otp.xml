@@ -107,10 +107,10 @@
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="6"
-                        android:textSize="18sp"
-                        android:textColor="@color/wine_dark_background"
+                        android:paddingHorizontal="16dp"
                         android:paddingVertical="16dp"
-                        android:paddingHorizontal="16dp"/>
+                        android:textColor="@color/wine_dark_background"
+                        android:textSize="18sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton

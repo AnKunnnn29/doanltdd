@@ -37,9 +37,7 @@ class StoreAdapter(
         notifyDataSetChanged()
     }
     
-    /**
-     * Cập nhật danh sách stores với thông tin khoảng cách
-     */
+
     fun updateStoresWithDistance(newStores: List<Store>, distances: Map<Int, String>) {
         this.stores = newStores
         this.distanceMap = distances
