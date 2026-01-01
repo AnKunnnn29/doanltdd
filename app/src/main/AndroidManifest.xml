@@ -114,6 +114,10 @@
         <activity android:name=".Activities.AccountActivity" />
         <activity android:name=".Activities.SettingsActivity" />
         <activity android:name=".Activities.UserProfileActivity" />
+        <activity
+            android:name=".Activities.UserDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
         
         <activity
             android:name=".Activities.ManagerActivity"

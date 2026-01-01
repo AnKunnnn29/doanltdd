@@ -103,7 +103,9 @@ class AccountFragment : Fragment() {
 
         // Thiết lập sự kiện click.
         fabEditAvatar.setOnClickListener { openGalleryWithPermission() }
-        userDetailOption.setOnClickListener { fetchAndShowUserDetails() }
+        userDetailOption.setOnClickListener {
+            startActivity(Intent(requireContext(), UserDetailActivity::class.java))
+        }
         orderHistoryOption.setOnClickListener {
             startActivity(Intent(requireContext(), OrderHistoryActivity::class.java))
         }
