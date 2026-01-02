@@ -851,14 +851,21 @@ class UserMonitoringActivity : AppCompatActivity() {
             recyclerView.scrollToPosition(0)
         }
 
-        // Hiển thị toast nếu activity nghiêm trọng
+        // Hiển thị toast cho TẤT CẢ activity
+        val emoji = when (activity.riskLevel) {
+            "CRITICAL" -> "🔴"
+            "SUSPICIOUS" -> "🟠"
+            "WARNING" -> "🟡"
+            else -> "🟢"
+        }
+        
+        // Chỉ hiển thị toast ngắn cho activity bình thường
+        val message = "${activity.username ?: "User"}: ${activity.activityTypeDisplay ?: activity.activityType}"
+        Toast.makeText(this, "$emoji $message", Toast.LENGTH_SHORT).show()
+        
+        // Phát âm thanh nếu activity nghiêm trọng
         if (activity.riskLevel == "SUSPICIOUS" || activity.riskLevel == "CRITICAL") {
-            val emoji = if (activity.riskLevel == "CRITICAL") "🔴" else "🟠"
-            Toast.makeText(
-                this,
-                "$emoji ${activity.activityTypeDisplay ?: activity.activityType}",
-                Toast.LENGTH_SHORT
-            ).show()
+            playAlertSound(activity.riskLevel)
         }
     }
 

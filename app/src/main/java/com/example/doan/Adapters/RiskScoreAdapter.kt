@@ -13,11 +13,16 @@ import com.example.doan.R
 /**
  * ⚠️ Risk Score Adapter
  * Hiển thị danh sách điểm rủi ro của users
+ * Giới hạn tối đa 100 items để tối ưu hiệu năng
  */
 class RiskScoreAdapter(
     private val items: MutableList<UserRiskScore>,
     private val onItemClick: (UserRiskScore) -> Unit
 ) : RecyclerView.Adapter<RiskScoreAdapter.ViewHolder>() {
+
+    companion object {
+        private const val MAX_ITEMS = 100
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val cardView: CardView = view.findViewById(R.id.cardView)
@@ -92,10 +97,12 @@ class RiskScoreAdapter(
         val startPos = items.size
         items.addAll(newItems)
         notifyItemRangeInserted(startPos, newItems.size)
+        trimToMaxSize()
     }
 
     /**
      * 🔌 Cập nhật item trong danh sách (cho WebSocket realtime)
+     * Tự động xóa item cũ nhất nếu vượt quá 100 items
      */
     fun updateItem(updatedItem: UserRiskScore) {
         val index = items.indexOfFirst { it.userId == updatedItem.userId }
@@ -106,6 +113,36 @@ class RiskScoreAdapter(
             // Nếu chưa có trong list, thêm vào đầu
             items.add(0, updatedItem)
             notifyItemInserted(0)
+            
+            // Xóa item cuối nếu vượt quá giới hạn
+            if (items.size > MAX_ITEMS) {
+                val removeIndex = items.size - 1
+                items.removeAt(removeIndex)
+                notifyItemRemoved(removeIndex)
+            }
         }
+    }
+
+    /**
+     * Xóa bớt items nếu vượt quá giới hạn MAX_ITEMS
+     */
+    private fun trimToMaxSize() {
+        if (items.size > MAX_ITEMS) {
+            val removeCount = items.size - MAX_ITEMS
+            val startIndex = MAX_ITEMS
+            for (i in 0 until removeCount) {
+                items.removeAt(startIndex)
+            }
+            notifyItemRangeRemoved(startIndex, removeCount)
+        }
+    }
+
+    /**
+     * Xóa tất cả items
+     */
+    fun clearAll() {
+        val size = items.size
+        items.clear()
+        notifyItemRangeRemoved(0, size)
     }
 }

@@ -14,11 +14,16 @@ import java.util.*
 /**
  * 🚨 Monitoring Alert Adapter
  * Hiển thị danh sách cảnh báo bảo mật
+ * Giới hạn tối đa 100 items để tối ưu hiệu năng
  */
 class MonitoringAlertAdapter(
     private val items: MutableList<MonitoringAlert>,
     private val onItemClick: (MonitoringAlert) -> Unit
 ) : RecyclerView.Adapter<MonitoringAlertAdapter.ViewHolder>() {
+
+    companion object {
+        private const val MAX_ITEMS = 100
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val cardView: CardView = view.findViewById(R.id.cardView)
@@ -76,14 +81,23 @@ class MonitoringAlertAdapter(
         val startPos = items.size
         items.addAll(newItems)
         notifyItemRangeInserted(startPos, newItems.size)
+        trimToMaxSize()
     }
 
     /**
      * 🔌 Thêm item mới vào đầu danh sách (cho WebSocket realtime)
+     * Tự động xóa item cũ nhất nếu vượt quá 100 items
      */
     fun addItemToTop(item: MonitoringAlert) {
         items.add(0, item)
         notifyItemInserted(0)
+        
+        // Xóa item cuối nếu vượt quá giới hạn
+        if (items.size > MAX_ITEMS) {
+            val removeIndex = items.size - 1
+            items.removeAt(removeIndex)
+            notifyItemRemoved(removeIndex)
+        }
     }
 
     /**
@@ -95,6 +109,29 @@ class MonitoringAlertAdapter(
             items[index] = updatedItem
             notifyItemChanged(index)
         }
+    }
+
+    /**
+     * Xóa bớt items nếu vượt quá giới hạn MAX_ITEMS
+     */
+    private fun trimToMaxSize() {
+        if (items.size > MAX_ITEMS) {
+            val removeCount = items.size - MAX_ITEMS
+            val startIndex = MAX_ITEMS
+            for (i in 0 until removeCount) {
+                items.removeAt(startIndex)
+            }
+            notifyItemRangeRemoved(startIndex, removeCount)
+        }
+    }
+
+    /**
+     * Xóa tất cả items
+     */
+    fun clearAll() {
+        val size = items.size
+        items.clear()
+        notifyItemRangeRemoved(0, size)
     }
 
     private fun formatTime(timeStr: String?): String {

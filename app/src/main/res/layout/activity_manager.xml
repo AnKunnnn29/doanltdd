@@ -105,9 +105,9 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:padding="8dp"
-            android:src="@android:drawable/ic_menu_view"
+            android:src="@android:drawable/ic_menu_manage"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="User Monitoring"
+            android:contentDescription="🛡️ Giám sát người dùng"
             app:tint="@color/wine_light_surface" />
 
     </LinearLayout>
