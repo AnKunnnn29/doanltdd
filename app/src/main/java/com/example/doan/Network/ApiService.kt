@@ -580,6 +580,74 @@ interface ApiService {
         @Query("weather") weather: String? = null
     ): Call<ApiResponse<PredictiveOrderResponse>>
 
+    // ==================== 🛡️ USER MONITORING (GIÁM SÁT NGƯỜI DÙNG) ====================
+    
+    @GET("monitoring/dashboard")
+    fun getMonitoringDashboard(): Call<ApiResponse<MonitoringDashboard>>
+    
+    @GET("monitoring/activities")
+    fun getActivityLogs(
+        @Query("userId") userId: Long? = null,
+        @Query("activityType") activityType: String? = null,
+        @Query("riskLevel") riskLevel: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<UserActivityLog>>>
+    
+    @GET("monitoring/activities/user/{userId}")
+    fun getUserActivityLogs(
+        @Path("userId") userId: Long,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<UserActivityLog>>>
+    
+    @GET("monitoring/alerts")
+    fun getMonitoringAlerts(
+        @Query("userId") userId: Long? = null,
+        @Query("alertType") alertType: String? = null,
+        @Query("severity") severity: String? = null,
+        @Query("status") status: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<MonitoringAlert>>>
+    
+    @GET("monitoring/alerts/pending")
+    fun getPendingAlerts(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<MonitoringAlert>>>
+    
+    @PUT("monitoring/alerts/{alertId}/handle")
+    fun handleAlert(
+        @Path("alertId") alertId: Long,
+        @Body request: HandleAlertRequest
+    ): Call<ApiResponse<MonitoringAlert>>
+    
+    @GET("monitoring/risk-scores")
+    fun getRiskScores(
+        @Query("riskLevel") riskLevel: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<UserRiskScore>>>
+    
+    @GET("monitoring/risk-scores/user/{userId}")
+    fun getUserRiskScore(@Path("userId") userId: Long): Call<ApiResponse<UserRiskScore>>
+    
+    @POST("monitoring/risk-scores/user/{userId}/note")
+    fun addAdminNote(
+        @Path("userId") userId: Long,
+        @Body request: Map<String, String>
+    ): Call<ApiResponse<UserRiskScore>>
+    
+    @POST("monitoring/risk-scores/user/{userId}/reset")
+    fun resetRiskScore(@Path("userId") userId: Long): Call<ApiResponse<UserRiskScore>>
+    
+    @POST("monitoring/users/{userId}/unblock")
+    fun unblockUser(
+        @Path("userId") userId: Long,
+        @Body request: Map<String, String>
+    ): Call<ApiResponse<String>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

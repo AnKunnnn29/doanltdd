@@ -1,0 +1,84 @@
+package com.example.doan.Adapters
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.RecyclerView
+import com.example.doan.Models.UserActivityLog
+import com.example.doan.R
+import java.text.SimpleDateFormat
+import java.util.*
+
+/**
+ * 🛡️ Activity Log Adapter
+ * Hiển thị danh sách log hoạt động của user
+ */
+class ActivityLogAdapter(
+    private val items: MutableList<UserActivityLog>,
+    private val onItemClick: (UserActivityLog) -> Unit
+) : RecyclerView.Adapter<ActivityLogAdapter.ViewHolder>() {
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val cardView: CardView = view.findViewById(R.id.cardView)
+        val viewRiskIndicator: View = view.findViewById(R.id.viewRiskIndicator)
+        val ivIcon: ImageView = view.findViewById(R.id.ivIcon)
+        val tvUsername: TextView = view.findViewById(R.id.tvUsername)
+        val tvActivityType: TextView = view.findViewById(R.id.tvActivityType)
+        val tvDescription: TextView = view.findViewById(R.id.tvDescription)
+        val tvTime: TextView = view.findViewById(R.id.tvTime)
+        val tvRiskLevel: TextView = view.findViewById(R.id.tvRiskLevel)
+        val tvIpAddress: TextView = view.findViewById(R.id.tvIpAddress)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_activity_log, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = items[position]
+        
+        holder.tvUsername.text = item.username ?: "Unknown"
+        holder.tvActivityType.text = item.activityTypeDisplay ?: item.activityType
+        holder.tvDescription.text = item.description ?: ""
+        holder.tvRiskLevel.text = item.riskLevelDisplay ?: item.riskLevel
+        holder.tvIpAddress.text = "IP: ${item.ipAddress ?: "N/A"}"
+        
+        // Format time
+        holder.tvTime.text = formatTime(item.createdAt)
+        
+        // Set risk color
+        val riskColor = item.getRiskColor()
+        holder.viewRiskIndicator.setBackgroundColor(riskColor)
+        holder.tvRiskLevel.setTextColor(riskColor)
+        
+        // Set icon
+        holder.ivIcon.setImageResource(item.getActivityIcon())
+        
+        holder.cardView.setOnClickListener { onItemClick(item) }
+    }
+
+    override fun getItemCount() = items.size
+
+    fun addItems(newItems: List<UserActivityLog>) {
+        val startPos = items.size
+        items.addAll(newItems)
+        notifyItemRangeInserted(startPos, newItems.size)
+    }
+
+    private fun formatTime(timeStr: String?): String {
+        if (timeStr == null) return ""
+        return try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+            val date = inputFormat.parse(timeStr)
+            outputFormat.format(date!!)
+        } catch (e: Exception) {
+            timeStr.take(16).replace("T", " ")
+        }
+    }
+}

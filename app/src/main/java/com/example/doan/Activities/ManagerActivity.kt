@@ -38,6 +38,7 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
     private lateinit var btnForecast: MaterialCardView
     private lateinit var badgeWarning: TextView
     private lateinit var tvManagedStores: TextView
+    private lateinit var btnNotifications: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +67,12 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         btnForecast = findViewById(R.id.btn_forecast)
         badgeWarning = findViewById(R.id.badge_warning)
         tvManagedStores = findViewById(R.id.tv_managed_stores)
+        btnNotifications = findViewById(R.id.btn_notifications)
+        
+        // 🛡️ Setup User Monitoring Button (thay thế Notification)
+        btnNotifications.setOnClickListener {
+            startActivity(Intent(this, UserMonitoringActivity::class.java))
+        }
         
         // Load chi nhánh quản lý
         loadManagedStores()

@@ -25,9 +25,28 @@ class SessionManager(private val context: Context) {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
-            Log.e("SessionManager", "Error creating encrypted prefs, fallback to normal", e)
-            // Fallback to normal SharedPreferences nếu có lỗi
-            context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            Log.e("SessionManager", "Error creating encrypted prefs, clearing and retry", e)
+            // Xóa file bị corrupt và thử lại
+            try {
+                val prefsDir = context.filesDir.parentFile?.resolve("shared_prefs")
+                prefsDir?.listFiles()?.filter { it.name.startsWith(PREF_NAME) }?.forEach { it.delete() }
+                
+                val masterKey = MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+
+                EncryptedSharedPreferences.create(
+                    context,
+                    PREF_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            } catch (e2: Exception) {
+                Log.e("SessionManager", "Fallback to normal SharedPreferences", e2)
+                // Fallback to normal SharedPreferences nếu vẫn lỗi
+                context.getSharedPreferences(PREF_NAME + "_fallback", Context.MODE_PRIVATE)
+            }
         }
     }
     
@@ -80,16 +99,30 @@ class SessionManager(private val context: Context) {
         }
         
         // Xóa thông tin phiên đăng nhập, nhưng giữ lại dữ liệu sinh trắc học
-        //Lấy ra các giá trị không cần xóa
-        val biometricEnrolled = KeyStoreManager.isBiometricEnrolled(context)
+        try {
+            //Lấy ra các giá trị không cần xóa
+            val biometricEnrolled = KeyStoreManager.isBiometricEnrolled(context)
 
-        // Xóa tất cả
-        editor.clear().apply()
+            // Xóa tất cả
+            editor.clear().apply()
 
-        //Lưu lại
-        if (biometricEnrolled) {
-            // Hacky way to keep biometric data, ideally biometric data should be in a separate pref file
-            editor.putBoolean("biometric_enabled", true).apply()
+            //Lưu lại
+            if (biometricEnrolled) {
+                // Hacky way to keep biometric data, ideally biometric data should be in a separate pref file
+                editor.putBoolean("biometric_enabled", true).apply()
+            }
+        } catch (e: Exception) {
+            Log.e("SessionManager", "Error clearing prefs, trying to delete file", e)
+            // Nếu EncryptedSharedPreferences bị corrupt, xóa file trực tiếp
+            try {
+                context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+                // Xóa file encrypted prefs
+                val prefsFile = context.filesDir.parentFile?.resolve("shared_prefs/$PREF_NAME.xml")
+                prefsFile?.delete()
+                Log.d("SessionManager", "Deleted corrupted prefs file")
+            } catch (e2: Exception) {
+                Log.e("SessionManager", "Failed to delete prefs file", e2)
+            }
         }
     }
 

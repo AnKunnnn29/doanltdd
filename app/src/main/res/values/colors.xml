@@ -79,4 +79,10 @@
     <color name="notification_read_bg">#FFFFFF</color>
     <color name="notification_unread_bg">#FFF8E1</color>
 
+    <!-- User Monitoring Colors -->
+    <color name="red">#F44336</color>
+    <color name="alert_pending_bg">#FFF3E0</color>
+    <color name="risk_high_bg">#FFEBEE</color>
+    <color name="chip_background">#F5F5F5</color>
+
 </resources>

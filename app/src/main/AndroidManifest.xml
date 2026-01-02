@@ -209,6 +209,12 @@
             android:name=".Activities.NotificationActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
+        
+        <!-- User Monitoring Activity -->
+        <activity
+            android:name=".Activities.UserMonitoringActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
 
     </application>
 

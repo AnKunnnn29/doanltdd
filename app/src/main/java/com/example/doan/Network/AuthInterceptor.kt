@@ -2,8 +2,11 @@ package com.example.doan.Network
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.example.doan.BuildConfig
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.JwtResponse
@@ -20,12 +23,31 @@ import java.io.IOException
  */
 class AuthInterceptor(private val context: Context) : Interceptor {
     
+    // ✅ FIX: Sử dụng EncryptedSharedPreferences giống SessionManager
+    private val prefs: SharedPreferences by lazy {
+        try {
+            val masterKey = MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+
+            EncryptedSharedPreferences.create(
+                context,
+                PREF_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating encrypted prefs, fallback to normal", e)
+            context.getSharedPreferences(PREF_NAME + "_fallback", Context.MODE_PRIVATE)
+        }
+    }
+    
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         
-        // Lấy token từ SharedPreferences
-        val prefs = context.getSharedPreferences("UTETeaPrefs", Context.MODE_PRIVATE)
+        // ✅ FIX: Đọc token từ EncryptedSharedPreferences
         val token = prefs.getString("jwt_token", null)
         val isLoggedIn = prefs.getBoolean("is_logged_in", false)
         
@@ -60,7 +82,7 @@ class AuthInterceptor(private val context: Context) : Interceptor {
             
             if (!refreshToken.isNullOrEmpty()) {
                 // Thử refresh token
-                val refreshed = tryRefreshToken(chain, refreshToken, prefs)
+                val refreshed = tryRefreshToken(chain, refreshToken)
                 
                 if (refreshed) {
                     // Refresh thành công, retry request với token mới
@@ -93,8 +115,7 @@ class AuthInterceptor(private val context: Context) : Interceptor {
      */
     private fun tryRefreshToken(
         chain: Interceptor.Chain,
-        refreshToken: String,
-        prefs: android.content.SharedPreferences
+        refreshToken: String
     ): Boolean {
         return try {
             // Tạo request refresh token
@@ -145,11 +166,13 @@ class AuthInterceptor(private val context: Context) : Interceptor {
     }
     
     private fun getBaseUrl(): String {
-        return "https://utetea-backend-production.up.railway.app/api/"
+        // Sử dụng cùng base URL với RetrofitClient
+        return RetrofitClient.getBaseUrl()
     }
     
     companion object {
         private const val TAG = "AuthInterceptor"
+        private const val PREF_NAME = "UTETeaPrefs"
         const val ACTION_TOKEN_EXPIRED = "com.example.doan.TOKEN_EXPIRED"
     }
 }
