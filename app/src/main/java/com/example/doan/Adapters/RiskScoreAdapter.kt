@@ -93,4 +93,19 @@ class RiskScoreAdapter(
         items.addAll(newItems)
         notifyItemRangeInserted(startPos, newItems.size)
     }
+
+    /**
+     * 🔌 Cập nhật item trong danh sách (cho WebSocket realtime)
+     */
+    fun updateItem(updatedItem: UserRiskScore) {
+        val index = items.indexOfFirst { it.userId == updatedItem.userId }
+        if (index >= 0) {
+            items[index] = updatedItem
+            notifyItemChanged(index)
+        } else {
+            // Nếu chưa có trong list, thêm vào đầu
+            items.add(0, updatedItem)
+            notifyItemInserted(0)
+        }
+    }
 }

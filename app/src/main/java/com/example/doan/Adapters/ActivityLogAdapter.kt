@@ -70,6 +70,14 @@ class ActivityLogAdapter(
         notifyItemRangeInserted(startPos, newItems.size)
     }
 
+    /**
+     * 🔌 Thêm item mới vào đầu danh sách (cho WebSocket realtime)
+     */
+    fun addItemToTop(item: UserActivityLog) {
+        items.add(0, item)
+        notifyItemInserted(0)
+    }
+
     private fun formatTime(timeStr: String?): String {
         if (timeStr == null) return ""
         return try {

@@ -78,6 +78,25 @@ class MonitoringAlertAdapter(
         notifyItemRangeInserted(startPos, newItems.size)
     }
 
+    /**
+     * 🔌 Thêm item mới vào đầu danh sách (cho WebSocket realtime)
+     */
+    fun addItemToTop(item: MonitoringAlert) {
+        items.add(0, item)
+        notifyItemInserted(0)
+    }
+
+    /**
+     * 🔌 Cập nhật item trong danh sách (cho WebSocket realtime)
+     */
+    fun updateItem(updatedItem: MonitoringAlert) {
+        val index = items.indexOfFirst { it.id == updatedItem.id }
+        if (index >= 0) {
+            items[index] = updatedItem
+            notifyItemChanged(index)
+        }
+    }
+
     private fun formatTime(timeStr: String?): String {
         if (timeStr == null) return ""
         return try {

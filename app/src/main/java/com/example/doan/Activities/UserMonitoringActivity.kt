@@ -1,5 +1,6 @@
 package com.example.doan.Activities
 
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -13,10 +14,12 @@ import com.example.doan.Adapters.MonitoringAlertAdapter
 import com.example.doan.Adapters.RiskScoreAdapter
 import com.example.doan.Models.*
 import com.example.doan.Network.ApiService
+import com.example.doan.Network.MonitoringWebSocketManager
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import retrofit2.Call
 import retrofit2.Callback
@@ -25,6 +28,7 @@ import retrofit2.Response
 /**
  * 🛡️ USER MONITORING ACTIVITY
  * Màn hình giám sát hành vi người dùng cho Admin/Manager
+ * Hỗ trợ WebSocket realtime để nhận cảnh báo tức thì
  */
 class UserMonitoringActivity : AppCompatActivity() {
 
@@ -37,6 +41,7 @@ class UserMonitoringActivity : AppCompatActivity() {
     private lateinit var tvEmpty: TextView
     private lateinit var layoutDashboard: View
     private lateinit var chipGroupFilter: ChipGroup
+    private var tvConnectionStatus: TextView? = null
     
     // Dashboard views
     private lateinit var tvPendingAlerts: TextView
@@ -46,6 +51,10 @@ class UserMonitoringActivity : AppCompatActivity() {
 
     // API Service
     private lateinit var apiService: ApiService
+    
+    // 🔌 WebSocket Manager
+    private lateinit var webSocketManager: MonitoringWebSocketManager
+    private var isWebSocketConnected = false
 
     // Adapters
     private var activityLogAdapter: ActivityLogAdapter? = null
@@ -67,13 +76,37 @@ class UserMonitoringActivity : AppCompatActivity() {
         // Initialize API Service
         apiService = RetrofitClient.getInstance(this).apiService
         
+        // 🔌 Initialize WebSocket Manager
+        webSocketManager = MonitoringWebSocketManager.getInstance()
+        
         initViews()
         setupTabLayout()
         setupRecyclerView()
         setupSwipeRefresh()
         setupFilters()
         
+        // 🔌 Setup WebSocket
+        setupWebSocket()
+        
         loadDashboard()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Reconnect WebSocket khi quay lại Activity
+        connectWebSocket()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Không disconnect khi pause để vẫn nhận notification
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Disconnect WebSocket khi đóng Activity
+        webSocketManager.clearListeners()
+        webSocketManager.disconnect()
     }
 
     private fun initViews() {
@@ -705,5 +738,196 @@ class UserMonitoringActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    // ==================== 🔌 WEBSOCKET REALTIME ====================
+
+    /**
+     * Setup WebSocket listeners
+     */
+    private fun setupWebSocket() {
+        // 🔌 Connection listener
+        webSocketManager.setOnConnectionListener { connected ->
+            runOnUiThread {
+                isWebSocketConnected = connected
+                updateConnectionStatus(connected)
+            }
+        }
+
+        // 🚨 Alert listener - Nhận cảnh báo mới realtime
+        webSocketManager.setOnAlertListener { alert ->
+            runOnUiThread {
+                handleNewAlertRealtime(alert)
+            }
+        }
+
+        // 📋 Activity listener - Nhận activity mới realtime
+        webSocketManager.setOnActivityListener { activity ->
+            runOnUiThread {
+                handleNewActivityRealtime(activity)
+            }
+        }
+
+        // ⚠️ Risk score listener - Nhận cập nhật risk score realtime
+        webSocketManager.setOnRiskScoreListener { riskScore ->
+            runOnUiThread {
+                handleRiskScoreUpdateRealtime(riskScore)
+            }
+        }
+
+        // 📊 Dashboard listener - Nhận cập nhật dashboard realtime
+        webSocketManager.setOnDashboardListener { dashboard ->
+            runOnUiThread {
+                updateDashboard(dashboard)
+            }
+        }
+    }
+
+    /**
+     * Kết nối WebSocket
+     */
+    private fun connectWebSocket() {
+        val baseUrl = RetrofitClient.getInstance(this).getBaseUrl()
+        webSocketManager.reconnectIfNeeded(baseUrl)
+    }
+
+    /**
+     * Cập nhật trạng thái kết nối trên UI
+     */
+    private fun updateConnectionStatus(connected: Boolean) {
+        tvConnectionStatus?.let { tv ->
+            if (connected) {
+                tv.text = "🟢 Realtime"
+                tv.setTextColor(getColor(R.color.green))
+            } else {
+                tv.text = "🔴 Offline"
+                tv.setTextColor(getColor(R.color.red))
+            }
+        }
+    }
+
+    /**
+     * 🚨 Xử lý khi nhận alert mới qua WebSocket
+     */
+    private fun handleNewAlertRealtime(alert: MonitoringAlert) {
+        // Phát âm thanh cảnh báo
+        playAlertSound(alert.severity)
+
+        // Hiển thị Snackbar thông báo
+        val emoji = when (alert.severity) {
+            "CRITICAL" -> "🚨"
+            "HIGH" -> "⚠️"
+            "MEDIUM" -> "🟡"
+            else -> "🔵"
+        }
+        
+        val snackbar = Snackbar.make(
+            findViewById(android.R.id.content),
+            "$emoji ${alert.title}",
+            Snackbar.LENGTH_LONG
+        )
+        snackbar.setAction("Xem") {
+            // Chuyển sang tab Cảnh báo
+            tabLayout.getTabAt(1)?.select()
+        }
+        snackbar.show()
+
+        // Nếu đang ở tab Cảnh báo, thêm alert vào đầu danh sách
+        if (currentTab == 1) {
+            alertAdapter?.addItemToTop(alert)
+            recyclerView.scrollToPosition(0)
+        }
+
+        // Cập nhật dashboard stats
+        updateDashboardAlertCount(1)
+    }
+
+    /**
+     * 📋 Xử lý khi nhận activity mới qua WebSocket
+     */
+    private fun handleNewActivityRealtime(activity: UserActivityLog) {
+        // Nếu đang ở tab Hoạt động, thêm activity vào đầu danh sách
+        if (currentTab == 2) {
+            activityLogAdapter?.addItemToTop(activity)
+            recyclerView.scrollToPosition(0)
+        }
+
+        // Hiển thị toast nếu activity nghiêm trọng
+        if (activity.riskLevel == "SUSPICIOUS" || activity.riskLevel == "CRITICAL") {
+            val emoji = if (activity.riskLevel == "CRITICAL") "🔴" else "🟠"
+            Toast.makeText(
+                this,
+                "$emoji ${activity.activityTypeDisplay ?: activity.activityType}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    /**
+     * ⚠️ Xử lý khi nhận cập nhật risk score qua WebSocket
+     */
+    private fun handleRiskScoreUpdateRealtime(riskScore: UserRiskScore) {
+        // Nếu đang ở tab Rủi ro, cập nhật item trong danh sách
+        if (currentTab == 3) {
+            riskScoreAdapter?.updateItem(riskScore)
+        }
+
+        // Hiển thị thông báo nếu user bị auto-block
+        if (riskScore.autoBlocked == true) {
+            playAlertSound("CRITICAL")
+            
+            Snackbar.make(
+                findViewById(android.R.id.content),
+                "🚨 ${riskScore.username} đã bị tự động khóa!",
+                Snackbar.LENGTH_LONG
+            ).setAction("Xem") {
+                tabLayout.getTabAt(3)?.select()
+            }.show()
+        }
+    }
+
+    /**
+     * 🔊 Phát âm thanh cảnh báo
+     */
+    private fun playAlertSound(severity: String?) {
+        try {
+            val soundRes = when (severity) {
+                "CRITICAL" -> R.raw.alert_critical
+                "HIGH" -> R.raw.alert_high
+                else -> R.raw.notification_sound
+            }
+            
+            // Kiểm tra resource tồn tại
+            val resId = resources.getIdentifier(
+                when (severity) {
+                    "CRITICAL" -> "alert_critical"
+                    "HIGH" -> "alert_high"
+                    else -> "notification_sound"
+                },
+                "raw",
+                packageName
+            )
+            
+            if (resId != 0) {
+                MediaPlayer.create(this, resId)?.apply {
+                    setOnCompletionListener { release() }
+                    start()
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore sound errors
+        }
+    }
+
+    /**
+     * Cập nhật số lượng alert trên dashboard
+     */
+    private fun updateDashboardAlertCount(increment: Int) {
+        try {
+            val current = tvPendingAlerts.text.toString().toIntOrNull() ?: 0
+            tvPendingAlerts.text = "${current + increment}"
+        } catch (e: Exception) {
+            // Ignore
+        }
     }
 }

@@ -13,6 +13,12 @@ import java.util.concurrent.TimeUnit
 class RetrofitClient private constructor(context: Context) {
     
     val apiService: ApiService
+    private val baseUrl: String = BASE_URL
+    
+    /**
+     * Lấy base URL để sử dụng cho WebSocket
+     */
+    fun getBaseUrl(): String = baseUrl
     
     init {
         // ✅ CHỈ BẬT LOGGING TRONG DEBUG MODE
