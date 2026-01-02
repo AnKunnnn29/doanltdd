@@ -1,6 +1,5 @@
 package com.example.doan.Activities
 
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -887,33 +886,16 @@ class UserMonitoringActivity : AppCompatActivity() {
     }
 
     /**
-     * 🔊 Phát âm thanh cảnh báo
+     * 🔊 Phát âm thanh cảnh báo (sử dụng system notification sound)
      */
     private fun playAlertSound(severity: String?) {
         try {
-            val soundRes = when (severity) {
-                "CRITICAL" -> R.raw.alert_critical
-                "HIGH" -> R.raw.alert_high
-                else -> R.raw.notification_sound
-            }
-            
-            // Kiểm tra resource tồn tại
-            val resId = resources.getIdentifier(
-                when (severity) {
-                    "CRITICAL" -> "alert_critical"
-                    "HIGH" -> "alert_high"
-                    else -> "notification_sound"
-                },
-                "raw",
-                packageName
+            // Sử dụng system notification sound thay vì custom sound
+            val notification = android.media.RingtoneManager.getDefaultUri(
+                android.media.RingtoneManager.TYPE_NOTIFICATION
             )
-            
-            if (resId != 0) {
-                MediaPlayer.create(this, resId)?.apply {
-                    setOnCompletionListener { release() }
-                    start()
-                }
-            }
+            val ringtone = android.media.RingtoneManager.getRingtone(this, notification)
+            ringtone?.play()
         } catch (e: Exception) {
             // Ignore sound errors
         }
