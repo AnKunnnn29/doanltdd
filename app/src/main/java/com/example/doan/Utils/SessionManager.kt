@@ -3,13 +3,36 @@ package com.example.doan.Utils
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.example.doan.Models.JwtResponse
 import com.onesignal.OneSignal
 
-class SessionManager(private val context: Context) { // Store context as a property
+class SessionManager(private val context: Context) {
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-    private val editor: SharedPreferences.Editor = prefs.edit()
+    // ✅ SECURITY: Sử dụng EncryptedSharedPreferences thay vì SharedPreferences thường
+    private val prefs: SharedPreferences by lazy {
+        try {
+            val masterKey = MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+
+            EncryptedSharedPreferences.create(
+                context,
+                PREF_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            Log.e("SessionManager", "Error creating encrypted prefs, fallback to normal", e)
+            // Fallback to normal SharedPreferences nếu có lỗi
+            context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        }
+    }
+    
+    private val editor: SharedPreferences.Editor
+        get() = prefs.edit()
 
     fun saveLoginSession(
         userId: Int,

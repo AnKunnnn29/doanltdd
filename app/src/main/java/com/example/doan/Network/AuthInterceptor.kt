@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.doan.BuildConfig
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.JwtResponse
 import com.example.doan.Models.RefreshTokenRequest
@@ -28,10 +29,11 @@ class AuthInterceptor(private val context: Context) : Interceptor {
         val token = prefs.getString("jwt_token", null)
         val isLoggedIn = prefs.getBoolean("is_logged_in", false)
         
-        // Log để debug
-        Log.d(TAG, "Request URL: ${originalRequest.url}")
-        Log.d(TAG, "Token exists: ${token != null}, Token length: ${token?.length ?: 0}")
-        Log.d(TAG, "Is logged in: $isLoggedIn")
+        // ✅ SECURITY: Chỉ log trong debug mode
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Request URL: ${originalRequest.url}")
+            Log.d(TAG, "Token exists: ${token != null}, Is logged in: $isLoggedIn")
+        }
         
         // Chỉ thêm token nếu có và không rỗng
         val response = if (!token.isNullOrEmpty()) {
@@ -39,17 +41,20 @@ class AuthInterceptor(private val context: Context) : Interceptor {
                 .header("Authorization", "Bearer $token")
                 .header("Content-Type", "application/json")
                 .build()
-            Log.d(TAG, "Added Authorization header with token")
             chain.proceed(newRequest)
         } else {
             // Không có token, gửi request bình thường (cho public endpoints)
-            Log.w(TAG, "No token available! User may need to login again.")
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "No token available! User may need to login again.")
+            }
             chain.proceed(originalRequest)
         }
         
         // FIX High #8: Xử lý token hết hạn với auto refresh
         if (response.code == 401 && !token.isNullOrEmpty()) {
-            Log.w(TAG, "Token expired (401). Attempting to refresh...")
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "Token expired (401). Attempting to refresh...")
+            }
             
             val refreshToken = prefs.getString("refresh_token", null)
             
@@ -64,20 +69,19 @@ class AuthInterceptor(private val context: Context) : Interceptor {
                     val retryRequest = originalRequest.newBuilder()
                         .header("Authorization", "Bearer $newToken")
                         .build()
-                    Log.d(TAG, "Retrying request with new token")
                     return chain.proceed(retryRequest)
                 }
             }
             
             // Refresh thất bại hoặc không có refresh token
-            Log.w(TAG, "Token refresh failed. Clearing session...")
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "Token refresh failed. Clearing session...")
+            }
             prefs.edit().clear().apply()
             
             // Gửi broadcast để Activity xử lý chuyển về màn hình Login
             val intent = Intent(ACTION_TOKEN_EXPIRED)
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-            
-            Log.w(TAG, "Broadcast sent: User needs to login again")
         }
         
         return response
@@ -121,7 +125,9 @@ class AuthInterceptor(private val context: Context) : Interceptor {
                             .putString("refresh_token", apiResponse.data?.refreshToken)
                             .apply()
                         
-                        Log.d(TAG, "Token refreshed successfully")
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "Token refreshed successfully")
+                        }
                         return true
                     }
                 }
@@ -129,10 +135,11 @@ class AuthInterceptor(private val context: Context) : Interceptor {
                 refreshResponse.close()
             }
             
-            Log.w(TAG, "Token refresh failed")
             false
         } catch (e: Exception) {
-            Log.e(TAG, "Error refreshing token: ${e.message}")
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "Error refreshing token: ${e.message}")
+            }
             false
         }
     }

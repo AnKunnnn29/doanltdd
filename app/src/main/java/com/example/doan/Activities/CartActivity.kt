@@ -83,6 +83,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var tierName: String = ""
     private var createdOrderId: Long? = null
     private var currentUserProfile: UserProfileDto? = null
+    
+    // ✅ OTP RATE LIMITING
+    private var lastOtpSentTime = 0L
+    private val OTP_COOLDOWN = 60_000L // 60 giây
 
     // Tier discount views
     private lateinit var llTierDiscount: LinearLayout
@@ -398,17 +402,31 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
 
     private fun sendOtpToUser(phone: String) {
+        // ✅ CHECK RATE LIMITING
+        val now = System.currentTimeMillis()
+        if (now - lastOtpSentTime < OTP_COOLDOWN) {
+            val remaining = (OTP_COOLDOWN - (now - lastOtpSentTime)) / 1000
+            Toast.makeText(this, "Vui lòng đợi ${remaining}s trước khi gửi lại OTP", Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        lastOtpSentTime = now
+        
         RetrofitClient.getInstance(this).apiService.sendOtp(phone).enqueue(object : Callback<ApiResponse<String>> {
             override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
                 if (response.isSuccessful) {
                     Toast.makeText(this@CartActivity, "Đã gửi OTP", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this@CartActivity, "Lỗi gửi OTP: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    // Reset timer nếu gửi thất bại
+                    lastOtpSentTime = 0L
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
                 Toast.makeText(this@CartActivity, "Lỗi mạng", Toast.LENGTH_SHORT).show()
+                // Reset timer nếu gửi thất bại
+                lastOtpSentTime = 0L
             }
         })
     }
@@ -864,6 +882,87 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
 
     private fun performPlaceOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
+        // ✅ VALIDATE LẠI VOUCHER TRƯỚC KHI ĐẶT HÀNG
+        if (appliedVoucher != null || appliedSpinVoucher != null) {
+            revalidateVoucherBeforeCheckout(items, storeId, paymentMethod, deliveryAddress)
+        } else {
+            proceedWithOrder(items, storeId, paymentMethod, deliveryAddress)
+        }
+    }
+    
+    /**
+     * ✅ VALIDATE LẠI VOUCHER TRƯỚC KHI CHECKOUT
+     */
+    private fun revalidateVoucherBeforeCheckout(
+        items: List<CartItem>, 
+        storeId: Int, 
+        paymentMethod: String, 
+        deliveryAddress: String?
+    ) {
+        val code = appliedVoucher?.code ?: appliedSpinVoucher?.voucherCode
+        if (code.isNullOrEmpty()) {
+            proceedWithOrder(items, storeId, paymentMethod, deliveryAddress)
+            return
+        }
+        
+        val totalPrice = items.sumOf { (it.unitPrice ?: 0.0) * (it.quantity ?: 1) }
+        
+        // Validate spin voucher
+        if (appliedSpinVoucher != null) {
+            RetrofitClient.getInstance(this).apiService.validateSpinVoucher(code)
+                .enqueue(object : Callback<ApiResponse<com.example.doan.Models.SpinRewardDto>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<com.example.doan.Models.SpinRewardDto>>,
+                        response: Response<ApiResponse<com.example.doan.Models.SpinRewardDto>>
+                    ) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            // Voucher còn hợp lệ, tiếp tục đặt hàng
+                            proceedWithOrder(items, storeId, paymentMethod, deliveryAddress)
+                        } else {
+                            // Voucher hết hạn hoặc đã dùng
+                            clearAppliedVoucher()
+                            Toast.makeText(this@CartActivity, 
+                                "Voucher đã hết hạn hoặc đã được sử dụng. Vui lòng chọn voucher khác.", 
+                                Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    
+                    override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.SpinRewardDto>>, t: Throwable) {
+                        Toast.makeText(this@CartActivity, "Lỗi kiểm tra voucher", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        } 
+        // Validate normal voucher
+        else if (appliedVoucher != null) {
+            RetrofitClient.getInstance(this).apiService.validatePromotion(code, totalPrice)
+                .enqueue(object : Callback<ApiResponse<com.example.doan.Models.Voucher>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<com.example.doan.Models.Voucher>>,
+                        response: Response<ApiResponse<com.example.doan.Models.Voucher>>
+                    ) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            // Voucher còn hợp lệ, tiếp tục đặt hàng
+                            proceedWithOrder(items, storeId, paymentMethod, deliveryAddress)
+                        } else {
+                            // Voucher hết hạn hoặc không hợp lệ
+                            clearAppliedVoucher()
+                            Toast.makeText(this@CartActivity, 
+                                "Voucher không còn hợp lệ. Vui lòng chọn voucher khác.", 
+                                Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    
+                    override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.Voucher>>, t: Throwable) {
+                        Toast.makeText(this@CartActivity, "Lỗi kiểm tra voucher", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        }
+    }
+    
+    /**
+     * ✅ THỰC HIỆN ĐẶT HÀNG SAU KHI VALIDATE
+     */
+    private fun proceedWithOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
         val loadingDialog = LoadingDialog(this)
         loadingDialog.show("Đang xử lý đơn hàng...")
 

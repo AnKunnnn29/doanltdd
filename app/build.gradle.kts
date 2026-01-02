@@ -22,11 +22,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true  // ✅ BẬT OBFUSCATION
+            isShrinkResources = true  // ✅ XÓA RESOURCE KHÔNG DÙNG
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
     compileOptions {
@@ -39,6 +43,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true  // ✅ SECURITY: Cần để sử dụng BuildConfig.DEBUG
     }
 
     composeOptions {
@@ -65,6 +70,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    
+    // ✅ SECURITY: Encrypted SharedPreferences
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     
     // FIX Medium #11: Thêm Mockito cho unit tests
     testImplementation("org.mockito:mockito-core:5.8.0")

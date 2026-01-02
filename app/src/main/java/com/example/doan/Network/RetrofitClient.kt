@@ -1,6 +1,7 @@
 package com.example.doan.Network
 
 import android.content.Context
+import com.example.doan.BuildConfig
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -14,14 +15,23 @@ class RetrofitClient private constructor(context: Context) {
     val apiService: ApiService
     
     init {
+        // ✅ CHỈ BẬT LOGGING TRONG DEBUG MODE
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE  // Tắt hoàn toàn trong production
+            }
         }
         
         val authInterceptor = AuthInterceptor(context)
         
         val client = OkHttpClient.Builder()
-            .addInterceptor(logging)
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    addInterceptor(logging)  // Chỉ thêm logging trong debug
+                }
+            }
             .addInterceptor(authInterceptor)
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)

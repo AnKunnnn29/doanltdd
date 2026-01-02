@@ -24,6 +24,11 @@ class UTETeaApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        // ✅ SECURITY CHECK: Kiểm tra root, debuggable, emulator, hook, tampering
+        if (!performSecurityCheck()) {
+            return // Không khởi tạo app nếu security check fail
+        }
 
         // Initialize CartManager with context
         CartManager.getInstance().init(this)
@@ -33,7 +38,7 @@ class UTETeaApplication : Application() {
 
         // --- OneSignal Initialization ---
         // Bật ghi log chi tiết để gỡ lỗi trong môi trường development
-        OneSignal.Debug.logLevel = LogLevel.VERBOSE
+        OneSignal.Debug.logLevel = if (BuildConfig.DEBUG) LogLevel.VERBOSE else LogLevel.ERROR
 
         // Khởi tạo OneSignal
         OneSignal.initWithContext(this, ONESIGNAL_APP_ID)
@@ -45,6 +50,35 @@ class UTETeaApplication : Application() {
 
         // [FIX] Login OneSignal nếu user đã có session (để nhận push notification)
         loginOneSignalIfNeeded()
+    }
+    
+    /**
+     * ✅ SECURITY: Kiểm tra các mối đe dọa bảo mật
+     * CHỈ LOG WARNING, KHÔNG BLOCK APP để tránh crash
+     * @return true luôn để app chạy bình thường
+     */
+    private fun performSecurityCheck(): Boolean {
+        try {
+            val result = com.example.doan.Utils.SecurityChecker.performSecurityCheck(this)
+            
+            // CHỈ LOG, KHÔNG BLOCK APP
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "Security Check - Root: ${result.isRooted}, Debuggable: ${result.isDebuggable}, " +
+                        "Emulator: ${result.isEmulator}")
+                
+                if (result.shouldBlockApp) {
+                    Log.w(TAG, "⚠️ Security warning: ${result.reason}")
+                }
+            }
+        } catch (e: Exception) {
+            // Bắt mọi exception để tránh crash
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "Error during security check", e)
+            }
+        }
+        
+        // LUÔN TRẢ VỀ TRUE để app chạy bình thường
+        return true
     }
 
     /**
@@ -58,11 +92,15 @@ class UTETeaApplication : Application() {
                 val userId = sessionManager.getUserId()
                 if (userId > 0) {
                     OneSignal.login(userId.toString())
-                    Log.d(TAG, "OneSignal auto-login with userId: $userId")
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "OneSignal auto-login with userId: $userId")
+                    }
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error auto-login OneSignal", e)
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "Error auto-login OneSignal", e)
+            }
         }
     }
 
