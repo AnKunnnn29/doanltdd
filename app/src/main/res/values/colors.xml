@@ -84,5 +84,9 @@
     <color name="alert_pending_bg">#FFF3E0</color>
     <color name="risk_high_bg">#FFEBEE</color>
     <color name="chip_background">#F5F5F5</color>
+    
+    <!-- Blocked IP Colors -->
+    <color name="blocked_ip_active_bg">#FFEBEE</color>
+    <color name="blocked_ip_inactive_bg">#FFFFFF</color>
 
 </resources>

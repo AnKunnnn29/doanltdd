@@ -18,7 +18,8 @@ import java.util.*
  */
 class MonitoringAlertAdapter(
     private val items: MutableList<MonitoringAlert>,
-    private val onItemClick: (MonitoringAlert) -> Unit
+    private val onItemClick: (MonitoringAlert) -> Unit,
+    private val onQuickAction: ((MonitoringAlert, String) -> Unit)? = null
 ) : RecyclerView.Adapter<MonitoringAlertAdapter.ViewHolder>() {
 
     companion object {

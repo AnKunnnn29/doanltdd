@@ -648,6 +648,38 @@ interface ApiService {
         @Body request: Map<String, String>
     ): Call<ApiResponse<String>>
 
+    // ==================== 🚫 BLOCKED IP MANAGEMENT ====================
+    
+    @POST("blocked-ips/block")
+    fun blockIP(@Body request: BlockIPRequest): Call<ApiResponse<BlockedIP>>
+    
+    @POST("blocked-ips/{id}/unblock")
+    fun unblockIP(
+        @Path("id") id: Long,
+        @Body request: Map<String, String>?
+    ): Call<ApiResponse<BlockedIP>>
+    
+    @GET("blocked-ips")
+    fun getActiveBlockedIPs(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<BlockedIP>>>
+    
+    @GET("blocked-ips/all")
+    fun getAllBlockedIPs(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<BlockedIP>>>
+    
+    @GET("blocked-ips/search")
+    fun searchBlockedIP(@Query("ip") ip: String): Call<ApiResponse<List<BlockedIP>>>
+    
+    @GET("blocked-ips/statistics")
+    fun getBlockedIPStatistics(): Call<ApiResponse<Map<String, Any>>>
+    
+    @GET("blocked-ips/check")
+    fun checkIPStatus(@Query("ip") ip: String): Call<ApiResponse<Map<String, Any>>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>
