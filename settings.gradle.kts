@@ -21,5 +21,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DoAn"
-include(":app")
+include(":app", ":momo_partner_sdk")
  

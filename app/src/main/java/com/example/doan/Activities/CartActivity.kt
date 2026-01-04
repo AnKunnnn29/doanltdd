@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Adapters.CartAdapter
 import com.example.doan.Adapters.CombinedVoucherAdapter
-import com.example.doan.Adapters.VoucherSelectionAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Cart
 import com.example.doan.Models.CartItem
@@ -36,7 +35,6 @@ import com.example.doan.Models.VNPayPaymentRequest
 import com.example.doan.Models.VNPayPaymentResponse
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
-import com.example.doan.Utils.ConfettiView
 import com.example.doan.Utils.InAppNotification
 import com.example.doan.Utils.LoadingDialog
 import com.example.doan.Utils.SeasonalEffectManager
@@ -74,7 +72,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var storeList = mutableListOf<Store>()
     private var selectedStoreId: Int? = null
     private var selectedDeliveryType: String = "PICKUP" // Mặc định là đến lấy
-    private val paymentMethods = listOf("COD", "VNPAY", "VIETQR")
+    private val paymentMethods = listOf("COD", "VNPAY", "MOMO", "VIETQR", "PAYPAL")
     private var appliedVoucher: com.example.doan.Models.Voucher? = null
     private var appliedSpinVoucher: com.example.doan.Models.SpinRewardDto? = null
     private var discountAmount: Double = 0.0
@@ -87,6 +85,14 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     // ✅ OTP RATE LIMITING
     private var lastOtpSentTime = 0L
     private val OTP_COOLDOWN = 60_000L // 60 giây
+    
+    // Pending order request for payment callbacks
+    private var pendingOrderRequest: CreateOrderRequest? = null
+    private var pendingCartItems: List<CartItem>? = null
+    
+    companion object {
+        private const val TAG = "CartActivity"
+    }
 
     // Tier discount views
     private lateinit var llTierDiscount: LinearLayout
@@ -1002,6 +1008,28 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             return
         }
 
+        // Nếu là MOMO, xử lý thanh toán MoMo
+        if (paymentMethod == "MOMO") {
+            val totalAmount = calculateFinalAmount(items)
+            loadingDialog.dismiss()
+            // Lưu request để dùng sau khi thanh toán MoMo thành công
+            pendingOrderRequest = request
+            pendingCartItems = items
+            requestMoMoPayment(totalAmount)
+            return
+        }
+
+        // Nếu là PAYPAL, xử lý thanh toán PayPal
+        if (paymentMethod == "PAYPAL") {
+            val totalAmount = calculateFinalAmount(items)
+            loadingDialog.dismiss()
+            // Lưu request để dùng sau khi thanh toán PayPal thành công
+            pendingOrderRequest = request
+            pendingCartItems = items
+            requestPayPalPayment(totalAmount)
+            return
+        }
+
         // COD - Tạo đơn hàng ngay
         Log.d("CartActivity", "Creating COD order with spinVoucherCode: ${appliedSpinVoucher?.voucherCode}")
 
@@ -1234,5 +1262,103 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
     private fun clearCartOnServer() {
         clearCartOnServerAsync()
+    }
+
+    /**
+     * Khởi tạo thanh toán MoMo
+     */
+    private fun requestMoMoPayment(amount: Long) {
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang tạo thanh toán MoMo...")
+
+        // Lưu ORDER_REQUEST JSON trước khi gọi API để tránh race condition
+        val orderRequestJson = com.google.gson.Gson().toJson(pendingOrderRequest)
+        val savedVoucherCode = appliedVoucher?.code
+        val savedSpinVoucherCode = appliedSpinVoucher?.voucherCode
+        val selectedItems = cartAdapter.getSelectedItems()
+        val cartItemIds = selectedItems.mapNotNull { it.id }
+        
+        Log.d(TAG, "MoMo - pendingOrderRequest: $pendingOrderRequest")
+        Log.d(TAG, "MoMo - orderRequestJson: $orderRequestJson")
+
+        com.example.doan.Services.PaymentService.createMoMoPayment(
+            this,
+            amount,
+            "Thanh toan UTE Tea",
+            object : com.example.doan.Services.PaymentService.PaymentCallback {
+                override fun onSuccess(paymentUrl: String, transactionId: String?) {
+                    loadingDialog.dismiss()
+                    
+                    Log.d(TAG, "MoMo success - paymentUrl: $paymentUrl")
+                    Log.d(TAG, "MoMo success - orderRequestJson length: ${orderRequestJson?.length}")
+                    
+                    // Kiểm tra orderRequestJson trước khi mở Activity
+                    if (orderRequestJson.isNullOrEmpty() || orderRequestJson == "null") {
+                        Toast.makeText(this@CartActivity, "Lỗi: Không thể tạo thông tin đơn hàng", Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    
+                    // Mở WebView để thanh toán MoMo
+                    val intent = Intent(this@CartActivity, MoMoPaymentActivity::class.java)
+                    intent.putExtra("PAYMENT_URL", paymentUrl)
+                    intent.putExtra("MOMO_ORDER_ID", transactionId)
+                    intent.putExtra("ORDER_REQUEST", orderRequestJson)
+                    intent.putExtra("VOUCHER_CODE", savedVoucherCode)
+                    intent.putExtra("SPIN_VOUCHER_CODE", savedSpinVoucherCode)
+                    intent.putExtra("CART_ITEM_IDS", cartItemIds.toLongArray())
+                    startActivity(intent)
+                }
+
+                override fun onError(message: String) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@CartActivity, "Lỗi MoMo: $message", Toast.LENGTH_SHORT).show()
+                    pendingOrderRequest = null
+                    pendingCartItems = null
+                }
+            }
+        )
+    }
+
+    /**
+     * Khởi tạo thanh toán PayPal
+     */
+    private fun requestPayPalPayment(amount: Long) {
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang tạo thanh toán PayPal...")
+
+        // Convert VND to USD
+        val amountUSD = com.example.doan.Services.PaymentService.convertVNDtoUSD(amount)
+
+        com.example.doan.Services.PaymentService.createPayPalPayment(
+            this,
+            amountUSD,
+            "USD",
+            "Thanh toan UTE Tea",
+            object : com.example.doan.Services.PaymentService.PaymentCallback {
+                override fun onSuccess(paymentUrl: String, transactionId: String?) {
+                    loadingDialog.dismiss()
+                    
+                    // Lấy danh sách cartItemIds đã chọn để xóa sau khi thanh toán thành công
+                    val selectedItems = cartAdapter.getSelectedItems()
+                    val cartItemIds = selectedItems.mapNotNull { it.id }
+                    
+                    // Mở WebView để thanh toán PayPal
+                    val intent = Intent(this@CartActivity, PayPalPaymentActivity::class.java)
+                    intent.putExtra("PAYMENT_URL", paymentUrl)
+                    intent.putExtra("ORDER_REQUEST", com.google.gson.Gson().toJson(pendingOrderRequest))
+                    intent.putExtra("VOUCHER_CODE", appliedVoucher?.code)
+                    intent.putExtra("SPIN_VOUCHER_CODE", appliedSpinVoucher?.voucherCode)
+                    intent.putExtra("CART_ITEM_IDS", cartItemIds.toLongArray())
+                    startActivity(intent)
+                }
+
+                override fun onError(message: String) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@CartActivity, "Lỗi PayPal: $message", Toast.LENGTH_SHORT).show()
+                    pendingOrderRequest = null
+                    pendingCartItems = null
+                }
+            }
+        )
     }
 }

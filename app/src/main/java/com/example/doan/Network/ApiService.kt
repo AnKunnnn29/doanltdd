@@ -432,6 +432,17 @@ interface ApiService {
     @POST("vnpay/create-order-after-payment")
     fun createOrderAfterPayment(@Body request: CreateOrderRequest): Call<ApiResponse<Order>>
 
+    // ==================== MOMO PAYMENT ====================
+    @POST("momo/create-payment")
+    fun createMoMoPayment(@Body request: MoMoPaymentRequest): Call<String>
+    
+    @GET("momo/order-status/{orderId}")
+    fun checkMoMoOrderStatus(@Path("orderId") orderId: String): Call<String>
+
+    // ==================== PAYPAL PAYMENT ====================
+    @POST("paypal/create-payment")
+    fun createPayPalPayment(@Body request: PayPalPaymentRequest): Call<ApiResponse<PayPalPaymentResponse>>
+
     // ==================== REVIEWS ====================
     @POST("reviews")
     fun createReview(@Body request: CreateReviewRequest): Call<ApiResponse<Review>>

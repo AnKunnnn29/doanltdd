@@ -146,6 +146,16 @@
             android:theme="@style/Theme.DoAn" />
         
         <activity
+            android:name=".Activities.MoMoPaymentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
+            android:name=".Activities.PayPalPaymentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
+        
+        <activity
             android:name=".Activities.ChatbotActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
