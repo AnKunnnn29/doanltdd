@@ -2,6 +2,8 @@ package com.example.doan.Activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.util.Patterns
 import android.widget.Button
@@ -9,6 +11,8 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import app.rive.runtime.kotlin.RiveAnimationView
+import app.rive.runtime.kotlin.core.Rive
 import com.example.doan.R
 
 class RegisterActivity : AppCompatActivity() {
@@ -19,6 +23,10 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var emailInput: EditText
     private lateinit var registerButton: Button
     private lateinit var loginLink: TextView
+    
+    // Rive Animation
+    private lateinit var riveView: RiveAnimationView
+    private val stateMachineName = "Login Machine"
 
     companion object {
         private const val TAG = "RegisterActivity"
@@ -30,6 +38,10 @@ class RegisterActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize Rive
+        Rive.init(this)
+        
         setContentView(R.layout.activity_register)
 
         usernameInput = findViewById(R.id.input_reg_username)
@@ -38,9 +50,99 @@ class RegisterActivity : AppCompatActivity() {
         emailInput = findViewById(R.id.input_reg_email)
         registerButton = findViewById(R.id.btn_register_submit)
         loginLink = findViewById(R.id.text_login_link)
+        
+        // Setup Rive Animation
+        riveView = findViewById(R.id.rive_teddy_register)
+        setupRiveAnimation()
 
         registerButton.setOnClickListener { attemptRegister() }
         loginLink.setOnClickListener { finish() }
+    }
+
+    private fun setupRiveAnimation() {
+        try {
+            riveView.setRiveResource(R.raw.teddy_loggin)
+            
+            // Username focus - gấu nhìn/check
+            usernameInput.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    setRiveInput("isChecking", true)
+                    setRiveInput("isHandsUp", false)
+                } else {
+                    setRiveInput("isChecking", false)
+                }
+            }
+            
+            // Email focus - gấu nhìn/check
+            emailInput.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    setRiveInput("isChecking", true)
+                    setRiveInput("isHandsUp", false)
+                } else {
+                    setRiveInput("isChecking", false)
+                }
+            }
+
+            // Password focus - gấu che mắt
+            passwordInput.setOnFocusChangeListener { _, hasFocus ->
+                setRiveInput("isHandsUp", hasFocus)
+                if (hasFocus) setRiveInput("isChecking", false)
+            }
+            
+            // Confirm password focus - gấu che mắt
+            confirmPasswordInput.setOnFocusChangeListener { _, hasFocus ->
+                setRiveInput("isHandsUp", hasFocus)
+                if (hasFocus) setRiveInput("isChecking", false)
+            }
+
+            // Gấu nhìn theo độ dài username
+            usernameInput.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val len = s?.length ?: 0
+                    val look = (len * 3).coerceIn(0, 100).toFloat()
+                    setRiveNumberInput("numLook", look)
+                }
+            })
+            
+            // Gấu nhìn theo độ dài email
+            emailInput.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val len = s?.length ?: 0
+                    val look = (len * 2).coerceIn(0, 100).toFloat()
+                    setRiveNumberInput("numLook", look)
+                }
+            })
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up Rive animation: ${e.message}")
+        }
+    }
+
+    private fun setRiveInput(inputName: String, value: Boolean) {
+        try {
+            riveView.setBooleanState(stateMachineName, inputName, value)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting Rive input $inputName: ${e.message}")
+        }
+    }
+
+    private fun setRiveNumberInput(inputName: String, value: Float) {
+        try {
+            riveView.setNumberState(stateMachineName, inputName, value)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting Rive number input $inputName: ${e.message}")
+        }
+    }
+
+    private fun triggerRiveInput(inputName: String) {
+        try {
+            riveView.fireState(stateMachineName, inputName)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error triggering Rive input $inputName: ${e.message}")
+        }
     }
 
     private fun attemptRegister() {
@@ -57,8 +159,12 @@ class RegisterActivity : AppCompatActivity() {
 
         // FIX C6: Validate tất cả input trước khi gửi API
         if (!validateInputs(username, password, confirmPassword, email)) {
+            triggerRiveInput("trigFail")
             return
         }
+
+        // Trigger success animation
+        triggerRiveInput("trigSuccess")
 
         // Chuyển sang OtpActivity ngay lập tức với dữ liệu đăng ký
         val intent = Intent(this, OtpActivity::class.java).apply {
@@ -67,7 +173,9 @@ class RegisterActivity : AppCompatActivity() {
             putExtra("EMAIL", email)
         }
         Log.d(TAG, "Starting OtpActivity with data: $username, [password hidden], $email")
-        startActivity(intent)
+        
+        // Delay để xem animation
+        riveView.postDelayed({ startActivity(intent) }, 800)
     }
     
     /**

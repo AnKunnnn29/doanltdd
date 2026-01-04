@@ -145,6 +145,9 @@ dependencies {
     implementation ("com.airbnb.android:lottie:+")
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+    
+    // Rive Animation for login mascot
+    implementation("app.rive:rive-android:8.7.0")
 }
 
 tasks.register("deleteDuplicateResources") {

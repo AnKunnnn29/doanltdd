@@ -1,86 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/splashRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/splash_gradient_bg">
+    android:background="#1a0a0a">
 
-    <!-- Decorative circles -->
+    <!-- Animated gradient background -->
     <View
-        android:id="@+id/circle1"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="-80dp"
-        android:layout_marginEnd="-80dp"
-        android:background="@drawable/logo_circle_bg"
-        android:alpha="0.1"/>
+        android:id="@+id/gradientBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/splash_gradient_bg"/>
+
+    <!-- Floating particles container -->
+    <FrameLayout
+        android:id="@+id/particlesContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!-- Ripple effects behind logo -->
+    <View
+        android:id="@+id/ripple1"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:background="@drawable/splash_ripple"
+        android:alpha="0"/>
 
     <View
-        android:id="@+id/circle2"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="-40dp"
-        android:layout_marginStart="-40dp"
-        android:background="@drawable/logo_circle_bg"
-        android:alpha="0.1"/>
+        android:id="@+id/ripple2"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:background="@drawable/splash_ripple"
+        android:alpha="0"/>
 
+    <View
+        android:id="@+id/ripple3"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:background="@drawable/splash_ripple"
+        android:alpha="0"/>
+
+    <!-- Main content -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:padding="32dp">
+        android:gravity="center">
 
-        <!-- Logo with glow effect -->
+        <!-- Logo section -->
         <FrameLayout
-            android:id="@+id/logoContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="24dp">
 
-            <!-- Glow effect -->
+            <!-- Outer glow -->
             <View
-                android:id="@+id/glowEffect"
+                android:id="@+id/outerGlow"
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:layout_gravity="center"
+                android:background="@drawable/splash_outer_glow"
+                android:alpha="0"/>
+
+            <!-- Rotating ring -->
+            <ImageView
+                android:id="@+id/rotatingRing"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:src="@drawable/splash_rotating_ring"
+                android:alpha="0"
+                android:contentDescription="Decorative ring"/>
+
+            <!-- Inner glow -->
+            <View
+                android:id="@+id/innerGlow"
                 android:layout_width="180dp"
                 android:layout_height="180dp"
                 android:layout_gravity="center"
-                android:background="@drawable/logo_circle_bg"
-                android:alpha="0.4"
-                android:translationY="6dp"/>
+                android:background="@drawable/splash_inner_glow"
+                android:alpha="0"/>
 
+            <!-- Logo container with shadow -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/logoCard"
                 android:layout_width="160dp"
                 android:layout_height="160dp"
                 android:layout_gravity="center"
                 app:cardCornerRadius="80dp"
-                app:cardElevation="12dp"
-                app:cardBackgroundColor="@color/wine_light_surface">
+                app:cardElevation="16dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                android:alpha="0"
+                android:scaleX="0.3"
+                android:scaleY="0.3">
+
                 <ImageView
-                    android:id="@+id/imgLogo"
+                    android:id="@+id/logoImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:src="@drawable/icon"
                     android:scaleType="centerCrop"
-                    android:contentDescription="App Logo" />
+                    android:contentDescription="Houjicha Logo"/>
             </androidx.cardview.widget.CardView>
+
+            <!-- Shimmer overlay -->
+            <View
+                android:id="@+id/shimmerOverlay"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:layout_gravity="center"
+                android:background="@drawable/splash_shimmer"
+                android:alpha="0"
+                android:translationX="-200dp"/>
         </FrameLayout>
 
+        <!-- App name with typing effect -->
         <TextView
             android:id="@+id/tvAppName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Houjicha"
-            android:textSize="44sp"
+            android:text=""
+            android:textSize="48sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginBottom="8dp"/>
+            android:letterSpacing="0.05"
+            android:shadowColor="#FFD700"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="20"/>
 
+        <!-- Tagline -->
         <TextView
             android:id="@+id/tvTagline"
             android:layout_width="wrap_content"
@@ -88,46 +142,51 @@
             android:text="☕ Trà rang đậm vị"
             android:textSize="18sp"
             android:textColor="#FFFFFF"
-            android:alpha="0.9"
-            android:layout_marginBottom="48dp"/>
+            android:alpha="0"
+            android:layout_marginTop="8dp"/>
 
-        <!-- Custom loading indicator -->
-        <FrameLayout
-            android:id="@+id/loadingContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:id="@+id/loadingCircle"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/circle_loading"
-                android:contentDescription="Loading"/>
-
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/tvLoading"
+        <!-- Loading dots -->
+        <LinearLayout
+            android:id="@+id/loadingDots"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Đang tải..."
-            android:textSize="14sp"
-            android:textColor="#FFFFFF"
-            android:alpha="0.7"
-            android:layout_marginTop="16dp"/>
+            android:orientation="horizontal"
+            android:layout_marginTop="48dp"
+            android:alpha="0">
 
+            <View
+                android:id="@+id/dot1"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/splash_dot"/>
+
+            <View
+                android:id="@+id/dot2"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/splash_dot"/>
+
+            <View
+                android:id="@+id/dot3"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/splash_dot"/>
+        </LinearLayout>
     </LinearLayout>
 
+    <!-- Copyright -->
     <TextView
         android:id="@+id/tvCopyright"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="32dp"
-        android:text="© 2025 Houjicha - Made with ❤️"
+        android:text="© 2025 Houjicha"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
-        android:alpha="0.7"/>
+        android:alpha="0"/>
 
-</RelativeLayout>
+</FrameLayout>

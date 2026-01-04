@@ -17,6 +17,10 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        // Rive Animation repository
+        maven { 
+            url = uri("https://s3-us-west-2.amazonaws.com/rive-android/maven")
+        }
     }
 }
 

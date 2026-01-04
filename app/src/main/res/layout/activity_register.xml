@@ -15,30 +15,21 @@
         android:gravity="center"
         android:padding="24dp">
 
-        <!-- Header Section -->
+        <!-- Header Section với Rive Animation -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="24dp">
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="100dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/wine_light_surface">
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="App Logo"
-                    android:src="@drawable/img"
-                    android:scaleType="centerCrop"
-                    />
-            </androidx.cardview.widget.CardView>
+            <!-- Rive Teddy Animation -->
+            <app.rive.runtime.kotlin.RiveAnimationView
+                android:id="@+id/rive_teddy_register"
+                android:layout_width="240dp"
+                android:layout_height="160dp"
+                android:layout_marginBottom="12dp" />
 
             <TextView
                 android:layout_width="wrap_content"

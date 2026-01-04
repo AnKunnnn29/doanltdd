@@ -2,6 +2,8 @@ package com.example.doan.Activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -11,6 +13,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import app.rive.runtime.kotlin.RiveAnimationView
+import app.rive.runtime.kotlin.core.Rive
 import com.example.doan.Models.*
 import com.example.doan.Network.ApiService
 import com.example.doan.Network.RetrofitClient
@@ -34,6 +38,10 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var sessionManager: SessionManager
     private lateinit var apiService: ApiService
     private lateinit var biometricLoginButton: ImageButton
+    
+    // Rive Animation
+    private lateinit var riveView: RiveAnimationView
+    private val stateMachineName = "Login Machine"
 
     private lateinit var executor: Executor
     private lateinit var biometricPrompt: BiometricPrompt
@@ -41,6 +49,10 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize Rive
+        Rive.init(this)
+        
         setContentView(R.layout.activity_login)
 
         sessionManager = SessionManager(this)
@@ -57,6 +69,10 @@ class LoginActivity : AppCompatActivity() {
         registerLink = findViewById(R.id.text_register_link)
         forgotPasswordLink = findViewById(R.id.text_forgot_password)
         biometricLoginButton = findViewById(R.id.btn_biometric_login)
+        
+        // Setup Rive Animation
+        riveView = findViewById(R.id.rive_teddy)
+        setupRiveAnimation()
 
         loginButton.setOnClickListener { attemptLogin() }
         registerLink.setOnClickListener { navigateToRegister() }
@@ -68,6 +84,69 @@ class LoginActivity : AppCompatActivity() {
             biometricLoginButton.setOnClickListener {
                 startBiometricLogin()
             }
+        }
+    }
+
+    private fun setupRiveAnimation() {
+        try {
+            // Load Rive file
+            riveView.setRiveResource(R.raw.teddy_loggin)
+            
+            // Username focus - gấu nhìn/check
+            usernameInput.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    setRiveInput("isChecking", true)
+                    setRiveInput("isHandsUp", false)
+                } else {
+                    setRiveInput("isChecking", false)
+                }
+            }
+
+            // Password focus - gấu che mắt
+            passwordInput.setOnFocusChangeListener { _, hasFocus ->
+                setRiveInput("isHandsUp", hasFocus)
+                if (hasFocus) {
+                    setRiveInput("isChecking", false)
+                }
+            }
+
+            // Gấu nhìn theo độ dài username
+            usernameInput.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val len = s?.length ?: 0
+                    // Scale len -> 0..100 (tùy file .riv)
+                    val look = (len * 3).coerceIn(0, 100).toFloat()
+                    setRiveNumberInput("numLook", look)
+                }
+            })
+        } catch (e: Exception) {
+            Log.e("LoginActivity", "Error setting up Rive animation: ${e.message}")
+        }
+    }
+
+    private fun setRiveInput(inputName: String, value: Boolean) {
+        try {
+            riveView.setBooleanState(stateMachineName, inputName, value)
+        } catch (e: Exception) {
+            Log.e("LoginActivity", "Error setting Rive input $inputName: ${e.message}")
+        }
+    }
+
+    private fun setRiveNumberInput(inputName: String, value: Float) {
+        try {
+            riveView.setNumberState(stateMachineName, inputName, value)
+        } catch (e: Exception) {
+            Log.e("LoginActivity", "Error setting Rive number input $inputName: ${e.message}")
+        }
+    }
+
+    private fun triggerRiveInput(inputName: String) {
+        try {
+            riveView.fireState(stateMachineName, inputName)
+        } catch (e: Exception) {
+            Log.e("LoginActivity", "Error triggering Rive input $inputName: ${e.message}")
         }
     }
 
@@ -182,6 +261,9 @@ class LoginActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val loginResponse = response.body()?.data
                     if (loginResponse != null) {
+                        // Trigger success animation
+                        triggerRiveInput("trigSuccess")
+                        
                         sessionManager.saveLoginSession(
                             userId = loginResponse.userId,
                             username = loginResponse.username,
@@ -199,16 +281,20 @@ class LoginActivity : AppCompatActivity() {
                         OneSignal.login(loginResponse.userId.toString())
                         Log.d("LoginActivity", "OneSignal.login called with userId: ${loginResponse.userId}")
 
-                        navigateToMain()
+                        // Delay để xem animation success
+                        riveView.postDelayed({ navigateToMain() }, 1500)
                     } else {
+                        triggerRiveInput("trigFail")
                         Toast.makeText(this@LoginActivity, response.body()?.message ?: "Đã có lỗi xảy ra", Toast.LENGTH_SHORT).show()
                     }
                 } else {
+                    triggerRiveInput("trigFail")
                     Toast.makeText(this@LoginActivity, "Sai tên đăng nhập hoặc mật khẩu", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<LoginResponse>>, t: Throwable) {
+                triggerRiveInput("trigFail")
                 Toast.makeText(this@LoginActivity, "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
