@@ -20,5 +20,8 @@ data class Category(
     var displayOrder: Int = 0,
     
     @SerializedName("isActive")
-    var isActive: Boolean = true
+    var isActive: Boolean = true,
+    
+    @SerializedName("drinkCount")
+    var drinkCount: Int = 0
 ) : Serializable

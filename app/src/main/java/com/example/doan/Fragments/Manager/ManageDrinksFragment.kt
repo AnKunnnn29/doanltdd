@@ -301,6 +301,7 @@ class ManageDrinksFragment : Fragment() {
         intent.putExtra("CATEGORY_ID", category.id)
         intent.putExtra("CATEGORY_NAME", category.name)
         intent.putExtra("CATEGORY_DESCRIPTION", category.description)
+        intent.putExtra("CATEGORY_IMAGE", category.image)
         startActivity(intent)
     }
 

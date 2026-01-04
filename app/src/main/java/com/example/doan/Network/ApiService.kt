@@ -399,6 +399,13 @@ interface ApiService {
         @Part file: MultipartBody.Part,
         @Part("drinkName") drinkName: RequestBody
     ): Call<ApiResponse<Map<String, String>>>
+    
+    @Multipart
+    @POST("admin/categories/upload-image")
+    fun uploadCategoryImage(
+        @Part file: MultipartBody.Part,
+        @Part("categoryName") categoryName: RequestBody
+    ): Call<ApiResponse<Map<String, String>>>
 
     @GET("admin/categories")
     fun getAdminCategories(): Call<ApiResponse<List<Category>>>

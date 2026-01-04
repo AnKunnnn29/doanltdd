@@ -35,6 +35,9 @@ class ManagerCategoryAdapter(
 
         holder.tvName.text = category.name
         holder.tvDescription.text = category.description ?: "Không có mô tả"
+        
+        // Hiển thị số lượng sản phẩm
+        holder.tvProductCount.text = "${category.drinkCount} sản phẩm"
 
         // Load image
         if (!category.image.isNullOrEmpty()) {
@@ -82,6 +85,7 @@ class ManagerCategoryAdapter(
         val imgCategory: ImageView = itemView.findViewById(R.id.img_category)
         val tvName: TextView = itemView.findViewById(R.id.tv_category_name)
         val tvDescription: TextView = itemView.findViewById(R.id.tv_category_description)
+        val tvProductCount: TextView = itemView.findViewById(R.id.tv_product_count)
         val btnEdit: ImageButton = itemView.findViewById(R.id.btn_edit)
         val btnDelete: ImageButton = itemView.findViewById(R.id.btn_delete)
     }
