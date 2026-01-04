@@ -22,7 +22,7 @@ interface ApiService {
     @POST("notifications/send")
     fun sendCustomNotification(@Body request: NotificationRequestDto): Call<ApiResponse<String>>
     
-    @GET("notifications")
+    @GET("notifications/my")
     fun getMyNotifications(): Call<ApiResponse<List<NotificationDto>>>
     
     @GET("notifications/paged")
@@ -34,7 +34,7 @@ interface ApiService {
     @GET("notifications/unread")
     fun getUnreadNotifications(): Call<ApiResponse<List<NotificationDto>>>
     
-    @GET("notifications/unread/count")
+    @GET("notifications/unread-count")
     fun getUnreadNotificationCount(): Call<ApiResponse<Map<String, Long>>>
     
     @PUT("notifications/{id}/read")
