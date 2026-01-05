@@ -297,18 +297,6 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 }
             }
         }
-    }
-    
-    private fun calculateShippingFee() {
-        if (selectedDeliveryType == "DELIVERY" && selectedProvince != null) {
-            // Sử dụng VietnamProvinces để lấy phí ship theo tỉnh
-            shippingFee = com.example.doan.Utils.VietnamProvinces.getShippingFee(selectedProvince!!)
-            tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
-            calculateTotalPrice()
-        } else {
-            shippingFee = 0
-            tvShippingFee.text = "Phí ship: 0 VNĐ"
-        }
 
         // Xử lý chọn chi nhánh từ Spinner
         spinnerStore.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -341,6 +329,18 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
         btnCheckout.setOnClickListener { 
             handleCheckout()
+        }
+    }
+    
+    private fun calculateShippingFee() {
+        if (selectedDeliveryType == "DELIVERY" && selectedProvince != null) {
+            // Sử dụng VietnamProvinces để lấy phí ship theo tỉnh
+            shippingFee = com.example.doan.Utils.VietnamProvinces.getShippingFee(selectedProvince!!)
+            tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
+            calculateTotalPrice()
+        } else {
+            shippingFee = 0
+            tvShippingFee.text = "Phí ship: 0 VNĐ"
         }
     }
     
@@ -778,11 +778,29 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
                         val preview = response.body()?.data
-                        if (preview != null && preview.tierDiscount > 0) {
-                            tierDiscountAmount = preview.tierDiscount
-                            tierDiscountPercent = preview.discountPercent
-                            tierName = preview.tierName
-                            showTierDiscount()
+                        if (preview != null) {
+                            // Cập nhật tier discount
+                            if (preview.tierDiscount > 0) {
+                                tierDiscountAmount = preview.tierDiscount
+                                tierDiscountPercent = preview.discountPercent
+                                tierName = preview.tierName
+                                showTierDiscount()
+                            } else {
+                                tierDiscountAmount = 0.0
+                                hideTierDiscount()
+                            }
+                            
+                            // 🚚 Cập nhật thông tin free ship
+                            if (selectedDeliveryType == "DELIVERY" && preview.eligibleForFreeShipping) {
+                                // Hiển thị free ship
+                                tvShippingFee.text = "🎉 MIỄN PHÍ SHIP"
+                                tvShippingFee.setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
+                                shippingFee = 0  // Reset shipping fee về 0
+                            } else if (selectedDeliveryType == "DELIVERY" && !preview.freeShippingMessage.isNullOrEmpty()) {
+                                // Hiển thị thông báo về free ship
+                                Log.d("CartActivity", "Free shipping message: ${preview.freeShippingMessage}")
+                            }
+                            
                             updateFinalPrice(orderTotal)
                         } else {
                             tierDiscountAmount = 0.0

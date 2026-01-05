@@ -191,9 +191,23 @@ class BillPreviewActivity : AppCompatActivity() {
 
         // Shipping fee - Ưu tiên từ client, nếu không có thì lấy từ backend
         val shippingFee = if (clientShippingFee > 0) clientShippingFee.toDouble() else (bill.shippingFee ?: 0.0)
-        if (shippingFee > 0) {
+        val originalShippingFee = bill.originalShippingFee ?: shippingFee
+        val isFreeShipping = bill.freeShipping
+        
+        if (isFreeShipping && originalShippingFee > 0) {
+            // Hiển thị free ship với giá gốc bị gạch
+            llShippingFee.visibility = View.VISIBLE
+            tvShippingFee.text = "🎉 MIỄN PHÍ (${formatPrice(originalShippingFee)})"
+            tvShippingFee.setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
+            
+            // Hiển thị lý do free ship nếu có
+            bill.freeShippingReason?.let { reason ->
+                Log.d(TAG, "Free shipping reason: $reason")
+            }
+        } else if (shippingFee > 0) {
             llShippingFee.visibility = View.VISIBLE
             tvShippingFee.text = formatPrice(shippingFee)
+            tvShippingFee.setTextColor(resources.getColor(android.R.color.black, null))
         } else {
             llShippingFee.visibility = View.GONE
         }
@@ -224,8 +238,9 @@ class BillPreviewActivity : AppCompatActivity() {
             llTierDiscount.visibility = View.GONE
         }
 
-        // Final price - Tính lại với shipping fee từ client
-        val finalPrice = subtotal + shippingFee - voucherDiscount - tierDiscount
+        // Final price - Sử dụng shippingFee từ backend (đã áp dụng free ship nếu có)
+        val actualShippingFee = bill.shippingFee ?: 0.0  // Đã được backend tính toán free ship
+        val finalPrice = subtotal + actualShippingFee - voucherDiscount - tierDiscount
         tvFinalPrice.text = formatPrice(maxOf(0.0, finalPrice))
     }
 

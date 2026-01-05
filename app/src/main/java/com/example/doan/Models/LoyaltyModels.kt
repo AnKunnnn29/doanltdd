@@ -173,5 +173,15 @@ data class TierDiscountPreview(
     val finalTotal: Double = 0.0,
     
     @SerializedName("message")
-    val message: String? = null
+    val message: String? = null,
+    
+    // Free shipping info
+    @SerializedName("eligibleForFreeShipping")
+    val eligibleForFreeShipping: Boolean = false,
+    
+    @SerializedName("freeShippingMinOrder")
+    val freeShippingMinOrder: Double = 0.0,
+    
+    @SerializedName("freeShippingMessage")
+    val freeShippingMessage: String? = null
 ) : Serializable

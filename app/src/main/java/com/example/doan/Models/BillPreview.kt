@@ -29,9 +29,12 @@ data class BillPreview(
     val subtotal: Double? = null,            // Tổng tiền hàng
     
     // Phí giao hàng (GHN)
-    val shippingFee: Double? = null,         // Phí giao hàng
-    val ghnDistrictId: Int? = null,          // District ID cho GHN
-    val ghnWardCode: String? = null,         // Ward code cho GHN
+    val shippingFee: Double? = null,             // Phí giao hàng (sau khi áp dụng free ship)
+    val originalShippingFee: Double? = null,     // Phí giao hàng gốc (trước khi áp dụng free ship)
+    val ghnDistrictId: Int? = null,              // District ID cho GHN
+    val ghnWardCode: String? = null,             // Ward code cho GHN
+    val freeShipping: Boolean = false,           // Có được miễn phí ship không
+    val freeShippingReason: String? = null,      // Lý do miễn phí ship
     
     // Chi tiết giảm giá
     val promotionCode: String? = null,       // Mã voucher (nếu có)
