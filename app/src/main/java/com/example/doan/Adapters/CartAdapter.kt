@@ -65,6 +65,7 @@ class CartAdapter(
         private val ivImage: ImageView = itemView.findViewById(R.id.iv_cart_item_image)
         private val tvName: TextView = itemView.findViewById(R.id.tv_cart_item_name)
         private val tvDetails: TextView = itemView.findViewById(R.id.tv_cart_item_details)
+        private val tvNote: TextView = itemView.findViewById(R.id.tv_cart_item_note)
         private val tvPrice: TextView = itemView.findViewById(R.id.tv_cart_item_price)
         private val tvQuantity: TextView = itemView.findViewById(R.id.tv_cart_item_quantity)
         private val btnDeleteItem: ImageButton = itemView.findViewById(R.id.btn_delete_item)
@@ -83,6 +84,14 @@ class CartAdapter(
                 }
             }
             tvDetails.text = details.joinToString(", ")
+
+            // Hiển thị note nếu có
+            if (!item.note.isNullOrEmpty()) {
+                tvNote.text = "📝 ${item.note}"
+                tvNote.visibility = View.VISIBLE
+            } else {
+                tvNote.visibility = View.GONE
+            }
 
             // Use unitPrice which is the price for one item including options
             val singleItemPrice = item.unitPrice ?: 0.0

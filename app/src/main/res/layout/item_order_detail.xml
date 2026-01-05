@@ -94,6 +94,19 @@
                 android:textColor="?android:attr/textColorSecondary"
                 tools:text="Topping: Trân châu đen, Thạch con cá" />
 
+            <!-- Hàng 4: Note/Ghi chú -->
+            <TextView
+                android:id="@+id/tv_order_item_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="#FF9800"
+                android:textStyle="italic"
+                android:visibility="gone"
+                tools:text="📝 Ít đá, nhiều đường"
+                tools:visibility="visible" />
+
             <!-- Review Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_review_item"

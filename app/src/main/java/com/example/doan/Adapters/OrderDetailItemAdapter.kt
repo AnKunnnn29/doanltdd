@@ -60,6 +60,7 @@ class OrderDetailItemAdapter(
         private val tvPrice: TextView = itemView.findViewById(R.id.tv_order_item_price)
         private val tvSize: TextView = itemView.findViewById(R.id.tv_order_item_size)
         private val tvToppings: TextView = itemView.findViewById(R.id.tv_order_item_toppings)
+        private val tvNote: TextView = itemView.findViewById(R.id.tv_order_item_note)
         private val divider: View = itemView.findViewById(R.id.divider)
         private val btnReview: MaterialButton = itemView.findViewById(R.id.btn_review_item)
 
@@ -105,6 +106,14 @@ class OrderDetailItemAdapter(
                 tvToppings.visibility = View.VISIBLE
             } else {
                 tvToppings.visibility = View.GONE
+            }
+
+            // Note/Ghi chú
+            if (!item.note.isNullOrEmpty()) {
+                tvNote.text = "📝 ${item.note}"
+                tvNote.visibility = View.VISIBLE
+            } else {
+                tvNote.visibility = View.GONE
             }
 
             // Hide divider for the last item
