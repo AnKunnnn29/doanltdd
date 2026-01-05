@@ -27,6 +27,7 @@ import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.Cart
 import com.example.doan.Models.CartItem
 import com.example.doan.Models.CreateOrderRequest
+import com.example.doan.Models.DeliveryAddressInfo
 import com.example.doan.Models.Order
 import com.example.doan.Models.Store
 import com.example.doan.Models.UpdateProfileRequest
@@ -59,7 +60,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private lateinit var rbPickup: RadioButton
     private lateinit var rbDelivery: RadioButton
     private lateinit var llDeliveryAddress: LinearLayout
-    private lateinit var etDeliveryAddress: EditText
+    private lateinit var spinnerProvince: Spinner
+    private lateinit var etManualAddress: EditText
+    private lateinit var tvShippingFee: TextView
     private lateinit var llVoucherSection: LinearLayout
     private lateinit var etVoucherCode: EditText
     private lateinit var btnApplyVoucher: Button
@@ -67,6 +70,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private lateinit var btnClearVoucher: ImageView
     private lateinit var tvDiscountAmount: TextView
     private lateinit var tvFinalPrice: TextView
+    
+    // Shipping fee summary views
+    private lateinit var llShippingFeeSummary: LinearLayout
+    private lateinit var tvShippingFeeSummary: TextView
 
     private var cartItems = mutableListOf<CartItem>()
     private var storeList = mutableListOf<Store>()
@@ -81,6 +88,12 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var tierName: String = ""
     private var createdOrderId: Long? = null
     private var currentUserProfile: UserProfileDto? = null
+    
+    // Delivery Address
+    private var selectedProvince: String? = null
+    private var shippingFee: Int = 0
+    private var deliveryAddressInfo: DeliveryAddressInfo? = null
+    private lateinit var tvSelectedAddress: TextView
     
     // ✅ OTP RATE LIMITING
     private var lastOtpSentTime = 0L
@@ -169,7 +182,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         rbPickup = findViewById(R.id.rb_pickup)
         rbDelivery = findViewById(R.id.rb_delivery)
         llDeliveryAddress = findViewById(R.id.ll_delivery_address)
-        etDeliveryAddress = findViewById(R.id.et_delivery_address)
+        spinnerProvince = findViewById(R.id.spinner_province)
+        etManualAddress = findViewById(R.id.et_manual_address)
+        tvShippingFee = findViewById(R.id.tv_shipping_fee)
+        tvSelectedAddress = findViewById(R.id.tv_selected_address)
         llVoucherSection = findViewById(R.id.ll_voucher_section)
         etVoucherCode = findViewById(R.id.et_voucher_code)
         btnApplyVoucher = findViewById(R.id.btn_apply_voucher)
@@ -177,6 +193,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         btnClearVoucher = findViewById(R.id.btn_clear_voucher)
         tvDiscountAmount = findViewById(R.id.tv_discount_amount)
         tvFinalPrice = findViewById(R.id.tv_final_price)
+        
+        // Shipping fee summary views
+        llShippingFeeSummary = findViewById(R.id.ll_shipping_fee_summary)
+        tvShippingFeeSummary = findViewById(R.id.tv_shipping_fee_summary)
 
         // Tier discount views
         llTierDiscount = findViewById(R.id.ll_tier_discount)
@@ -201,6 +221,23 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         // Setup Payment Method Spinner
         val paymentAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, paymentMethods)
         spinnerPaymentMethod.adapter = paymentAdapter
+        
+        // Setup Province Spinner - Sử dụng VietnamProvinces object
+        val provinceNames = com.example.doan.Utils.VietnamProvinces.getProvinceNames()
+        val provinceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, provinceNames)
+        spinnerProvince.adapter = provinceAdapter
+        
+        // Province selection listener
+        spinnerProvince.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectedProvince = provinceNames[position]
+                calculateShippingFee()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                selectedProvince = null
+                shippingFee = 0
+            }
+        }
 
         // Load stores from API
         loadStores()
@@ -250,12 +287,27 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 R.id.rb_pickup -> {
                     selectedDeliveryType = "PICKUP"
                     llDeliveryAddress.visibility = View.GONE
+                    shippingFee = 0
+                    calculateTotalPrice()
                 }
                 R.id.rb_delivery -> {
                     selectedDeliveryType = "DELIVERY"
                     llDeliveryAddress.visibility = View.VISIBLE
+                    calculateShippingFee()
                 }
             }
+        }
+    }
+    
+    private fun calculateShippingFee() {
+        if (selectedDeliveryType == "DELIVERY" && selectedProvince != null) {
+            // Sử dụng VietnamProvinces để lấy phí ship theo tỉnh
+            shippingFee = com.example.doan.Utils.VietnamProvinces.getShippingFee(selectedProvince!!)
+            tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
+            calculateTotalPrice()
+        } else {
+            shippingFee = 0
+            tvShippingFee.text = "Phí ship: 0 VNĐ"
         }
 
         // Xử lý chọn chi nhánh từ Spinner
@@ -319,21 +371,140 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
 
         val deliveryAddress = if (selectedDeliveryType == "DELIVERY") {
-            val address = etDeliveryAddress.text.toString().trim()
-            if (address.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập địa chỉ giao hàng", Toast.LENGTH_SHORT).show()
+            if (selectedProvince == null) {
+                Toast.makeText(this, "Vui lòng chọn tỉnh/thành phố", Toast.LENGTH_SHORT).show()
                 return
             }
-            address
+            val detailAddress = etManualAddress.text.toString().trim()
+            if (detailAddress.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập địa chỉ chi tiết", Toast.LENGTH_SHORT).show()
+                return
+            }
+            "$detailAddress, $selectedProvince"
         } else null
 
-        // ✅ XÁC THỰC OTP TRƯỚC KHI THANH TOÁN
-        val phoneNumber = currentUserProfile?.phone
-        if (phoneNumber.isNullOrEmpty()) {
+        val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
+        
+        // Kiểm tra số điện thoại trước khi xác thực OTP
+        val phone = currentUserProfile?.phone
+        if (phone.isNullOrEmpty()) {
             showEnterPhoneDialog()
-        } else {
-            showOtpDialog(phoneNumber)
+            return
         }
+        
+        // Yêu cầu xác thực OTP trước khi thanh toán
+        showOtpVerificationDialog(phone, selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
+    }
+    
+    /**
+     * Hiển thị dialog xác thực OTP trước khi thanh toán
+     */
+    private fun showOtpVerificationDialog(
+        phoneNumber: String, 
+        items: List<CartItem>, 
+        storeId: Int, 
+        paymentMethod: String, 
+        deliveryAddress: String?
+    ) {
+        // Gửi OTP
+        sendOtpToUser(phoneNumber)
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_otp_verify, null)
+        val edtOtp = dialogView.findViewById<EditText>(R.id.edt_otp_code)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Xác thực đặt hàng")
+            .setMessage("Mã OTP đã gửi đến $phoneNumber")
+            .setView(dialogView)
+            .setPositiveButton("Xác nhận", null) // Set null để tự xử lý
+            .setNeutralButton("Gửi lại", null) // Set null để không dismiss dialog
+            .setNegativeButton("Hủy", null)
+            .create()
+
+        dialog.setOnShowListener {
+            // Xử lý nút Xác nhận
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val code = edtOtp.text.toString().trim()
+                if (code.isEmpty()) {
+                    Toast.makeText(this, "Vui lòng nhập mã OTP", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                
+                // Verify OTP
+                verifyOtpAndProceed(phoneNumber, code, items, storeId, paymentMethod, deliveryAddress, dialog)
+            }
+            
+            // Xử lý nút Gửi lại - không dismiss dialog
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                sendOtpToUser(phoneNumber)
+            }
+        }
+
+        dialog.show()
+    }
+    
+    /**
+     * Xác thực OTP và tiếp tục thanh toán
+     */
+    private fun verifyOtpAndProceed(
+        phone: String, 
+        code: String, 
+        items: List<CartItem>, 
+        storeId: Int, 
+        paymentMethod: String, 
+        deliveryAddress: String?,
+        dialog: AlertDialog
+    ) {
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang xác thực...")
+        
+        RetrofitClient.getInstance(this).apiService.verifyOtp(phone, code)
+            .enqueue(object : Callback<ApiResponse<Boolean>> {
+                override fun onResponse(call: Call<ApiResponse<Boolean>>, response: Response<ApiResponse<Boolean>>) {
+                    loadingDialog.dismiss()
+                    
+                    if (response.isSuccessful && response.body()?.data == true) {
+                        // OTP hợp lệ, đóng dialog và chuyển sang màn hình xem bill
+                        dialog.dismiss()
+                        navigateToBillPreview(items, storeId, paymentMethod, deliveryAddress)
+                    } else {
+                        Toast.makeText(this@CartActivity, "Mã OTP không đúng, vui lòng thử lại", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@CartActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    /**
+     * Hiển thị dialog chọn địa chỉ giao hàng với GHN
+     */
+    private fun showAddressSelectionDialog() {
+        val helper = com.example.doan.Utils.GhnAddressHelper(this)
+        helper.showAddressSelectionDialog(object : com.example.doan.Utils.GhnAddressHelper.OnAddressSelectedListener {
+            override fun onAddressSelected(addressInfo: DeliveryAddressInfo, calculatedShippingFee: Int) {
+                deliveryAddressInfo = addressInfo
+                shippingFee = calculatedShippingFee
+                
+                // Hiển thị địa chỉ đã chọn
+                tvSelectedAddress.text = addressInfo.getFullAddress()
+                tvSelectedAddress.visibility = View.VISIBLE
+                
+                // Hiển thị phí ship
+                tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
+                tvShippingFee.visibility = View.VISIBLE
+                
+                // Cập nhật tổng tiền
+                calculateTotalPrice()
+            }
+            
+            override fun onCancelled() {
+                // Do nothing
+            }
+        })
     }
 
     private fun showEnterPhoneDialog() {
@@ -396,7 +567,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 val code = edtOtp.text.toString().trim()
                 if (code.isNotEmpty()) {
                     val selectedItems = cartAdapter.getSelectedItems()
-                    val deliveryAddress = if (selectedDeliveryType == "DELIVERY") etDeliveryAddress.text.toString().trim() else null
+                    val deliveryAddress = if (selectedDeliveryType == "DELIVERY") {
+                        deliveryAddressInfo?.getFullAddress()
+                    } else null
                     val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
                     verifyOtpAndPlaceOrder(phoneNumber, code, selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
                 }
@@ -476,7 +649,10 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             paymentMethod = paymentMethod,
             address = deliveryAddress,
             promotionCode = appliedVoucher?.code,
-            spinVoucherCode = appliedSpinVoucher?.voucherCode
+            spinVoucherCode = appliedSpinVoucher?.voucherCode,
+            ghnDistrictId = null,
+            ghnWardCode = null,
+            shippingFee = shippingFee
         )
 
         // Lấy danh sách cartItemIds đã chọn
@@ -485,6 +661,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         val intent = Intent(this, BillPreviewActivity::class.java).apply {
             putExtra(BillPreviewActivity.EXTRA_ORDER_REQUEST, com.google.gson.Gson().toJson(request))
             putExtra(BillPreviewActivity.EXTRA_CART_ITEM_IDS, cartItemIds.toLongArray())
+            putExtra(BillPreviewActivity.EXTRA_SHIPPING_FEE, shippingFee)
         }
         startActivity(intent)
     }
@@ -568,7 +745,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         val total = selectedItems.sumOf { 
             (it.unitPrice ?: 0.0) * (it.quantity ?: 1)
         }
-        tvTotalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
+        // Tạm tính = tổng tiền sản phẩm + phí ship
+        val subtotal = total + shippingFee
+        tvTotalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", subtotal)
 
         // Load tier discount từ API
         if (total > 0) {
@@ -641,7 +820,8 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
     private fun updateFinalPrice(total: Double) {
         val totalDiscount = discountAmount + tierDiscountAmount
-        val finalPrice = maxOf(0.0, total - totalDiscount)
+        val subtotal = total + shippingFee // Cộng phí ship
+        val finalPrice = maxOf(0.0, subtotal - totalDiscount)
         tvFinalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", finalPrice)
     }
 

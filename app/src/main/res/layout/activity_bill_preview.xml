@@ -231,6 +231,31 @@
                             tools:text="150,000 VNĐ" />
                     </LinearLayout>
 
+                    <!-- Shipping Fee -->
+                    <LinearLayout
+                        android:id="@+id/ll_shipping_fee"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🚚 Phí giao hàng:"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tv_shipping_fee"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            tools:text="25,000 VNĐ" />
+                    </LinearLayout>
+
                     <!-- Voucher Discount -->
                     <LinearLayout
                         android:id="@+id/ll_voucher_discount"

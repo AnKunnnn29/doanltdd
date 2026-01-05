@@ -608,6 +608,31 @@ interface ApiService {
         @Query("weather") weather: String? = null
     ): Call<ApiResponse<PredictiveOrderResponse>>
 
+    // ==================== GHN SHIPPING ====================
+    @GET("ghn/provinces")
+    fun getGhnProvinces(): Call<ApiResponse<List<GhnProvince>>>
+    
+    @GET("ghn/districts/{provinceId}")
+    fun getGhnDistricts(@Path("provinceId") provinceId: Int): Call<ApiResponse<List<GhnDistrict>>>
+    
+    @GET("ghn/wards/{districtId}")
+    fun getGhnWards(@Path("districtId") districtId: Int): Call<ApiResponse<List<GhnWard>>>
+    
+    @GET("ghn/services")
+    fun getGhnServices(
+        @Query("fromDistrictId") fromDistrictId: Int,
+        @Query("toDistrictId") toDistrictId: Int
+    ): Call<ApiResponse<List<GhnService>>>
+    
+    @POST("ghn/calculate-fee/simple")
+    fun calculateShippingFee(@Body request: ShippingFeeRequest): Call<ApiResponse<GhnCalculateFeeResponse>>
+    
+    @GET("ghn/shipping-fee")
+    fun getShippingFee(
+        @Query("toDistrictId") toDistrictId: Int,
+        @Query("toWardCode") toWardCode: String
+    ): Call<ApiResponse<Int>>
+
     // ==================== 🛡️ USER MONITORING (GIÁM SÁT NGƯỜI DÙNG) ====================
     
     @GET("monitoring/dashboard")

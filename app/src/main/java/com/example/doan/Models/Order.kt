@@ -45,6 +45,10 @@ data class Order(
     @SerializedName("finalPrice")
     var finalPrice: Double = 0.0,
     
+    // Phí giao hàng
+    @SerializedName("shippingFee")
+    var shippingFee: Double = 0.0,
+    
     @SerializedName("address")
     var address: String? = null,
     

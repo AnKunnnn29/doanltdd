@@ -24,6 +24,17 @@ data class CreateOrderRequest(
     @SerializedName("spinVoucherCode")
     var spinVoucherCode: String? = null,
     
+    // GHN Shipping Info
+    @SerializedName("ghnDistrictId")
+    var ghnDistrictId: Int? = null,
+    
+    @SerializedName("ghnWardCode")
+    var ghnWardCode: String? = null,
+    
+    // Shipping Fee từ client
+    @SerializedName("shippingFee")
+    var shippingFee: Int? = null,
+    
     @SerializedName("items")
     var items: List<OrderItemRequest>
 )

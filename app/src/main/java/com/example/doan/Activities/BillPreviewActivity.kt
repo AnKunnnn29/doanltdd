@@ -33,6 +33,7 @@ class BillPreviewActivity : AppCompatActivity() {
         private const val TAG = "BillPreviewActivity"
         const val EXTRA_ORDER_REQUEST = "ORDER_REQUEST"
         const val EXTRA_CART_ITEM_IDS = "CART_ITEM_IDS"
+        const val EXTRA_SHIPPING_FEE = "SHIPPING_FEE"
     }
 
     // Views
@@ -45,6 +46,8 @@ class BillPreviewActivity : AppCompatActivity() {
     private lateinit var tvPaymentMethod: TextView
     private lateinit var rvBillItems: RecyclerView
     private lateinit var tvSubtotal: TextView
+    private lateinit var llShippingFee: LinearLayout
+    private lateinit var tvShippingFee: TextView
     private lateinit var llVoucherDiscount: LinearLayout
     private lateinit var tvVoucherLabel: TextView
     private lateinit var tvVoucherDiscount: TextView
@@ -58,6 +61,7 @@ class BillPreviewActivity : AppCompatActivity() {
     private var orderRequest: CreateOrderRequest? = null
     private var cartItemIds: LongArray? = null
     private var billPreview: BillPreview? = null
+    private var clientShippingFee: Int = 0 // Phí ship từ client
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,6 +95,8 @@ class BillPreviewActivity : AppCompatActivity() {
 
         // Price summary
         tvSubtotal = findViewById(R.id.tv_subtotal)
+        llShippingFee = findViewById(R.id.ll_shipping_fee)
+        tvShippingFee = findViewById(R.id.tv_shipping_fee)
         llVoucherDiscount = findViewById(R.id.ll_voucher_discount)
         tvVoucherLabel = findViewById(R.id.tv_voucher_label)
         tvVoucherDiscount = findViewById(R.id.tv_voucher_discount)
@@ -112,6 +118,7 @@ class BillPreviewActivity : AppCompatActivity() {
             orderRequest = Gson().fromJson(orderRequestJson, CreateOrderRequest::class.java)
         }
         cartItemIds = intent.getLongArrayExtra(EXTRA_CART_ITEM_IDS)
+        clientShippingFee = intent.getIntExtra(EXTRA_SHIPPING_FEE, 0)
 
         if (orderRequest == null) {
             Toast.makeText(this, "Lỗi: Không có thông tin đơn hàng", Toast.LENGTH_SHORT).show()
@@ -163,7 +170,14 @@ class BillPreviewActivity : AppCompatActivity() {
         // Order info
         tvStoreName.text = "Cửa hàng: ${bill.storeName ?: "N/A"}"
         tvOrderType.text = "Loại đơn: ${if (bill.orderType == "DELIVERY") "Giao hàng" else "Lấy tại cửa hàng"}"
-        tvDeliveryAddress.text = "Địa chỉ: ${bill.deliveryAddress ?: "N/A"}"
+        
+        // Địa chỉ - Ưu tiên từ request nếu là DELIVERY
+        val displayAddress = if (bill.orderType == "DELIVERY") {
+            orderRequest?.address ?: bill.deliveryAddress ?: "N/A"
+        } else {
+            bill.deliveryAddress ?: "Tại Cửa Hàng"
+        }
+        tvDeliveryAddress.text = "Địa chỉ: $displayAddress"
         tvPaymentMethod.text = "Thanh toán: ${bill.paymentMethod ?: "N/A"}"
 
         // Items
@@ -172,7 +186,17 @@ class BillPreviewActivity : AppCompatActivity() {
         }
 
         // Price summary
-        tvSubtotal.text = formatPrice(bill.subtotal ?: 0.0)
+        val subtotal = bill.subtotal ?: 0.0
+        tvSubtotal.text = formatPrice(subtotal)
+
+        // Shipping fee - Ưu tiên từ client, nếu không có thì lấy từ backend
+        val shippingFee = if (clientShippingFee > 0) clientShippingFee.toDouble() else (bill.shippingFee ?: 0.0)
+        if (shippingFee > 0) {
+            llShippingFee.visibility = View.VISIBLE
+            tvShippingFee.text = formatPrice(shippingFee)
+        } else {
+            llShippingFee.visibility = View.GONE
+        }
 
         // Voucher discount
         val voucherDiscount = bill.voucherDiscount ?: 0.0
@@ -200,8 +224,9 @@ class BillPreviewActivity : AppCompatActivity() {
             llTierDiscount.visibility = View.GONE
         }
 
-        // Final price
-        tvFinalPrice.text = formatPrice(bill.finalPrice ?: 0.0)
+        // Final price - Tính lại với shipping fee từ client
+        val finalPrice = subtotal + shippingFee - voucherDiscount - tierDiscount
+        tvFinalPrice.text = formatPrice(maxOf(0.0, finalPrice))
     }
 
     private fun formatPrice(price: Double): String {

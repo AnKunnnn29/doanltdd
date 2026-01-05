@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_delivery_address"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    android:layout_marginBottom="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Địa chỉ giao hàng"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/wine_dark_background"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_select_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Chọn địa chỉ giao hàng"
+        android:textAllCaps="false"
+        app:icon="@drawable/ic_location"
+        app:iconGravity="start"
+        style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+    <TextView
+        android:id="@+id/tv_selected_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:padding="12dp"
+        android:background="@drawable/bg_rounded_light"
+        android:textSize="13sp"
+        android:textColor="@color/wine_dark_background"
+        android:visibility="gone"
+        android:text="Địa chỉ đã chọn sẽ hiển thị ở đây"/>
+
+    <TextView
+        android:id="@+id/tv_shipping_fee"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:padding="8dp"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:visibility="gone"
+        android:text="Phí ship: 0 VNĐ"/>
+
+</LinearLayout>

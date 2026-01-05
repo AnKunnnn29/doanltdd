@@ -28,6 +28,11 @@ data class BillPreview(
     // Tổng tiền
     val subtotal: Double? = null,            // Tổng tiền hàng
     
+    // Phí giao hàng (GHN)
+    val shippingFee: Double? = null,         // Phí giao hàng
+    val ghnDistrictId: Int? = null,          // District ID cho GHN
+    val ghnWardCode: String? = null,         // Ward code cho GHN
+    
     // Chi tiết giảm giá
     val promotionCode: String? = null,       // Mã voucher (nếu có)
     val voucherDiscount: Double? = null,     // Số tiền giảm từ voucher
@@ -35,7 +40,7 @@ data class BillPreview(
     val tierDiscountAmount: Double? = null,  // Số tiền giảm từ hạng thành viên
     
     val totalDiscount: Double? = null,       // Tổng giảm giá
-    val finalPrice: Double? = null           // Thành tiền
+    val finalPrice: Double? = null           // Thành tiền (subtotal + shippingFee - totalDiscount)
 ) : Serializable
 
 data class BillItem(
