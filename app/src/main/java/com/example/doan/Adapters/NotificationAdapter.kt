@@ -41,11 +41,11 @@ class NotificationAdapter(
         val notification = notifications[position]
         val context = holder.itemView.context
         
-        holder.tvTitle.text = notification.title
-        holder.tvContent.text = notification.content
+        holder.tvTitle.text = notification.title ?: "Thông báo"
+        holder.tvContent.text = notification.content ?: ""
         holder.tvTime.text = formatTime(notification.createdAt)
         
-        // Icon theo loại thông báo
+        // Icon theo loại thông báo - xử lý null safety
         val iconRes = when (notification.type) {
             NotificationType.ORDER_NEW -> R.drawable.ic_order_new
             NotificationType.ORDER_STATUS -> R.drawable.ic_order_status
@@ -54,6 +54,7 @@ class NotificationAdapter(
             NotificationType.CUSTOM -> R.drawable.ic_notification
             NotificationType.LIVE_CHAT -> R.drawable.ic_support_agent
             NotificationType.GROUP_CHAT -> R.drawable.ic_group_chat
+            null -> R.drawable.ic_notification // Default icon khi type là null
         }
         holder.ivIcon.setImageResource(iconRes)
         

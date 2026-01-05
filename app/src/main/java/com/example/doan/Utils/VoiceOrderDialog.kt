@@ -326,19 +326,9 @@ class VoiceOrderDialog(
         tvStatus.setTextColor(ContextCompat.getColor(context, R.color.error))
         stopPulseAnimation()
         
-        // Show retry hint
-        cardResult.visibility = View.VISIBLE
-        tvProductName.text = "Có lỗi xảy ra"
-        tvProductName.setTextColor(ContextCompat.getColor(context, R.color.error))
-        tvQuantity.text = message
-        tvSize.text = ""
-        layoutQuantitySize.visibility = View.VISIBLE
+        // Chỉ hiển thị status text, không hiển thị card result để tránh bị bóp layout
+        cardResult.visibility = View.GONE
         btnConfirm.isEnabled = false
-        
-        // Hide similar products
-        dividerSimilar.visibility = View.GONE
-        tvSimilarTitle.visibility = View.GONE
-        layoutSimilarProducts.visibility = View.GONE
     }
     
     private fun cleanup() {

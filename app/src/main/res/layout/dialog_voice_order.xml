@@ -67,8 +67,8 @@
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFF8F0"
-                    app:strokeColor="#FFE0B2"
+                    app:cardBackgroundColor="#FDF2F3"
+                    app:strokeColor="#E8C4C8"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -86,7 +86,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="🔥"
+                                android:text="🍷"
                                 android:textSize="18sp" />
 
                             <TextView
@@ -94,7 +94,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="6dp"
                                 android:text="Top 3 bán chạy"
-                                android:textColor="#E65100"
+                                android:textColor="@color/wine_primary"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
 

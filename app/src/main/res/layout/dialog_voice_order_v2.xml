@@ -3,217 +3,318 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="16dp"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="16dp">
+    android:layout_margin="20dp"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="24dp"
+    app:cardBackgroundColor="@color/wine_light_surface">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_mic"
+                app:tint="@color/wine_primary"
+                android:contentDescription="Mic icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Dat hang bang giong noi"
+                android:textColor="@color/wine_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Dat hang bang giong noi"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:text="Noi ten do uong ban muon dat"
             android:textColor="@color/text_secondary"
-            android:textSize="13sp" />
+            android:textSize="14sp"
+            android:gravity="center" />
 
-        <!-- Mic Button -->
         <FrameLayout
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_marginTop="16dp">
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_marginTop="24dp">
 
             <View
                 android:id="@+id/pulse_view"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_pulse_circle"
-                android:visibility="gone" />
+                android:alpha="0" />
+
+            <View
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_mic_ring"
+                android:alpha="0.3" />
 
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:id="@+id/card_mic"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_gravity="center"
-                app:cardCornerRadius="35dp"
-                app:cardElevation="8dp"
-                app:strokeWidth="0dp">
+                app:cardCornerRadius="40dp"
+                app:cardElevation="12dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/wine_primary">
 
                 <ImageView
                     android:id="@+id/iv_mic"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/wine_neutral_light"
-                    android:padding="18dp"
+                    android:padding="20dp"
                     android:src="@drawable/ic_mic"
-                    app:tint="@color/wine_primary" />
+                    app:tint="@color/white"
+                    android:contentDescription="Microphone" />
 
             </com.google.android.material.card.MaterialCardView>
         </FrameLayout>
 
-        <!-- Status -->
         <TextView
             android:id="@+id/tv_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:text="Nhan mic de bat dau"
             android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textSize="15sp" />
 
-        <!-- Speech Text -->
         <TextView
             android:id="@+id/tv_speech_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:gravity="center"
-            android:minHeight="40dp"
+            android:minHeight="32dp"
             android:textColor="@color/wine_primary"
-            android:textSize="16sp"
-            android:textStyle="bold|italic" />
+            android:textSize="17sp"
+            android:textStyle="bold|italic"
+            android:background="@drawable/bg_speech_text"
+            android:padding="12dp"
+            android:visibility="gone" />
 
-        <!-- Product Suggestions List -->
         <TextView
             android:id="@+id/tv_suggestions_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="San pham goi y:"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
+            android:layout_marginTop="20dp"
+            android:drawableStart="@drawable/ic_lightbulb"
+            android:drawablePadding="8dp"
+            android:text="San pham goi y"
+            android:textColor="@color/wine_primary"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:drawableTint="@color/wine_accent_gold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_suggestions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:maxHeight="200dp"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
             android:visibility="gone" />
 
-        <!-- Selected Product Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_selected"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:visibility="gone"
-            app:cardBackgroundColor="@color/wine_neutral_light"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
             app:strokeColor="@color/wine_primary"
             app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp">
-
-                <ImageView
-                    android:id="@+id/iv_product"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground" />
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:background="@color/wine_primary"
+                    android:gravity="center"
+                    android:padding="8dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_check_circle"
+                        app:tint="@color/white"
+                        android:contentDescription="Check" />
 
                     <TextView
-                        android:id="@+id/tv_product_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/wine_primary"
-                        android:textSize="15sp"
+                        android:layout_marginStart="6dp"
+                        android:text="Da chon san pham"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
+                </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tv_product_price"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp">
+
+                        <ImageView
+                            android:id="@+id/iv_product"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_image_placeholder"
+                            android:contentDescription="Product" />
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:orientation="horizontal">
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
                         <TextView
-                            android:id="@+id/tv_quantity"
+                            android:id="@+id/tv_product_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_tag"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="2dp"
-                            android:textColor="@color/white"
-                            android:textSize="11sp" />
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/tv_size"
+                            android:id="@+id/tv_product_price"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:background="@drawable/bg_tag"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="2dp"
-                            android:textColor="@color/white"
-                            android:textSize="11sp" />
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/wine_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tv_quantity"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_tag_wine"
+                                android:paddingStart="10dp"
+                                android:paddingEnd="10dp"
+                                android:paddingTop="4dp"
+                                android:paddingBottom="4dp"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tv_size"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_tag_outline"
+                                android:paddingStart="10dp"
+                                android:paddingEnd="10dp"
+                                android:paddingTop="4dp"
+                                android:paddingBottom="4dp"
+                                android:textColor="@color/wine_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_retry"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="52dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="Noi lai"
-                android:textSize="13sp"
-                app:cornerRadius="22dp" />
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="26dp"
+                app:strokeColor="@color/wine_primary"
+                app:strokeWidth="2dp"
+                android:textColor="@color/wine_primary"
+                app:icon="@drawable/ic_refresh"
+                app:iconGravity="textStart"
+                app:iconTint="@color/wine_primary" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_confirm"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="52dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:enabled="false"
                 android:text="Them vao gio"
-                android:textSize="13sp"
-                app:cornerRadius="22dp" />
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/wine_primary"
+                app:cornerRadius="26dp"
+                app:icon="@drawable/ic_shopping_cart"
+                app:iconGravity="textStart" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Vi du: Cho toi 2 ly tra sua size L"
+            android:textColor="@color/text_hint"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:drawableStart="@drawable/ic_lightbulb"
+            android:drawablePadding="6dp"
+            app:drawableTint="@color/text_hint" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

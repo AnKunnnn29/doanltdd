@@ -10,22 +10,22 @@ data class NotificationDto(
     val id: Long,
     
     @SerializedName("title")
-    val title: String,
+    val title: String?,
     
     @SerializedName("content")
-    val content: String,
+    val content: String?,
     
     @SerializedName("type")
-    val type: NotificationType,
+    val type: NotificationType?,  // Nullable để xử lý trường hợp server trả về null hoặc giá trị không hợp lệ
     
     @SerializedName("isRead")
-    val isRead: Boolean,
+    val isRead: Boolean = false,
     
     @SerializedName("relatedId")
     val relatedId: Long?,
     
     @SerializedName("createdAt")
-    val createdAt: String
+    val createdAt: String = ""
 )
 
 /**
