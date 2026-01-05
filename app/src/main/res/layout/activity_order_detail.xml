@@ -174,7 +174,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
             
-            <!-- Reorder Button -->
+            <!-- Reorder Button (User only) -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_reorder"
                 android:layout_width="match_parent"
@@ -188,6 +188,132 @@
                 app:icon="@drawable/ic_shopping_cart"
                 app:iconGravity="textStart"
                 app:backgroundTint="@color/wine_primary" />
+            
+            <!-- Manager/Admin: Customer Info Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_customer_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👤 Thông tin khách hàng"
+                        android:textAppearance="?attr/textAppearanceSubtitle1"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_customer_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        tools:text="Tên: Nguyễn Văn A" />
+                    
+                    <TextView
+                        android:id="@+id/tv_customer_address"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        tools:text="Địa chỉ: 123 ABC" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            
+            <!-- Manager/Admin: Status Control Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_status_control"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/wine_primary"
+                app:strokeWidth="1dp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚙️ Cập nhật trạng thái"
+                        android:textAppearance="?attr/textAppearanceSubtitle1"
+                        android:textStyle="bold"
+                        android:textColor="@color/wine_primary" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_status_making"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Đang làm"
+                            android:textAllCaps="false"
+                            android:textSize="11sp"
+                            app:cornerRadius="8dp"
+                            app:backgroundTint="@color/status_making" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_status_shipping"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginHorizontal="4dp"
+                            android:text="Đang giao"
+                            android:textAllCaps="false"
+                            android:textSize="11sp"
+                            app:cornerRadius="8dp"
+                            app:backgroundTint="@color/status_shipping" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_status_done"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:text="Hoàn thành"
+                            android:textAllCaps="false"
+                            android:textSize="11sp"
+                            app:cornerRadius="8dp"
+                            app:backgroundTint="@color/status_done" />
+
+                    </LinearLayout>
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_status_cancel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="❌ Hủy đơn hàng"
+                        android:textAllCaps="false"
+                        app:cornerRadius="8dp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="@color/status_canceled" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
