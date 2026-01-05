@@ -26,7 +26,6 @@ class WelcomeActivity : AppCompatActivity() {
 
     private lateinit var logoCard: CardView
     private lateinit var logoOuterGlow: View
-    private lateinit var logoRotatingRing: View
     private lateinit var logoShimmer: View
     private lateinit var tvAppName: TextView
     private lateinit var tvTagline: TextView
@@ -57,7 +56,6 @@ class WelcomeActivity : AppCompatActivity() {
     private fun initViews() {
         logoCard = findViewById(R.id.logoCard)
         logoOuterGlow = findViewById(R.id.logoOuterGlow)
-        logoRotatingRing = findViewById(R.id.logoRotatingRing)
         logoShimmer = findViewById(R.id.logoShimmer)
         tvAppName = findViewById(R.id.tvAppName)
         tvTagline = findViewById(R.id.tvTagline)
@@ -79,9 +77,6 @@ class WelcomeActivity : AppCompatActivity() {
 
         // Glow effect
         handler.postDelayed({ animateGlow() }, 500)
-
-        // Rotating ring
-        handler.postDelayed({ animateRotatingRing() }, 600)
 
         // Shimmer effect
         handler.postDelayed({ startShimmerLoop() }, 800)
@@ -148,19 +143,6 @@ class WelcomeActivity : AppCompatActivity() {
         scaleY.repeatCount = ValueAnimator.INFINITE
         scaleX.start()
         scaleY.start()
-    }
-
-    private fun animateRotatingRing() {
-        logoRotatingRing.animate()
-            .alpha(0.7f)
-            .setDuration(400)
-            .start()
-
-        val rotation = ObjectAnimator.ofFloat(logoRotatingRing, "rotation", 0f, 360f)
-        rotation.duration = 4000
-        rotation.repeatCount = ValueAnimator.INFINITE
-        rotation.interpolator = LinearInterpolator()
-        rotation.start()
     }
 
     private fun startShimmerLoop() {
