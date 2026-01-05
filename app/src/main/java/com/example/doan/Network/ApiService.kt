@@ -203,6 +203,13 @@ interface ApiService {
         @Path("cartItemId") cartItemId: Long,
         @Query("quantity") quantity: Int
     ): Call<ApiResponse<Cart>>
+    
+    // Cập nhật đầy đủ thông tin item trong cart (số lượng, size, topping)
+    @PUT("cart/items/{cartItemId}/full")
+    fun updateCartItemFull(
+        @Path("cartItemId") cartItemId: Long,
+        @Body request: UpdateCartItemRequest
+    ): Call<ApiResponse<Cart>>
 
     // Xóa item khỏi cart
     @DELETE("cart/items/{cartItemId}")

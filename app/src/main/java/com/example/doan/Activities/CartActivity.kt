@@ -327,12 +327,9 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             address
         } else null
 
-        val phoneNumber = currentUserProfile?.phone
-        if (phoneNumber.isNullOrEmpty()) {
-            showEnterPhoneDialog()
-        } else {
-            showOtpDialog(phoneNumber)
-        }
+        // ✅ BỎ QUA XÁC THỰC OTP - Chuyển thẳng đến màn hình xem bill
+        val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
+        navigateToBillPreview(selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
     }
 
     private fun showEnterPhoneDialog() {
@@ -905,6 +902,190 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                     }
                     override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
                         Log.e("CartActivity", "Error removing cart item", t)
+                        Toast.makeText(this@CartActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        }
+    }
+    
+    override fun onQuantityChanged(item: CartItem, newQuantity: Int) {
+        if (SessionManager(this).getUserId() == -1) return
+        
+        item.id?.let { cartItemId ->
+            RetrofitClient.getInstance(this).apiService.updateCartItem(cartItemId, newQuantity)
+                .enqueue(object : Callback<ApiResponse<Cart>> {
+                    override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            // Cập nhật local data
+                            item.quantity = newQuantity
+                            item.totalPrice = (item.unitPrice ?: 0.0) * newQuantity
+                            cartAdapter.notifyDataSetChanged()
+                            calculateTotalPrice()
+                        } else {
+                            Toast.makeText(this@CartActivity, "Không thể cập nhật số lượng", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
+                        Log.e("CartActivity", "Error updating quantity", t)
+                        Toast.makeText(this@CartActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        }
+    }
+    
+    override fun onEditOptionsClicked(item: CartItem) {
+        showEditCartItemDialog(item)
+    }
+    
+    private fun showEditCartItemDialog(item: CartItem) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_cart_item, null)
+        
+        val ivDrinkImage: ImageView = dialogView.findViewById(R.id.iv_drink_image)
+        val tvDrinkName: TextView = dialogView.findViewById(R.id.tv_drink_name)
+        val tvBasePrice: TextView = dialogView.findViewById(R.id.tv_base_price)
+        val rgSizes: RadioGroup = dialogView.findViewById(R.id.rg_sizes)
+        val llToppings: LinearLayout = dialogView.findViewById(R.id.ll_toppings)
+        val etNote: EditText = dialogView.findViewById(R.id.et_note)
+        val tvTotalPrice: TextView = dialogView.findViewById(R.id.tv_total_price)
+        
+        // Set current values
+        com.bumptech.glide.Glide.with(this).load(item.drinkImage).into(ivDrinkImage)
+        tvDrinkName.text = item.drinkName
+        etNote.setText(item.note ?: "")
+        
+        var selectedSizeId: Long? = item.sizeId
+        val selectedToppingIds = item.toppings?.mapNotNull { it.id.toLong() }?.toMutableList() ?: mutableListOf()
+        var basePrice = 0.0
+        
+        // Load drink details to get sizes and toppings
+        item.drinkId?.let { drinkId ->
+            RetrofitClient.getInstance(this).apiService.getDrinkById(drinkId.toInt())
+                .enqueue(object : Callback<ApiResponse<com.example.doan.Models.Drink>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<com.example.doan.Models.Drink>>,
+                        response: Response<ApiResponse<com.example.doan.Models.Drink>>
+                    ) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            val drink = response.body()?.data
+                            drink?.let {
+                                basePrice = it.basePrice ?: 0.0
+                                tvBasePrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", basePrice)
+                                
+                                // Add sizes
+                                it.sizes?.forEach { size ->
+                                    val radioButton = RadioButton(this@CartActivity).apply {
+                                        id = View.generateViewId()
+                                        text = "${size.sizeName} (+${String.format(Locale.getDefault(), "%,.0f", size.extraPrice ?: 0.0)} VNĐ)"
+                                        tag = size.id.toLong()
+                                        isChecked = size.id.toLong() == selectedSizeId
+                                    }
+                                    rgSizes.addView(radioButton)
+                                }
+                                
+                                // Add toppings
+                                it.toppings?.forEach { topping ->
+                                    val checkBox = CheckBox(this@CartActivity).apply {
+                                        text = "${topping.toppingName} (+${String.format(Locale.getDefault(), "%,.0f", topping.price ?: 0.0)} VNĐ)"
+                                        tag = topping.id.toLong()
+                                        isChecked = selectedToppingIds.contains(topping.id.toLong())
+                                        setOnCheckedChangeListener { _, isChecked ->
+                                            if (isChecked) {
+                                                selectedToppingIds.add(topping.id.toLong())
+                                            } else {
+                                                selectedToppingIds.remove(topping.id.toLong())
+                                            }
+                                            updateDialogTotalPrice(drink, selectedSizeId, selectedToppingIds, item.quantity ?: 1, tvTotalPrice)
+                                        }
+                                    }
+                                    llToppings.addView(checkBox)
+                                }
+                                
+                                // Size change listener
+                                rgSizes.setOnCheckedChangeListener { group, checkedId ->
+                                    val selectedRadio = group.findViewById<RadioButton>(checkedId)
+                                    selectedSizeId = selectedRadio?.tag as? Long
+                                    updateDialogTotalPrice(drink, selectedSizeId, selectedToppingIds, item.quantity ?: 1, tvTotalPrice)
+                                }
+                                
+                                // Initial total price
+                                updateDialogTotalPrice(drink, selectedSizeId, selectedToppingIds, item.quantity ?: 1, tvTotalPrice)
+                            }
+                        }
+                    }
+                    
+                    override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.Drink>>, t: Throwable) {
+                        Log.e("CartActivity", "Error loading drink details", t)
+                    }
+                })
+        }
+        
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Chỉnh sửa sản phẩm")
+            .setView(dialogView)
+            .setPositiveButton("Cập nhật") { _, _ ->
+                // Get final selected size
+                val checkedRadioId = rgSizes.checkedRadioButtonId
+                val finalSizeId = if (checkedRadioId != -1) {
+                    rgSizes.findViewById<RadioButton>(checkedRadioId)?.tag as? Long
+                } else null
+                
+                updateCartItemFull(item, item.quantity ?: 1, finalSizeId, selectedToppingIds, etNote.text.toString())
+            }
+            .setNegativeButton("Hủy", null)
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun updateDialogTotalPrice(
+        drink: com.example.doan.Models.Drink,
+        sizeId: Long?,
+        toppingIds: List<Long>,
+        quantity: Int,
+        tvTotalPrice: TextView
+    ) {
+        var total = drink.basePrice ?: 0.0
+        
+        // Add size price
+        sizeId?.let { id ->
+            drink.sizes?.find { it.id.toLong() == id }?.let { size ->
+                total += size.extraPrice ?: 0.0
+            }
+        }
+        
+        // Add topping prices
+        toppingIds.forEach { toppingId ->
+            drink.toppings?.find { it.id.toLong() == toppingId }?.let { topping ->
+                total += topping.price ?: 0.0
+            }
+        }
+        
+        total *= quantity
+        tvTotalPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
+    }
+    
+    private fun updateCartItemFull(item: CartItem, quantity: Int, sizeId: Long?, toppingIds: List<Long>, note: String) {
+        item.id?.let { cartItemId ->
+            val request = com.example.doan.Models.UpdateCartItemRequest(
+                quantity = quantity,
+                sizeId = sizeId,
+                toppingIds = toppingIds,
+                note = note.ifEmpty { null }
+            )
+            
+            RetrofitClient.getInstance(this).apiService.updateCartItemFull(cartItemId, request)
+                .enqueue(object : Callback<ApiResponse<Cart>> {
+                    override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            Toast.makeText(this@CartActivity, "Đã cập nhật sản phẩm", Toast.LENGTH_SHORT).show()
+                            loadCart() // Reload cart to get updated data
+                        } else {
+                            Toast.makeText(this@CartActivity, "Không thể cập nhật sản phẩm", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    
+                    override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
+                        Log.e("CartActivity", "Error updating cart item", t)
                         Toast.makeText(this@CartActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
                     }
                 })

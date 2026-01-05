@@ -175,25 +175,27 @@ class BillPreviewActivity : AppCompatActivity() {
         tvSubtotal.text = formatPrice(bill.subtotal ?: 0.0)
 
         // Voucher discount
-        val discount = bill.discount ?: 0.0
-        if (discount > 0 && !bill.promotionCode.isNullOrEmpty()) {
+        val voucherDiscount = bill.voucherDiscount ?: 0.0
+        if (voucherDiscount > 0) {
             llVoucherDiscount.visibility = View.VISIBLE
-            tvVoucherLabel.text = "Giảm giá (${bill.promotionCode}):"
-            tvVoucherDiscount.text = "-${formatPrice(discount)}"
-        } else if (discount > 0) {
-            llVoucherDiscount.visibility = View.VISIBLE
-            tvVoucherLabel.text = "Giảm giá:"
-            tvVoucherDiscount.text = "-${formatPrice(discount)}"
+            val voucherLabel = if (!bill.promotionCode.isNullOrEmpty()) {
+                "🎫 Giảm giá voucher (${bill.promotionCode}):"
+            } else {
+                "🎫 Giảm giá voucher:"
+            }
+            tvVoucherLabel.text = voucherLabel
+            tvVoucherDiscount.text = "-${formatPrice(voucherDiscount)}"
         } else {
             llVoucherDiscount.visibility = View.GONE
         }
 
         // Tier discount
-        if (!bill.tierDiscount.isNullOrEmpty()) {
+        val tierDiscount = bill.tierDiscountAmount ?: 0.0
+        if (tierDiscount > 0) {
             llTierDiscount.visibility = View.VISIBLE
-            tvTierLabel.text = "Ưu đãi ${bill.tierDiscount}:"
-            // Tier discount đã được tính vào discount tổng, chỉ hiển thị label
-            tvTierDiscount.text = "Đã áp dụng"
+            val tierLabel = "👑 Ưu đãi hạng ${bill.tierName ?: "BRONZE"}:"
+            tvTierLabel.text = tierLabel
+            tvTierDiscount.text = "-${formatPrice(tierDiscount)}"
         } else {
             llTierDiscount.visibility = View.GONE
         }

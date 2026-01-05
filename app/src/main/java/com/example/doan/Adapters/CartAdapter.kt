@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.doan.Models.CartItem
 import com.example.doan.R
+import com.google.android.material.button.MaterialButton
 import java.util.Locale
 
 class CartAdapter(
@@ -23,6 +24,8 @@ class CartAdapter(
     interface OnCartItemChangeListener {
         fun onItemSelectedChanged()
         fun onItemDeleted(item: CartItem)
+        fun onQuantityChanged(item: CartItem, newQuantity: Int)
+        fun onEditOptionsClicked(item: CartItem)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
@@ -66,6 +69,9 @@ class CartAdapter(
         private val tvQuantity: TextView = itemView.findViewById(R.id.tv_cart_item_quantity)
         private val btnDeleteItem: ImageButton = itemView.findViewById(R.id.btn_delete_item)
         private val cbSelectItem: CheckBox = itemView.findViewById(R.id.cb_select_item)
+        private val btnDecreaseQuantity: ImageButton = itemView.findViewById(R.id.btn_decrease_quantity)
+        private val btnIncreaseQuantity: ImageButton = itemView.findViewById(R.id.btn_increase_quantity)
+        private val btnEditOptions: MaterialButton = itemView.findViewById(R.id.btn_edit_options)
 
         fun bind(item: CartItem) {
             tvName.text = item.drinkName
@@ -82,7 +88,8 @@ class CartAdapter(
             val singleItemPrice = item.unitPrice ?: 0.0
             tvPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", singleItemPrice)
 
-            tvQuantity.text = "x${item.quantity}"
+            val quantity = item.quantity ?: 1
+            tvQuantity.text = quantity.toString()
 
             Glide.with(context).load(item.drinkImage).placeholder(R.drawable.ic_image_placeholder).into(ivImage)
 
@@ -95,6 +102,27 @@ class CartAdapter(
 
             btnDeleteItem.setOnClickListener {
                 listener.onItemDeleted(item)
+            }
+            
+            // Decrease quantity button
+            btnDecreaseQuantity.setOnClickListener {
+                val currentQuantity = item.quantity ?: 1
+                if (currentQuantity > 1) {
+                    listener.onQuantityChanged(item, currentQuantity - 1)
+                }
+            }
+            
+            // Increase quantity button
+            btnIncreaseQuantity.setOnClickListener {
+                val currentQuantity = item.quantity ?: 1
+                if (currentQuantity < 99) {
+                    listener.onQuantityChanged(item, currentQuantity + 1)
+                }
+            }
+            
+            // Edit options button (size, topping)
+            btnEditOptions.setOnClickListener {
+                listener.onEditOptionsClicked(item)
             }
         }
     }

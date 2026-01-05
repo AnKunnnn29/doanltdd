@@ -26,11 +26,16 @@ data class BillPreview(
     val items: List<BillItem>? = null,
     
     // Tổng tiền
-    val subtotal: Double? = null,        // Tổng tiền hàng
-    val discount: Double? = null,        // Giảm giá (voucher + tier)
-    val promotionCode: String? = null,   // Mã voucher (nếu có)
-    val tierDiscount: String? = null,    // Giảm giá theo tier (nếu có)
-    val finalPrice: Double? = null       // Thành tiền
+    val subtotal: Double? = null,            // Tổng tiền hàng
+    
+    // Chi tiết giảm giá
+    val promotionCode: String? = null,       // Mã voucher (nếu có)
+    val voucherDiscount: Double? = null,     // Số tiền giảm từ voucher
+    val tierName: String? = null,            // Tên hạng thành viên
+    val tierDiscountAmount: Double? = null,  // Số tiền giảm từ hạng thành viên
+    
+    val totalDiscount: Double? = null,       // Tổng giảm giá
+    val finalPrice: Double? = null           // Thành tiền
 ) : Serializable
 
 data class BillItem(

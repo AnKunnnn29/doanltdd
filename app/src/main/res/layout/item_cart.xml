@@ -13,88 +13,144 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:padding="12dp">
 
-        <CheckBox
-            android:id="@+id/cb_select_item"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"/>
-
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/iv_cart_item_image"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
-            tools:src="@drawable/ic_image_placeholder" />
-
+        <!-- Row 1: Checkbox, Image, Info, Delete -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/tv_cart_item_name"
+            <CheckBox
+                android:id="@+id/cb_select_item"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textStyle="bold"
-                tools:text="Trà sữa trân châu" />
+                android:layout_marginEnd="8dp"/>
 
-            <TextView
-                android:id="@+id/tv_cart_item_details"
-                android:layout_width="wrap_content"
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_cart_item_image"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+                tools:src="@drawable/ic_image_placeholder" />
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="@color/wine_neutral_dark"
-                tools:text="Size: L, Thêm trân châu" />
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_cart_item_price"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
-                android:textColor="@color/wine_primary"
-                android:textStyle="bold"
-                tools:text="55,000 VNĐ" />
+                <TextView
+                    android:id="@+id/tv_cart_item_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    tools:text="Trà sữa trân châu" />
 
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tv_cart_item_details"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="@color/wine_neutral_dark"
+                    tools:text="Size: L, Thêm trân châu" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+                <TextView
+                    android:id="@+id/tv_cart_item_price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="@color/wine_primary"
+                    android:textStyle="bold"
+                    tools:text="55,000 VNĐ" />
 
-            <TextView
-                android:id="@+id/tv_cart_item_quantity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="8dp"
-                android:text="x1"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textStyle="bold" />
+            </LinearLayout>
 
-             <ImageButton
+            <ImageButton
                 android:id="@+id/btn_delete_item"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_marginTop="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Xóa sản phẩm"
                 android:src="@drawable/ic_delete"
                 app:tint="@color/design_default_color_error" />
+
+        </LinearLayout>
+
+        <!-- Row 2: Edit button + Quantity controls -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Edit Size/Topping Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_edit_options"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Sửa"
+                android:textSize="12sp"
+                app:icon="@drawable/ic_edit"
+                app:iconSize="16dp"
+                app:cornerRadius="8dp"
+                app:strokeWidth="1dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Quantity Controls -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_quantity_control"
+                android:padding="4dp">
+
+                <ImageButton
+                    android:id="@+id/btn_decrease_quantity"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Giảm số lượng"
+                    android:src="@drawable/ic_remove"
+                    app:tint="@color/wine_primary" />
+
+                <TextView
+                    android:id="@+id/tv_cart_item_quantity"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btn_increase_quantity"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Tăng số lượng"
+                    android:src="@drawable/ic_add"
+                    app:tint="@color/wine_primary" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
