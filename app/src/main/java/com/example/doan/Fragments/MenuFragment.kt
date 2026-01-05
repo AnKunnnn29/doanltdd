@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,7 +23,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Activities.CartActivity
+import com.example.doan.Activities.ChatbotActivity
+import com.example.doan.Activities.CreateGroupOrderActivity
+import com.example.doan.Activities.JoinGroupOrderActivity
 import com.example.doan.Activities.ProductDetailActivity
+import com.example.doan.Activities.SpinWheelActivity
 import com.example.doan.Adapters.CategoryAdapter
 import com.example.doan.Adapters.ProductAdapter
 import com.example.doan.Adapters.SearchSuggestionAdapter
@@ -33,6 +38,7 @@ import com.example.doan.Models.Product
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.DataCache
+import com.example.doan.Utils.VoiceOrderDialog
 import com.example.doan.Utils.VoiceSearchHelper
 import com.google.android.material.card.MaterialCardView
 import retrofit2.Call
@@ -59,6 +65,19 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     private lateinit var btnCartMenu: FrameLayout
     private lateinit var cartBadgeMenu: TextView
     private lateinit var btnVoiceSearch: ImageView
+    private lateinit var tvChallengeBanner: TextView
+    private lateinit var challengeBannerCard: com.google.android.material.card.MaterialCardView
+    
+    // Quick Actions
+    private lateinit var quickActionsCard: MaterialCardView
+    private lateinit var btnToggleQuickActions: FrameLayout
+    private lateinit var icToggleMenu: ImageView
+    private lateinit var expandableActionsContainer: LinearLayout
+    private lateinit var fabVoiceOrderMenu: FrameLayout
+    private lateinit var fabChatbotMenu: FrameLayout
+    private lateinit var fabSpinWheelMenu: FrameLayout
+    private lateinit var fabGroupOrderMenu: FrameLayout
+    private var isQuickActionsExpanded = true
 
     private val currentProductList = mutableListOf<Product>()
     private var selectedCategoryId = -1
@@ -140,6 +159,183 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         btnVoiceSearch.setOnClickListener {
             checkMicPermissionAndStartVoiceSearch()
         }
+        
+        // Setup challenge banner marquee
+        challengeBannerCard = view.findViewById(R.id.challenge_banner_card)
+        tvChallengeBanner = view.findViewById(R.id.tv_challenge_banner)
+        tvChallengeBanner.isSelected = true // Enable marquee animation
+        
+        // Click banner to show more info
+        challengeBannerCard.setOnClickListener {
+            Toast.makeText(context, "🎯 Mua 3 sản phẩm giống nhau để nhận 5 điểm quay voucher!", Toast.LENGTH_LONG).show()
+        }
+        
+        // Setup Quick Actions
+        setupQuickActions(view)
+    }
+    
+    /**
+     * Setup Quick Actions với khả năng toggle expand/collapse
+     */
+    private fun setupQuickActions(view: View) {
+        quickActionsCard = view.findViewById(R.id.quick_actions_card_menu)
+        btnToggleQuickActions = view.findViewById(R.id.btn_toggle_quick_actions)
+        icToggleMenu = view.findViewById(R.id.ic_toggle_menu)
+        expandableActionsContainer = view.findViewById(R.id.expandable_actions_container)
+        fabVoiceOrderMenu = view.findViewById(R.id.fab_voice_order_menu)
+        fabChatbotMenu = view.findViewById(R.id.fab_chatbot_menu)
+        fabSpinWheelMenu = view.findViewById(R.id.fab_spin_wheel_menu)
+        fabGroupOrderMenu = view.findViewById(R.id.fab_group_order_menu)
+        
+        // Toggle button - expand/collapse
+        btnToggleQuickActions.setOnClickListener {
+            toggleQuickActions()
+        }
+        
+        // Voice Order button
+        fabVoiceOrderMenu.setOnClickListener {
+            checkMicPermissionAndShowVoiceOrder()
+        }
+        
+        // Chatbot button
+        fabChatbotMenu.setOnClickListener {
+            startActivity(Intent(context, ChatbotActivity::class.java))
+        }
+        
+        // Spin Wheel button
+        fabSpinWheelMenu.setOnClickListener {
+            startActivity(Intent(context, SpinWheelActivity::class.java))
+        }
+        
+        // Group Order button
+        fabGroupOrderMenu.setOnClickListener {
+            showGroupOrderOptions()
+        }
+    }
+    
+    /**
+     * Toggle expand/collapse Quick Actions với animation
+     */
+    private fun toggleQuickActions() {
+        isQuickActionsExpanded = !isQuickActionsExpanded
+        
+        if (isQuickActionsExpanded) {
+            // Expand
+            expandableActionsContainer.visibility = View.VISIBLE
+            expandableActionsContainer.alpha = 0f
+            expandableActionsContainer.animate()
+                .alpha(1f)
+                .setDuration(200)
+                .start()
+            icToggleMenu.animate()
+                .rotation(180f)
+                .setDuration(200)
+                .start()
+        } else {
+            // Collapse
+            expandableActionsContainer.animate()
+                .alpha(0f)
+                .setDuration(200)
+                .withEndAction {
+                    expandableActionsContainer.visibility = View.GONE
+                }
+                .start()
+            icToggleMenu.animate()
+                .rotation(0f)
+                .setDuration(200)
+                .start()
+        }
+    }
+    
+    /**
+     * Hiển thị dialog chọn tạo hoặc tham gia nhóm đặt hàng
+     */
+    private fun showGroupOrderOptions() {
+        val options = arrayOf("🆕 Tạo nhóm mới", "🔗 Tham gia nhóm")
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Đặt hàng nhóm")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> startActivity(Intent(context, CreateGroupOrderActivity::class.java))
+                    1 -> startActivity(Intent(context, JoinGroupOrderActivity::class.java))
+                }
+            }
+            .show()
+    }
+    
+    /**
+     * Kiểm tra quyền mic và hiển thị Voice Order dialog
+     */
+    private fun checkMicPermissionAndShowVoiceOrder() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                showVoiceOrderDialog()
+            }
+            else -> {
+                voiceOrderMicPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
+    
+    // Permission launcher for voice order
+    private val voiceOrderMicPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            showVoiceOrderDialog()
+        } else {
+            Toast.makeText(context, "Cần quyền microphone để sử dụng tính năng này", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    /**
+     * Hiển thị Voice Order Dialog
+     */
+    private fun showVoiceOrderDialog() {
+        VoiceOrderDialog(requireContext()) { product, quantity, sizeName ->
+            // Callback khi user xác nhận đặt hàng bằng giọng nói
+            addProductToCart(product, quantity, sizeName)
+        }.show()
+    }
+    
+    /**
+     * Thêm sản phẩm vào giỏ hàng từ Voice Order
+     */
+    private fun addProductToCart(product: Product, quantity: Int, sizeName: String) {
+        // Tìm sizeId từ sizeName
+        val sizeId = product.sizes?.find { it.sizeName.equals(sizeName, ignoreCase = true) }?.id?.toLong() ?: 0L
+        
+        val request = com.example.doan.Models.AddToCartRequest(
+            drinkId = product.id.toLong(),
+            sizeId = sizeId,
+            quantity = quantity,
+            toppingIds = emptyList(),
+            note = ""
+        )
+        
+        RetrofitClient.getInstance(requireContext()).apiService.addToCart(request)
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.Cart>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.Cart>>,
+                    response: Response<ApiResponse<com.example.doan.Models.Cart>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        Toast.makeText(context, "Đã thêm $quantity ${product.name} vào giỏ hàng!", Toast.LENGTH_SHORT).show()
+                        // Update cart count
+                        val cartItems = response.body()?.data?.items?.size ?: 0
+                        DataCache.cartItemCount = cartItems
+                    } else {
+                        Toast.makeText(context, "Không thể thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.Cart>>, t: Throwable) {
+                    Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     private fun setupRecyclerViews() {

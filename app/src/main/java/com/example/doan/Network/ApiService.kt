@@ -226,6 +226,9 @@ interface ApiService {
     @GET("orders/{orderId}")
     fun getOrderById(@Path("orderId") orderId: Int): Call<ApiResponse<Order>>
 
+    @POST("orders/preview")
+    fun previewBill(@Body request: CreateOrderRequest): Call<ApiResponse<BillPreview>>
+
     @POST("orders")
     fun createOrder(@Body request: CreateOrderRequest): Call<ApiResponse<Order>>
 

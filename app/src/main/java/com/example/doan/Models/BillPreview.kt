@@ -1,0 +1,45 @@
+package com.example.doan.Models
+
+import java.io.Serializable
+
+/**
+ * Model cho Bill Preview - hiển thị trước khi thanh toán
+ */
+data class BillPreview(
+    // Thông tin khách hàng
+    val customerName: String? = null,
+    val customerPhone: String? = null,
+    val customerEmail: String? = null,
+    
+    // Thông tin cửa hàng
+    val storeId: Long? = null,
+    val storeName: String? = null,
+    val storeAddress: String? = null,
+    
+    // Thông tin đơn hàng
+    val orderType: String? = null,       // DELIVERY / PICKUP
+    val deliveryAddress: String? = null,
+    val pickupTime: String? = null,
+    val paymentMethod: String? = null,
+    
+    // Chi tiết sản phẩm
+    val items: List<BillItem>? = null,
+    
+    // Tổng tiền
+    val subtotal: Double? = null,        // Tổng tiền hàng
+    val discount: Double? = null,        // Giảm giá (voucher + tier)
+    val promotionCode: String? = null,   // Mã voucher (nếu có)
+    val tierDiscount: String? = null,    // Giảm giá theo tier (nếu có)
+    val finalPrice: Double? = null       // Thành tiền
+) : Serializable
+
+data class BillItem(
+    val drinkName: String? = null,
+    val drinkImage: String? = null,
+    val sizeName: String? = null,
+    val toppings: List<String>? = null,
+    val quantity: Int? = null,
+    val unitPrice: Double? = null,       // Giá 1 sản phẩm (đã bao gồm size + topping)
+    val totalPrice: Double? = null,      // Giá x số lượng
+    val note: String? = null
+) : Serializable

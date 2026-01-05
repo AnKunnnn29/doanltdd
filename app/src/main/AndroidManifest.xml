@@ -225,6 +225,12 @@
             android:name=".Activities.UserMonitoringActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
+        
+        <!-- Bill Preview Activity -->
+        <activity
+            android:name=".Activities.BillPreviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
 
     </application>
 

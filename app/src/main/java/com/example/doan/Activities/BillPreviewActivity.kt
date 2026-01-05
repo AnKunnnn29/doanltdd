@@ -1,0 +1,395 @@
+package com.example.doan.Activities
+
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.doan.Adapters.BillItemAdapter
+import com.example.doan.Models.ApiResponse
+import com.example.doan.Models.BillPreview
+import com.example.doan.Models.CreateOrderRequest
+import com.example.doan.Models.Order
+import com.example.doan.Network.RetrofitClient
+import com.example.doan.R
+import com.example.doan.Utils.InAppNotification
+import com.example.doan.Utils.LoadingDialog
+import com.example.doan.Utils.SeasonalEffectManager
+import com.google.android.material.button.MaterialButton
+import com.google.gson.Gson
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.util.Locale
+
+class BillPreviewActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "BillPreviewActivity"
+        const val EXTRA_ORDER_REQUEST = "ORDER_REQUEST"
+        const val EXTRA_CART_ITEM_IDS = "CART_ITEM_IDS"
+    }
+
+    // Views
+    private lateinit var tvCustomerName: TextView
+    private lateinit var tvCustomerPhone: TextView
+    private lateinit var tvCustomerEmail: TextView
+    private lateinit var tvStoreName: TextView
+    private lateinit var tvOrderType: TextView
+    private lateinit var tvDeliveryAddress: TextView
+    private lateinit var tvPaymentMethod: TextView
+    private lateinit var rvBillItems: RecyclerView
+    private lateinit var tvSubtotal: TextView
+    private lateinit var llVoucherDiscount: LinearLayout
+    private lateinit var tvVoucherLabel: TextView
+    private lateinit var tvVoucherDiscount: TextView
+    private lateinit var llTierDiscount: LinearLayout
+    private lateinit var tvTierLabel: TextView
+    private lateinit var tvTierDiscount: TextView
+    private lateinit var tvFinalPrice: TextView
+    private lateinit var btnConfirmOrder: MaterialButton
+
+    // Data
+    private var orderRequest: CreateOrderRequest? = null
+    private var cartItemIds: LongArray? = null
+    private var billPreview: BillPreview? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_bill_preview)
+
+        initViews()
+        parseIntent()
+        loadBillPreview()
+    }
+
+    private fun initViews() {
+        // Toolbar
+        findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar).setNavigationOnClickListener {
+            finish()
+        }
+
+        // Customer info
+        tvCustomerName = findViewById(R.id.tv_customer_name)
+        tvCustomerPhone = findViewById(R.id.tv_customer_phone)
+        tvCustomerEmail = findViewById(R.id.tv_customer_email)
+
+        // Order info
+        tvStoreName = findViewById(R.id.tv_store_name)
+        tvOrderType = findViewById(R.id.tv_order_type)
+        tvDeliveryAddress = findViewById(R.id.tv_delivery_address)
+        tvPaymentMethod = findViewById(R.id.tv_payment_method)
+
+        // Items
+        rvBillItems = findViewById(R.id.rv_bill_items)
+        rvBillItems.layoutManager = LinearLayoutManager(this)
+
+        // Price summary
+        tvSubtotal = findViewById(R.id.tv_subtotal)
+        llVoucherDiscount = findViewById(R.id.ll_voucher_discount)
+        tvVoucherLabel = findViewById(R.id.tv_voucher_label)
+        tvVoucherDiscount = findViewById(R.id.tv_voucher_discount)
+        llTierDiscount = findViewById(R.id.ll_tier_discount)
+        tvTierLabel = findViewById(R.id.tv_tier_label)
+        tvTierDiscount = findViewById(R.id.tv_tier_discount)
+        tvFinalPrice = findViewById(R.id.tv_final_price)
+
+        // Button
+        btnConfirmOrder = findViewById(R.id.btn_confirm_order)
+        btnConfirmOrder.setOnClickListener {
+            confirmOrder()
+        }
+    }
+
+    private fun parseIntent() {
+        val orderRequestJson = intent.getStringExtra(EXTRA_ORDER_REQUEST)
+        if (!orderRequestJson.isNullOrEmpty()) {
+            orderRequest = Gson().fromJson(orderRequestJson, CreateOrderRequest::class.java)
+        }
+        cartItemIds = intent.getLongArrayExtra(EXTRA_CART_ITEM_IDS)
+
+        if (orderRequest == null) {
+            Toast.makeText(this, "Lỗi: Không có thông tin đơn hàng", Toast.LENGTH_SHORT).show()
+            finish()
+        }
+    }
+
+    private fun loadBillPreview() {
+        val request = orderRequest ?: return
+
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang tải thông tin đơn hàng...")
+
+        RetrofitClient.getInstance(this).apiService.previewBill(request)
+            .enqueue(object : Callback<ApiResponse<BillPreview>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<BillPreview>>,
+                    response: Response<ApiResponse<BillPreview>>
+                ) {
+                    loadingDialog.dismiss()
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        billPreview = response.body()?.data
+                        displayBillPreview()
+                    } else {
+                        val errorMsg = response.body()?.message ?: "Không thể tải thông tin đơn hàng"
+                        Toast.makeText(this@BillPreviewActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<BillPreview>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Log.e(TAG, "Error loading bill preview", t)
+                    Toast.makeText(this@BillPreviewActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            })
+    }
+
+    private fun displayBillPreview() {
+        val bill = billPreview ?: return
+
+        // Customer info
+        tvCustomerName.text = "Họ tên: ${bill.customerName ?: "N/A"}"
+        tvCustomerPhone.text = "SĐT: ${bill.customerPhone ?: "Chưa cập nhật"}"
+        tvCustomerEmail.text = "Email: ${bill.customerEmail ?: "N/A"}"
+
+        // Order info
+        tvStoreName.text = "Cửa hàng: ${bill.storeName ?: "N/A"}"
+        tvOrderType.text = "Loại đơn: ${if (bill.orderType == "DELIVERY") "Giao hàng" else "Lấy tại cửa hàng"}"
+        tvDeliveryAddress.text = "Địa chỉ: ${bill.deliveryAddress ?: "N/A"}"
+        tvPaymentMethod.text = "Thanh toán: ${bill.paymentMethod ?: "N/A"}"
+
+        // Items
+        bill.items?.let { items ->
+            rvBillItems.adapter = BillItemAdapter(items)
+        }
+
+        // Price summary
+        tvSubtotal.text = formatPrice(bill.subtotal ?: 0.0)
+
+        // Voucher discount
+        val discount = bill.discount ?: 0.0
+        if (discount > 0 && !bill.promotionCode.isNullOrEmpty()) {
+            llVoucherDiscount.visibility = View.VISIBLE
+            tvVoucherLabel.text = "Giảm giá (${bill.promotionCode}):"
+            tvVoucherDiscount.text = "-${formatPrice(discount)}"
+        } else if (discount > 0) {
+            llVoucherDiscount.visibility = View.VISIBLE
+            tvVoucherLabel.text = "Giảm giá:"
+            tvVoucherDiscount.text = "-${formatPrice(discount)}"
+        } else {
+            llVoucherDiscount.visibility = View.GONE
+        }
+
+        // Tier discount
+        if (!bill.tierDiscount.isNullOrEmpty()) {
+            llTierDiscount.visibility = View.VISIBLE
+            tvTierLabel.text = "Ưu đãi ${bill.tierDiscount}:"
+            // Tier discount đã được tính vào discount tổng, chỉ hiển thị label
+            tvTierDiscount.text = "Đã áp dụng"
+        } else {
+            llTierDiscount.visibility = View.GONE
+        }
+
+        // Final price
+        tvFinalPrice.text = formatPrice(bill.finalPrice ?: 0.0)
+    }
+
+    private fun formatPrice(price: Double): String {
+        return String.format(Locale.getDefault(), "%,.0f VNĐ", price)
+    }
+
+    private fun confirmOrder() {
+        val request = orderRequest ?: return
+
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang xử lý đơn hàng...")
+
+        // Xử lý theo payment method
+        when (request.paymentMethod) {
+            "VNPAY" -> handleVNPayPayment(request, loadingDialog)
+            "VIETQR" -> handleVietQRPayment(request, loadingDialog)
+            "MOMO" -> handleMoMoPayment(request, loadingDialog)
+            "PAYPAL" -> handlePayPalPayment(request, loadingDialog)
+            else -> createCODOrder(request, loadingDialog)
+        }
+    }
+
+    private fun createCODOrder(request: CreateOrderRequest, loadingDialog: LoadingDialog) {
+        RetrofitClient.getInstance(this).apiService.createOrder(request)
+            .enqueue(object : Callback<ApiResponse<Order>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<Order>>,
+                    response: Response<ApiResponse<Order>>
+                ) {
+                    loadingDialog.dismiss()
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val order = response.body()?.data
+
+                        // Remove cart items
+                        removeCartItems()
+
+                        // Show success
+                        SeasonalEffectManager.showConfetti(3000L, 200)
+                        InAppNotification.orderSuccess(
+                            this@BillPreviewActivity,
+                            order?.id?.toString() ?: "N/A"
+                        )
+
+                        // Navigate to orders
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            navigateToOrders()
+                        }, 2500)
+                    } else {
+                        val errorMsg = response.body()?.message ?: "Đặt hàng thất bại"
+                        InAppNotification.error(this@BillPreviewActivity, "Đặt hàng thất bại", errorMsg)
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    InAppNotification.error(
+                        this@BillPreviewActivity,
+                        "Lỗi kết nối",
+                        t.message ?: "Không thể kết nối đến server"
+                    )
+                }
+            })
+    }
+
+    private fun handleVNPayPayment(request: CreateOrderRequest, loadingDialog: LoadingDialog) {
+        val totalAmount = (billPreview?.finalPrice ?: 0.0).toLong()
+
+        RetrofitClient.getInstance(this).apiService.createVNPayPaymentWithAmount(totalAmount, "Thanh toan UTE Tea")
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.VNPayPaymentResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.VNPayPaymentResponse>>,
+                    response: Response<ApiResponse<com.example.doan.Models.VNPayPaymentResponse>>
+                ) {
+                    loadingDialog.dismiss()
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val paymentUrl = response.body()?.data?.paymentUrl
+                        if (!paymentUrl.isNullOrEmpty()) {
+                            val intent = Intent(this@BillPreviewActivity, VNPayPaymentActivity::class.java)
+                            intent.putExtra("PAYMENT_URL", paymentUrl)
+                            intent.putExtra("ORDER_REQUEST", Gson().toJson(request))
+                            intent.putExtra("CART_ITEM_IDS", cartItemIds)
+                            startActivity(intent)
+                            finish()
+                        }
+                    } else {
+                        Toast.makeText(this@BillPreviewActivity, "Lỗi tạo thanh toán VNPay", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.VNPayPaymentResponse>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@BillPreviewActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun handleVietQRPayment(request: CreateOrderRequest, loadingDialog: LoadingDialog) {
+        loadingDialog.dismiss()
+        val totalAmount = (billPreview?.finalPrice ?: 0.0).toLong()
+
+        val intent = Intent(this, VietQRActivity::class.java).apply {
+            putExtra("ORDER_ID", System.currentTimeMillis())
+            putExtra("TOTAL_AMOUNT", totalAmount.toDouble())
+            putExtra("ORDER_REQUEST", Gson().toJson(request))
+            putExtra("CART_ITEM_IDS", cartItemIds)
+        }
+        startActivity(intent)
+    }
+
+    private fun handleMoMoPayment(request: CreateOrderRequest, loadingDialog: LoadingDialog) {
+        val totalAmount = (billPreview?.finalPrice ?: 0.0).toLong()
+
+        com.example.doan.Services.PaymentService.createMoMoPayment(
+            this,
+            totalAmount,
+            "Thanh toan UTE Tea",
+            object : com.example.doan.Services.PaymentService.PaymentCallback {
+                override fun onSuccess(paymentUrl: String, transactionId: String?) {
+                    loadingDialog.dismiss()
+
+                    val intent = Intent(this@BillPreviewActivity, MoMoPaymentActivity::class.java)
+                    intent.putExtra("PAYMENT_URL", paymentUrl)
+                    intent.putExtra("MOMO_ORDER_ID", transactionId)
+                    intent.putExtra("ORDER_REQUEST", Gson().toJson(request))
+                    intent.putExtra("CART_ITEM_IDS", cartItemIds)
+                    startActivity(intent)
+                    finish()
+                }
+
+                override fun onError(message: String) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@BillPreviewActivity, "Lỗi MoMo: $message", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+    }
+
+    private fun handlePayPalPayment(request: CreateOrderRequest, loadingDialog: LoadingDialog) {
+        val totalAmountVND = (billPreview?.finalPrice ?: 0.0).toLong()
+        // Convert VND to USD for PayPal
+        val totalAmountUSD = com.example.doan.Services.PaymentService.convertVNDtoUSD(totalAmountVND)
+
+        com.example.doan.Services.PaymentService.createPayPalPayment(
+            this,
+            totalAmountUSD,
+            "USD",
+            "Thanh toan UTE Tea",
+            object : com.example.doan.Services.PaymentService.PaymentCallback {
+                override fun onSuccess(paymentUrl: String, transactionId: String?) {
+                    loadingDialog.dismiss()
+
+                    val intent = Intent(this@BillPreviewActivity, PayPalPaymentActivity::class.java)
+                    intent.putExtra("PAYMENT_URL", paymentUrl)
+                    intent.putExtra("ORDER_REQUEST", Gson().toJson(request))
+                    intent.putExtra("CART_ITEM_IDS", cartItemIds)
+                    startActivity(intent)
+                    finish()
+                }
+
+                override fun onError(message: String) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@BillPreviewActivity, "Lỗi PayPal: $message", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+    }
+
+    private fun removeCartItems() {
+        cartItemIds?.forEach { cartItemId ->
+            RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)
+                .enqueue(object : Callback<ApiResponse<Void>> {
+                    override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
+                        Log.d(TAG, "Removed cart item: $cartItemId")
+                    }
+
+                    override fun onFailure(call: Call<ApiResponse<Void>>, t: Throwable) {
+                        Log.e(TAG, "Error removing cart item: $cartItemId", t)
+                    }
+                })
+        }
+    }
+
+    private fun navigateToOrders() {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("SELECTED_ITEM", R.id.nav_order)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        startActivity(intent)
+        finish()
+    }
+}

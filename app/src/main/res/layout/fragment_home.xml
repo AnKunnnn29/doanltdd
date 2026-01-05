@@ -199,10 +199,65 @@
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Challenge Banner Marquee -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/challenge_banner_card_home"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/app_bar_home"
+        android:layout_marginHorizontal="0dp"
+        app:cardBackgroundColor="@color/wine_accent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="2dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_gradient_challenge"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎯"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_challenge_banner_home"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:text="🔥 CHALLENGE: Đặt 3 sản phẩm giống nhau trong 1 đơn hàng để nhận 5 ĐIỂM quay voucher! 🎁"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="@color/white" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/app_bar_home"
+        android:layout_below="@id/challenge_banner_card_home"
         android:background="@drawable/bg_arc_top_white"
         android:overScrollMode="never">
 
@@ -607,18 +662,18 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Quick Actions - Thiết kế Premium với Animation - Có thể kéo thả -->
+    <!-- Quick Actions - Collapsible với nút toggle -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/quick_actions_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         android:layout_marginEnd="12dp"
-        android:layout_marginTop="200dp"
+        android:layout_marginBottom="100dp"
+        app:cardBackgroundColor="#F5F5F5"
         app:cardCornerRadius="28dp"
-        app:cardElevation="12dp"
-        app:cardBackgroundColor="#F5F5F5">
+        app:cardElevation="12dp">
 
         <LinearLayout
             android:id="@+id/quick_actions_container"
@@ -626,223 +681,259 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_quick_actions_container"
             android:orientation="vertical"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="12dp">
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="10dp">
 
-            <!-- 🎤 Voice Order Button - Premium Design -->
+            <!-- Toggle Button - Luôn hiển thị -->
             <FrameLayout
-                android:id="@+id/fab_voice_order"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true">
-
-                <!-- Glow Ring Animation -->
-                <View
-                    android:id="@+id/voice_glow_ring"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_glow_ring_red_animated" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
-                    android:layout_gravity="center"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="8dp"
-                    app:cardBackgroundColor="@android:color/transparent"
-                    app:rippleColor="#60FFFFFF">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/ripple_fab_voice_premium"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="4dp">
-
-                        <ImageView
-                            android:id="@+id/ic_voice"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_mic"
-                            app:tint="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
-                            android:text="Giọng nói"
-                            android:textColor="@color/white"
-                            android:textSize="7sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </FrameLayout>
-
-            <!-- 🤖 AI Assistant Button - Premium Design -->
-            <FrameLayout
-                android:id="@+id/fab_chatbot"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true">
-
-                <!-- Glow Ring Animation -->
-                <View
-                    android:id="@+id/chatbot_glow_ring"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_glow_ring_teal_animated" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
-                    android:layout_gravity="center"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="8dp"
-                    app:cardBackgroundColor="@android:color/transparent"
-                    app:rippleColor="#60FFFFFF">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/ripple_fab_chatbot_premium"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="4dp">
-
-                        <ImageView
-                            android:id="@+id/ic_chatbot"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_smart_toy"
-                            app:tint="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
-                            android:text="Trợ lý AI"
-                            android:textColor="@color/white"
-                            android:textSize="7sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </FrameLayout>
-
-            <!-- 🎰 Spin Wheel Button - Premium Design with Rotation -->
-            <FrameLayout
-                android:id="@+id/fab_spin_wheel"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true">
-
-                <!-- Glow Ring Animation -->
-                <View
-                    android:id="@+id/spin_glow_ring"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_glow_ring_orange_animated" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
-                    android:layout_gravity="center"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="8dp"
-                    app:cardBackgroundColor="@android:color/transparent"
-                    app:rippleColor="#60FFFFFF">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/ripple_fab_spin_premium"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="4dp">
-
-                        <ImageView
-                            android:id="@+id/ic_spin"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_star"
-                            app:tint="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
-                            android:text="Vòng quay"
-                            android:textColor="@color/white"
-                            android:textSize="7sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </FrameLayout>
-
-            <!-- 👥 Group Order Button - Premium Design -->
-            <FrameLayout
-                android:id="@+id/fab_group_order"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:id="@+id/btn_toggle_quick_actions_home"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="center_horizontal"
                 android:clickable="true"
                 android:focusable="true">
 
-                <!-- Glow Ring Animation -->
-                <View
-                    android:id="@+id/group_glow_ring"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_glow_ring_indigo_animated" />
-
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:layout_gravity="center"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="8dp"
-                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardBackgroundColor="@color/wine_primary"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="4dp"
                     app:rippleColor="#60FFFFFF">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/ripple_fab_group_premium"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="4dp">
-
-                        <ImageView
-                            android:id="@+id/ic_group"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_group"
-                            app:tint="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
-                            android:text="Đặt nhóm"
-                            android:textColor="@color/white"
-                            android:textSize="7sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                    <ImageView
+                        android:id="@+id/ic_toggle_home"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:rotation="180"
+                        android:src="@drawable/ic_expand_more"
+                        app:tint="@color/white" />
                 </com.google.android.material.card.MaterialCardView>
             </FrameLayout>
+
+            <!-- Expandable Actions Container -->
+            <LinearLayout
+                android:id="@+id/expandable_actions_container_home"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <!-- 🎤 Voice Order Button -->
+                <FrameLayout
+                    android:id="@+id/fab_voice_order"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <!-- Glow Ring Animation -->
+                    <View
+                        android:id="@+id/voice_glow_ring"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_glow_ring_red_animated" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="6dp"
+                        app:rippleColor="#60FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/ripple_fab_voice_premium"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="3dp">
+
+                            <ImageView
+                                android:id="@+id/ic_voice"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_mic"
+                                app:tint="@color/white" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Giọng nói"
+                                android:textColor="@color/white"
+                                android:textSize="6sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </FrameLayout>
+
+                <!-- 🤖 AI Assistant Button -->
+                <FrameLayout
+                    android:id="@+id/fab_chatbot"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <!-- Glow Ring Animation -->
+                    <View
+                        android:id="@+id/chatbot_glow_ring"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_glow_ring_teal_animated" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="6dp"
+                        app:rippleColor="#60FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/ripple_fab_chatbot_premium"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="3dp">
+
+                            <ImageView
+                                android:id="@+id/ic_chatbot"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_smart_toy"
+                                app:tint="@color/white" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Trợ lý AI"
+                                android:textColor="@color/white"
+                                android:textSize="6sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </FrameLayout>
+
+                <!-- 🎰 Spin Wheel Button -->
+                <FrameLayout
+                    android:id="@+id/fab_spin_wheel"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <!-- Glow Ring Animation -->
+                    <View
+                        android:id="@+id/spin_glow_ring"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_glow_ring_orange_animated" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="6dp"
+                        app:rippleColor="#60FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/ripple_fab_spin_premium"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="3dp">
+
+                            <ImageView
+                                android:id="@+id/ic_spin"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_star"
+                                app:tint="@color/white" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Vòng quay"
+                                android:textColor="@color/white"
+                                android:textSize="6sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </FrameLayout>
+
+                <!-- 👥 Group Order Button -->
+                <FrameLayout
+                    android:id="@+id/fab_group_order"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_horizontal"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <!-- Glow Ring Animation -->
+                    <View
+                        android:id="@+id/group_glow_ring"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_glow_ring_indigo_animated" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="6dp"
+                        app:rippleColor="#60FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/ripple_fab_group_premium"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="3dp">
+
+                            <ImageView
+                                android:id="@+id/ic_group"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_group"
+                                app:tint="@color/white" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Đặt nhóm"
+                                android:textColor="@color/white"
+                                android:textSize="6sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </FrameLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

@@ -88,5 +88,9 @@
     <!-- Blocked IP Colors -->
     <color name="blocked_ip_active_bg">#FFEBEE</color>
     <color name="blocked_ip_inactive_bg">#FFFFFF</color>
+    
+    <!-- Bill Preview Colors -->
+    <color name="discount_color">#E91E63</color>
+    <color name="tier_gold">#FFB300</color>
 
 </resources>

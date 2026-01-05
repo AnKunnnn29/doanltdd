@@ -231,10 +231,10 @@ object InAppNotification {
     fun orderSuccess(activity: Activity, orderId: String) {
         show(
             activity = activity,
-            title = "Đặt hàng thành công!",
-            message = "Đơn hàng #$orderId đang được xử lý",
+            title = "🎉 Đặt hàng thành công!",
+            message = "Đơn hàng #$orderId đang được xử lý.\n💡 Đánh giá sản phẩm để nhận +1 điểm vòng quay!",
             type = Type.ORDER,
-            duration = 4000L
+            duration = 5000L
         )
     }
 

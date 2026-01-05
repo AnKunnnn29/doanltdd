@@ -198,7 +198,8 @@ class OrderDetailActivity : AppCompatActivity() {
             .enqueue(object : Callback<ApiResponse<Review>> {
                 override fun onResponse(call: Call<ApiResponse<Review>>, response: Response<ApiResponse<Review>>) {
                     if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(this@OrderDetailActivity, "Đánh giá thành công!", Toast.LENGTH_SHORT).show()
+                        // Hiển thị thông báo đánh giá thành công + cộng điểm
+                        Toast.makeText(this@OrderDetailActivity, "🎉 Đánh giá thành công! +1 điểm vòng quay", Toast.LENGTH_LONG).show()
                         reviewedItemIds.add(orderItemId)
                         orderDetailItemAdapter.setReviewedItemIds(reviewedItemIds)
                         dialog.dismiss()

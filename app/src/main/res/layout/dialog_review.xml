@@ -15,6 +15,33 @@
         android:textStyle="bold"
         android:gravity="center" />
 
+    <!-- Gợi ý cộng điểm vòng quay -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_reward_hint"
+        android:padding="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎁"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="Đánh giá để nhận +1 điểm vòng quay!"
+            android:textColor="@color/orange"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
     <TextView
         android:id="@+id/tvReviewDrinkName"
         android:layout_width="match_parent"

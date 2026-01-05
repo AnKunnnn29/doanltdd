@@ -441,7 +441,8 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         RetrofitClient.getInstance(this).apiService.verifyOtp(phone, code).enqueue(object : Callback<ApiResponse<Boolean>> {
             override fun onResponse(call: Call<ApiResponse<Boolean>>, response: Response<ApiResponse<Boolean>>) {
                 if (response.isSuccessful && response.body()?.data == true) {
-                    performPlaceOrder(items, storeId, paymentMethod, deliveryAddress)
+                    // Chuyển sang màn hình xem bill trước khi thanh toán
+                    navigateToBillPreview(items, storeId, paymentMethod, deliveryAddress)
                 } else {
                     Toast.makeText(this@CartActivity, "Mã OTP sai, vui lòng thử lại", Toast.LENGTH_SHORT).show()
                 }
@@ -451,6 +452,40 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 Toast.makeText(this@CartActivity, "Lỗi mạng", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    /**
+     * Chuyển sang màn hình xem bill trước khi thanh toán
+     */
+    private fun navigateToBillPreview(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String?) {
+        val orderItems = items.map { item ->
+            com.example.doan.Models.OrderItemRequest(
+                drinkId = item.drinkId!!.toLong(),
+                quantity = item.quantity ?: 1,
+                sizeName = item.sizeName ?: "M",
+                toppingIds = item.toppings?.mapNotNull { topping -> topping.id.toLong() } ?: emptyList(),
+                note = item.note
+            )
+        }
+
+        val request = CreateOrderRequest(
+            storeId = storeId.toLong(),
+            items = orderItems,
+            type = selectedDeliveryType,
+            paymentMethod = paymentMethod,
+            address = deliveryAddress,
+            promotionCode = appliedVoucher?.code,
+            spinVoucherCode = appliedSpinVoucher?.voucherCode
+        )
+
+        // Lấy danh sách cartItemIds đã chọn
+        val cartItemIds = items.mapNotNull { it.id }
+
+        val intent = Intent(this, BillPreviewActivity::class.java).apply {
+            putExtra(BillPreviewActivity.EXTRA_ORDER_REQUEST, com.google.gson.Gson().toJson(request))
+            putExtra(BillPreviewActivity.EXTRA_CART_ITEM_IDS, cartItemIds.toLongArray())
+        }
+        startActivity(intent)
     }
 
     private fun loadStores() {

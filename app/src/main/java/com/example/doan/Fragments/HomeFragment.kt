@@ -80,6 +80,12 @@ class HomeFragment : Fragment() {
     // Quick Actions Card - draggable
     private var quickActionsCard: MaterialCardView? = null
     
+    // Toggle Quick Actions
+    private var btnToggleQuickActionsHome: FrameLayout? = null
+    private var icToggleHome: ImageView? = null
+    private var expandableActionsContainerHome: LinearLayout? = null
+    private var isQuickActionsExpandedHome = true
+    
     // Glow ring views for animation
     private var voiceGlowRing: View? = null
     private var chatbotGlowRing: View? = null
@@ -508,6 +514,12 @@ class HomeFragment : Fragment() {
         quickActionsCard = view.findViewById(R.id.quick_actions_card)
         setupDraggableQuickActions(view)
         
+        // Toggle Quick Actions
+        btnToggleQuickActionsHome = view.findViewById(R.id.btn_toggle_quick_actions_home)
+        icToggleHome = view.findViewById(R.id.ic_toggle_home)
+        expandableActionsContainerHome = view.findViewById(R.id.expandable_actions_container_home)
+        setupToggleQuickActions()
+        
         // Glow ring views
         voiceGlowRing = view.findViewById(R.id.voice_glow_ring)
         chatbotGlowRing = view.findViewById(R.id.chatbot_glow_ring)
@@ -531,6 +543,27 @@ class HomeFragment : Fragment() {
         tvWeatherEmoji = view.findViewById(R.id.tv_weather_emoji)
         tvTemperature = view.findViewById(R.id.tv_temperature)
         tvWeatherDesc = view.findViewById(R.id.tv_weather_desc)
+        
+        // Challenge Banner Marquee
+        setupChallengeBanner(view)
+    }
+    
+    /**
+     * Setup Challenge Banner với hiệu ứng marquee chạy liên tục
+     */
+    private fun setupChallengeBanner(view: View) {
+        val challengeBannerCard = view.findViewById<MaterialCardView>(R.id.challenge_banner_card_home)
+        val tvChallengeBanner = view.findViewById<TextView>(R.id.tv_challenge_banner_home)
+        
+        // Enable marquee animation
+        tvChallengeBanner?.isSelected = true
+        
+        // Click banner to show more info or navigate to spin wheel
+        challengeBannerCard?.setOnClickListener {
+            Toast.makeText(context, "🎯 Mua 3 sản phẩm giống nhau để nhận 5 điểm quay voucher!", Toast.LENGTH_LONG).show()
+            // Optionally navigate to spin wheel
+            // startActivity(Intent(context, SpinWheelActivity::class.java))
+        }
     }
     
     /**
@@ -541,6 +574,49 @@ class HomeFragment : Fragment() {
         val parentView = view as? RelativeLayout ?: return
         quickActionsCard?.let { card ->
             DraggableViewHelper.makeDraggableWithSnapToEdge(card, parentView)
+        }
+    }
+    
+    /**
+     * Setup Toggle Quick Actions - expand/collapse với animation
+     */
+    private fun setupToggleQuickActions() {
+        btnToggleQuickActionsHome?.setOnClickListener {
+            toggleQuickActionsHome()
+        }
+    }
+    
+    /**
+     * Toggle expand/collapse Quick Actions với animation
+     */
+    private fun toggleQuickActionsHome() {
+        isQuickActionsExpandedHome = !isQuickActionsExpandedHome
+        
+        if (isQuickActionsExpandedHome) {
+            // Expand
+            expandableActionsContainerHome?.visibility = View.VISIBLE
+            expandableActionsContainerHome?.alpha = 0f
+            expandableActionsContainerHome?.animate()
+                ?.alpha(1f)
+                ?.setDuration(200)
+                ?.start()
+            icToggleHome?.animate()
+                ?.rotation(180f)
+                ?.setDuration(200)
+                ?.start()
+        } else {
+            // Collapse
+            expandableActionsContainerHome?.animate()
+                ?.alpha(0f)
+                ?.setDuration(200)
+                ?.withEndAction {
+                    expandableActionsContainerHome?.visibility = View.GONE
+                }
+                ?.start()
+            icToggleHome?.animate()
+                ?.rotation(0f)
+                ?.setDuration(200)
+                ?.start()
         }
     }
 

@@ -137,8 +137,10 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
     }
 
     private fun getLoggedInUserId(): Int {
-        val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt(KEY_USER_ID, -1)
+        // FIX: Sử dụng SessionManager thay vì đọc trực tiếp từ SharedPreferences
+        // vì SessionManager sử dụng EncryptedSharedPreferences
+        val sessionManager = com.example.doan.Utils.SessionManager(requireContext())
+        return sessionManager.getUserId()
     }
 
     private fun loadOrders(userId: Int) {
@@ -307,7 +309,5 @@ class OrderFragment : Fragment(), OrderAdapter.OnOrderClickListener {
 
     companion object {
         private const val TAG = "OrderFragment"
-        private const val PREFS_NAME = "UTETeaPrefs"
-        private const val KEY_USER_ID = "user_id"
     }
 }
