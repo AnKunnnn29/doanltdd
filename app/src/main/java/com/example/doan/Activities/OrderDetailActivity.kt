@@ -1,7 +1,6 @@
 package com.example.doan.Activities
 
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -21,7 +20,9 @@ import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.LoadingDialog
+import com.example.doan.Utils.SessionManager
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
@@ -44,9 +45,21 @@ class OrderDetailActivity : AppCompatActivity() {
     private lateinit var orderDetailItemAdapter: OrderDetailItemAdapter
     private lateinit var btnReorder: MaterialButton
     private lateinit var loadingDialog: LoadingDialog
+    private lateinit var sessionManager: SessionManager
+    
+    // Manager/Admin views
+    private lateinit var cardCustomerInfo: MaterialCardView
+    private lateinit var cardStatusControl: MaterialCardView
+    private lateinit var tvCustomerName: TextView
+    private lateinit var tvCustomerAddress: TextView
+    private lateinit var btnStatusMaking: MaterialButton
+    private lateinit var btnStatusShipping: MaterialButton
+    private lateinit var btnStatusDone: MaterialButton
+    private lateinit var btnStatusCancel: MaterialButton
     
     private var currentOrder: Order? = null
     private val reviewedItemIds = mutableSetOf<Long>()
+    private var isManagerOrAdmin = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,9 +80,13 @@ class OrderDetailActivity : AppCompatActivity() {
         }
 
         loadingDialog = LoadingDialog(this)
+        sessionManager = SessionManager(this)
+        isManagerOrAdmin = sessionManager.isManager() || sessionManager.isAdmin()
+        
         initViews()
         setupRecyclerView()
         setupReorderButton()
+        setupManagerControls()
         loadOrderDetail(orderFromIntent.id)
     }
 
@@ -82,6 +99,23 @@ class OrderDetailActivity : AppCompatActivity() {
         tvPaymentMethod = findViewById(R.id.tv_payment_method)
         rvOrderItems = findViewById(R.id.rv_order_detail_items)
         btnReorder = findViewById(R.id.btn_reorder)
+        
+        // Manager/Admin views
+        cardCustomerInfo = findViewById(R.id.card_customer_info)
+        cardStatusControl = findViewById(R.id.card_status_control)
+        tvCustomerName = findViewById(R.id.tv_customer_name)
+        tvCustomerAddress = findViewById(R.id.tv_customer_address)
+        btnStatusMaking = findViewById(R.id.btn_status_making)
+        btnStatusShipping = findViewById(R.id.btn_status_shipping)
+        btnStatusDone = findViewById(R.id.btn_status_done)
+        btnStatusCancel = findViewById(R.id.btn_status_cancel)
+        
+        // Ẩn nút đặt lại đơn hàng nếu là Manager/Admin, hiện các control quản lý
+        if (isManagerOrAdmin) {
+            btnReorder.visibility = View.GONE
+            cardCustomerInfo.visibility = View.VISIBLE
+            cardStatusControl.visibility = View.VISIBLE
+        }
     }
 
     private fun setupRecyclerView() {
@@ -99,6 +133,121 @@ class OrderDetailActivity : AppCompatActivity() {
                 reorderFromHistory(order.id.toLong())
             }
         }
+    }
+    
+    private fun setupManagerControls() {
+        if (!isManagerOrAdmin) return
+        
+        btnStatusMaking.setOnClickListener { updateOrderStatus("MAKING") }
+        btnStatusShipping.setOnClickListener { updateOrderStatus("SHIPPING") }
+        btnStatusDone.setOnClickListener { updateOrderStatus("DONE") }
+        btnStatusCancel.setOnClickListener { 
+            AlertDialog.Builder(this)
+                .setTitle("Xác nhận hủy đơn")
+                .setMessage("Bạn có chắc muốn hủy đơn hàng này?")
+                .setPositiveButton("Hủy đơn") { _, _ -> updateOrderStatus("CANCELED") }
+                .setNegativeButton("Không", null)
+                .show()
+        }
+    }
+    
+    private fun updateOrderStatus(newStatus: String) {
+        val orderId = currentOrder?.id ?: return
+        
+        loadingDialog.show("Đang cập nhật...")
+        
+        RetrofitClient.getInstance(this).apiService.updateOrderStatus(orderId, newStatus)
+            .enqueue(object : Callback<ApiResponse<Order>> {
+                override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
+                    loadingDialog.dismiss()
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val updatedOrder = response.body()?.data
+                        if (updatedOrder != null) {
+                            currentOrder = updatedOrder
+                            updateUi(updatedOrder)
+                            updateStatusButtons(updatedOrder.status)
+                            Toast.makeText(this@OrderDetailActivity, "✅ Đã cập nhật trạng thái", Toast.LENGTH_SHORT).show()
+                            
+                            // Gửi result về để refresh list
+                            setResult(RESULT_OK)
+                        }
+                    } else {
+                        val errorMsg = response.body()?.message ?: "Không thể cập nhật trạng thái"
+                        Toast.makeText(this@OrderDetailActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@OrderDetailActivity, "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    private fun updateStatusButtons(currentStatus: String?) {
+        // Flow hợp lý: PENDING → MAKING → SHIPPING → DONE
+        // Có thể hủy bất kỳ lúc nào trước khi DONE
+        
+        val isDone = currentStatus == "DONE"
+        val isCanceled = currentStatus == "CANCELED"
+        val isFinished = isDone || isCanceled
+        
+        when (currentStatus) {
+            "PENDING" -> {
+                // Từ PENDING: chỉ có thể chuyển sang MAKING hoặc hủy
+                btnStatusMaking.visibility = View.VISIBLE
+                btnStatusShipping.visibility = View.GONE
+                btnStatusDone.visibility = View.GONE
+                btnStatusCancel.visibility = View.VISIBLE
+                
+                btnStatusMaking.isEnabled = true
+                btnStatusCancel.isEnabled = true
+            }
+            "MAKING" -> {
+                // Từ MAKING: chỉ có thể chuyển sang SHIPPING hoặc hủy
+                btnStatusMaking.visibility = View.GONE
+                btnStatusShipping.visibility = View.VISIBLE
+                btnStatusDone.visibility = View.GONE
+                btnStatusCancel.visibility = View.VISIBLE
+                
+                btnStatusShipping.isEnabled = true
+                btnStatusCancel.isEnabled = true
+            }
+            "SHIPPING" -> {
+                // Từ SHIPPING: chỉ có thể chuyển sang DONE hoặc hủy
+                btnStatusMaking.visibility = View.GONE
+                btnStatusShipping.visibility = View.GONE
+                btnStatusDone.visibility = View.VISIBLE
+                btnStatusCancel.visibility = View.VISIBLE
+                
+                btnStatusDone.isEnabled = true
+                btnStatusCancel.isEnabled = true
+            }
+            "DONE", "CANCELED" -> {
+                // Đã hoàn thành hoặc đã hủy: ẩn tất cả nút
+                btnStatusMaking.visibility = View.GONE
+                btnStatusShipping.visibility = View.GONE
+                btnStatusDone.visibility = View.GONE
+                btnStatusCancel.visibility = View.GONE
+                
+                // Ẩn luôn card điều khiển
+                cardStatusControl.visibility = View.GONE
+            }
+            else -> {
+                // Trạng thái không xác định: hiện tất cả
+                btnStatusMaking.visibility = View.VISIBLE
+                btnStatusShipping.visibility = View.VISIBLE
+                btnStatusDone.visibility = View.VISIBLE
+                btnStatusCancel.visibility = View.VISIBLE
+            }
+        }
+        
+        // Đổi alpha để hiển thị trạng thái
+        btnStatusMaking.alpha = if (btnStatusMaking.isEnabled) 1f else 0.5f
+        btnStatusShipping.alpha = if (btnStatusShipping.isEnabled) 1f else 0.5f
+        btnStatusDone.alpha = if (btnStatusDone.isEnabled) 1f else 0.5f
+        btnStatusCancel.alpha = if (btnStatusCancel.isEnabled) 1f else 0.5f
     }
     
     private fun reorderFromHistory(orderId: Long) {
@@ -228,6 +377,12 @@ class OrderDetailActivity : AppCompatActivity() {
     }
     
     private fun checkReviewedItems(order: Order) {
+        // Manager/Admin không cần hiển thị nút đánh giá
+        if (isManagerOrAdmin) {
+            orderDetailItemAdapter.setShowReviewButton(false)
+            return
+        }
+        
         // Chỉ hiển thị nút đánh giá khi đơn hàng đã hoàn thành
         if (order.status != "DONE") {
             orderDetailItemAdapter.setShowReviewButton(false)
@@ -348,6 +503,13 @@ class OrderDetailActivity : AppCompatActivity() {
         // Items
         order.items?.let {
             orderDetailItemAdapter.updateItems(it)
+        }
+        
+        // Manager/Admin: Hiển thị thông tin khách hàng và cập nhật nút trạng thái
+        if (isManagerOrAdmin) {
+            tvCustomerName.text = "Khách hàng: ${order.userName ?: "Không rõ"}"
+            tvCustomerAddress.text = "Địa chỉ: ${order.address ?: "Nhận tại cửa hàng"}"
+            updateStatusButtons(order.status)
         }
     }
     
