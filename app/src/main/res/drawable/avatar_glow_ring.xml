@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vòng glow gradient xung quanh avatar -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Outer glow ring -->
+    <item>
+        <shape android:shape="ring"
+            android:innerRadiusRatio="2.3"
+            android:thicknessRatio="15"
+            android:useLevel="false">
+            <gradient
+                android:type="sweep"
+                android:startColor="#FFD700"
+                android:centerColor="#FF6B35"
+                android:endColor="#FFD700" />
+        </shape>
+    </item>
+    
+</layer-list>

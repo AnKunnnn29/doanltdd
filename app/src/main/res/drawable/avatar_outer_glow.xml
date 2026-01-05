@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hiệu ứng glow bên ngoài avatar -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    
+    <gradient
+        android:type="radial"
+        android:gradientRadius="60dp"
+        android:startColor="#40FFD700"
+        android:centerColor="#20FF6B35"
+        android:endColor="#00000000" />
+    
+</shape>
