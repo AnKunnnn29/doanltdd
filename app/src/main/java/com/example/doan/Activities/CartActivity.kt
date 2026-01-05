@@ -327,9 +327,13 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             address
         } else null
 
-        // ✅ BỎ QUA XÁC THỰC OTP - Chuyển thẳng đến màn hình xem bill
-        val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
-        navigateToBillPreview(selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
+        // ✅ XÁC THỰC OTP TRƯỚC KHI THANH TOÁN
+        val phoneNumber = currentUserProfile?.phone
+        if (phoneNumber.isNullOrEmpty()) {
+            showEnterPhoneDialog()
+        } else {
+            showOtpDialog(phoneNumber)
+        }
     }
 
     private fun showEnterPhoneDialog() {
