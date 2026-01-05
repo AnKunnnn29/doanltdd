@@ -67,6 +67,7 @@ class HomeFragment : Fragment() {
     private lateinit var greetingTextView: TextView
     private lateinit var avatarInitialTextView: TextView
     private lateinit var avatarCard: MaterialCardView
+    private lateinit var profileImageHome: ImageView
     private lateinit var liveChatButton: FrameLayout
     private lateinit var notificationButton: FrameLayout
     private lateinit var notificationBadge: TextView
@@ -209,6 +210,9 @@ class HomeFragment : Fragment() {
         super.onResume()
         startAutoScroll()
         updateNotificationBadge()
+        
+        // Reload avatar khi quay lại (có thể user đã đổi avatar)
+        loadUserAvatar()
         
         // Kiểm tra và hiển thị gợi ý thông minh (Predictive Order)
         // Delay 1 giây để đảm bảo UI đã sẵn sàng
@@ -497,6 +501,7 @@ class HomeFragment : Fragment() {
         greetingTextView = view.findViewById(R.id.greeting_text)
         avatarInitialTextView = view.findViewById(R.id.avatar_initial)
         avatarCard = view.findViewById(R.id.avatar_card)
+        profileImageHome = view.findViewById(R.id.profile_image_home)
         liveChatButton = view.findViewById(R.id.live_chat_button)
         notificationButton = view.findViewById(R.id.notification_button)
         notificationBadge = view.findViewById(R.id.notification_badge)
@@ -638,6 +643,9 @@ class HomeFragment : Fragment() {
 
         // Set avatar initial (first letter of name)
         avatarInitialTextView.text = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "K"
+        
+        // Load avatar image từ profile nếu có
+        loadUserAvatar()
 
         // Avatar click -> Account
         avatarCard.setOnClickListener {
@@ -656,6 +664,55 @@ class HomeFragment : Fragment() {
         
         // Update notification badge
         updateNotificationBadge()
+    }
+    
+    /**
+     * Load avatar image từ user profile
+     */
+    private fun loadUserAvatar() {
+        val sessionManager = SessionManager(requireContext())
+        if (!sessionManager.isLoggedIn()) {
+            profileImageHome.visibility = View.GONE
+            avatarInitialTextView.visibility = View.VISIBLE
+            return
+        }
+        
+        RetrofitClient.getInstance(requireContext()).apiService.getMyProfile()
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.UserProfileDto>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.UserProfileDto>>,
+                    response: Response<ApiResponse<com.example.doan.Models.UserProfileDto>>
+                ) {
+                    if (!isAdded || context == null) return
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val profile = response.body()?.data
+                        val avatarUrl = profile?.avatar
+                        
+                        if (!avatarUrl.isNullOrEmpty()) {
+                            // Có avatar URL, load ảnh và ẩn chữ cái
+                            profileImageHome.visibility = View.VISIBLE
+                            avatarInitialTextView.visibility = View.GONE
+                            
+                            Glide.with(requireContext())
+                                .load(avatarUrl)
+                                .placeholder(R.drawable.ic_person)
+                                .error(R.drawable.ic_person)
+                                .circleCrop()
+                                .into(profileImageHome)
+                        } else {
+                            // Không có avatar, hiển thị chữ cái đầu
+                            profileImageHome.visibility = View.GONE
+                            avatarInitialTextView.visibility = View.VISIBLE
+                        }
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.UserProfileDto>>, t: Throwable) {
+                    Log.e("HomeFragment", "Error loading user avatar", t)
+                    // Giữ nguyên hiển thị chữ cái đầu
+                }
+            })
     }
 
     private fun getGreetingMessage(): String {
