@@ -28,6 +28,9 @@ data class StoreWithManagers(
     @SerializedName("phone")
     var phone: String? = null,
     
+    @SerializedName("isActive")
+    var isActive: Boolean? = true,
+    
     // Danh sách managers quản lý store này
     @SerializedName("managers")
     var managers: List<User>? = null,

@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,6 +26,8 @@ class ManageStoresFragment : Fragment() {
 
     private lateinit var rvStores: RecyclerView
     private lateinit var adapter: StoreWithManagersAdapter
+    private lateinit var tvTotalStores: TextView
+    private lateinit var tvActiveStores: TextView
     private val storeList = mutableListOf<StoreWithManagers>()
 
     override fun onCreateView(
@@ -34,7 +37,11 @@ class ManageStoresFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_manage_stores, container, false)
 
+        // Initialize views
         rvStores = view.findViewById(R.id.rv_stores)
+        tvTotalStores = view.findViewById(R.id.tv_total_stores)
+        tvActiveStores = view.findViewById(R.id.tv_active_stores)
+        
         rvStores.layoutManager = LinearLayoutManager(context)
 
         adapter = StoreWithManagersAdapter(
@@ -74,6 +81,9 @@ class ManageStoresFragment : Fragment() {
                             storeList.clear()
                             storeList.addAll(stores)
                             adapter.updateStores(storeList)
+                            
+                            // Cập nhật số liệu thống kê
+                            updateStoreStats(stores)
                         }
                     } else {
                         Toast.makeText(context, "Không thể tải danh sách cửa hàng", Toast.LENGTH_SHORT).show()
@@ -86,5 +96,15 @@ class ManageStoresFragment : Fragment() {
                     Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+    
+    private fun updateStoreStats(stores: List<StoreWithManagers>) {
+        // Tổng số cửa hàng
+        val totalStores = stores.size
+        tvTotalStores.text = totalStores.toString()
+        
+        // Số cửa hàng đang hoạt động (isActive = true hoặc mặc định là hoạt động)
+        val activeStores = stores.count { it.isActive != false }
+        tvActiveStores.text = activeStores.toString()
     }
 }
