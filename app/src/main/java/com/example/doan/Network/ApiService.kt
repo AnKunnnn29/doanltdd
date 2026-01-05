@@ -222,6 +222,10 @@ interface ApiService {
     // Xóa cart theo userId (backend vẫn verify quyền)
     @DELETE("cart/{userId}/clear")
     fun clearCart(@Path("userId") userId: Long): Call<ApiResponse<Void>>
+    
+    // Đặt lại đơn hàng từ lịch sử - Load lại các món vào giỏ hàng
+    @POST("cart/reorder")
+    fun reorderFromHistory(@Body request: ReorderRequest): Call<ApiResponse<ReorderResponse>>
 
     // ==================== ORDERS ====================
     @GET("orders/user/{userId}")

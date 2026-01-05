@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wine_primary"
+    android:background="@drawable/splash_gradient_bg"
     tools:context=".Activities.AccountActivity">
 
     <ScrollView
@@ -25,44 +25,74 @@
                 android:orientation="vertical"
                 android:padding="32dp">
 
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                <!-- Avatar Container với hiệu ứng glow -->
+                <FrameLayout
+                    android:id="@+id/avatar_container"
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:layout_marginBottom="16dp">
+                    
+                    <!-- Outer glow effect - xoay liên tục -->
+                    <View
+                        android:id="@+id/avatar_glow_outer"
+                        android:layout_width="140dp"
+                        android:layout_height="140dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/avatar_outer_glow" />
+                    
+                    <!-- Rotating gradient ring -->
+                    <View
+                        android:id="@+id/avatar_glow_ring"
+                        android:layout_width="130dp"
+                        android:layout_height="130dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/avatar_glow_ring" />
+                    
+                    <!-- Avatar border gradient -->
+                    <View
+                        android:id="@+id/avatar_border"
+                        android:layout_width="115dp"
+                        android:layout_height="115dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/avatar_border_gradient"
+                        android:elevation="4dp" />
 
+                    <!-- Avatar image -->
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/profile_image"
-                        android:layout_width="96dp"
-                        android:layout_height="96dp"
-                        android:padding="4dp"
+                        android:layout_width="105dp"
+                        android:layout_height="105dp"
+                        android:layout_gravity="center"
+                        android:padding="3dp"
                         android:src="@drawable/img"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                        app:strokeColor="@color/wine_accent_gold"
-                        app:strokeWidth="2dp" />
+                        android:elevation="6dp"
+                        android:background="@color/wine_dark_background"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
+                    <!-- FAB edit avatar -->
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/fab_edit_avatar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignEnd="@id/profile_image"
-                        android:layout_alignBottom="@id/profile_image"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginEnd="5dp"
+                        android:layout_marginBottom="5dp"
                         android:src="@android:drawable/ic_menu_camera"
                         app:fabSize="mini"
                         app:tint="@android:color/white"
                         app:backgroundTint="@color/wine_primary"
-                        android:layout_marginEnd="-15dp"
-                        android:layout_marginBottom="-15dp"
-                        app:elevation="2dp"
+                        app:elevation="8dp"
                         app:borderWidth="0dp"
                         android:contentDescription="Edit Avatar"/>
-
-                </RelativeLayout>
+                        
+                </FrameLayout>
 
 
                 <TextView
                     android:id="@+id/profile_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="8dp"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="@color/wine_light_surface"
                     android:textStyle="bold"

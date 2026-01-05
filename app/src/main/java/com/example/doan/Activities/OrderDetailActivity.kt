@@ -1,10 +1,12 @@
 package com.example.doan.Activities
 
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.CheckBox
 import android.widget.RatingBar
 import android.widget.TextView
@@ -18,6 +20,7 @@ import com.example.doan.Adapters.OrderDetailItemAdapter
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
+import com.example.doan.Utils.LoadingDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.textfield.TextInputEditText
@@ -39,6 +42,8 @@ class OrderDetailActivity : AppCompatActivity() {
     private lateinit var tvPaymentMethod: TextView
     private lateinit var rvOrderItems: RecyclerView
     private lateinit var orderDetailItemAdapter: OrderDetailItemAdapter
+    private lateinit var btnReorder: MaterialButton
+    private lateinit var loadingDialog: LoadingDialog
     
     private var currentOrder: Order? = null
     private val reviewedItemIds = mutableSetOf<Long>()
@@ -61,8 +66,10 @@ class OrderDetailActivity : AppCompatActivity() {
             return
         }
 
+        loadingDialog = LoadingDialog(this)
         initViews()
         setupRecyclerView()
+        setupReorderButton()
         loadOrderDetail(orderFromIntent.id)
     }
 
@@ -74,6 +81,7 @@ class OrderDetailActivity : AppCompatActivity() {
         tvTotal = findViewById(R.id.tv_order_detail_total)
         tvPaymentMethod = findViewById(R.id.tv_payment_method)
         rvOrderItems = findViewById(R.id.rv_order_detail_items)
+        btnReorder = findViewById(R.id.btn_reorder)
     }
 
     private fun setupRecyclerView() {
@@ -83,6 +91,113 @@ class OrderDetailActivity : AppCompatActivity() {
         }
         rvOrderItems.layoutManager = LinearLayoutManager(this)
         rvOrderItems.adapter = orderDetailItemAdapter
+    }
+    
+    private fun setupReorderButton() {
+        btnReorder.setOnClickListener {
+            currentOrder?.let { order ->
+                reorderFromHistory(order.id.toLong())
+            }
+        }
+    }
+    
+    private fun reorderFromHistory(orderId: Long) {
+        loadingDialog.show("Đang thêm vào giỏ hàng...")
+        
+        val request = ReorderRequest(orderId)
+        RetrofitClient.getInstance(this).apiService.reorderFromHistory(request)
+            .enqueue(object : Callback<ApiResponse<ReorderResponse>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<ReorderResponse>>,
+                    response: Response<ApiResponse<ReorderResponse>>
+                ) {
+                    loadingDialog.dismiss()
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val reorderResponse = response.body()?.data
+                        if (reorderResponse != null) {
+                            handleReorderResponse(reorderResponse)
+                        } else {
+                            Toast.makeText(this@OrderDetailActivity, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+                            navigateToCart()
+                        }
+                    } else {
+                        val errorMsg = response.body()?.message ?: "Không thể đặt lại đơn hàng"
+                        Toast.makeText(this@OrderDetailActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<ReorderResponse>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Log.e("OrderDetailActivity", "Reorder failed", t)
+                    Toast.makeText(this@OrderDetailActivity, "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    private fun handleReorderResponse(response: ReorderResponse) {
+        if (response.hasUnavailableItems) {
+            // Hiển thị dialog thông báo có món không còn bán
+            showUnavailableItemsDialog(response)
+        } else {
+            Toast.makeText(this, "✅ ${response.message}", Toast.LENGTH_SHORT).show()
+            navigateToCart()
+        }
+    }
+    
+    private fun showUnavailableItemsDialog(response: ReorderResponse) {
+        val unavailableItems = response.itemStatuses?.filter { !it.addedToCart } ?: emptyList()
+        val addedItems = response.itemStatuses?.filter { it.addedToCart } ?: emptyList()
+        
+        val messageBuilder = StringBuilder()
+        messageBuilder.append("✅ Đã thêm ${addedItems.size} món vào giỏ hàng\n\n")
+        
+        if (unavailableItems.isNotEmpty()) {
+            messageBuilder.append("⚠️ Các món không còn bán:\n")
+            unavailableItems.forEach { item ->
+                messageBuilder.append("• ${item.drinkName}")
+                item.reason?.let { messageBuilder.append("\n  → $it") }
+                
+                // Hiển thị gợi ý thay thế
+                item.suggestions?.takeIf { it.isNotEmpty() }?.let { suggestions ->
+                    messageBuilder.append("\n  💡 Gợi ý: ")
+                    suggestions.take(2).forEachIndexed { index, suggestion ->
+                        if (index > 0) messageBuilder.append(", ")
+                        messageBuilder.append(suggestion.drinkName)
+                    }
+                }
+                messageBuilder.append("\n\n")
+            }
+        }
+        
+        // Kiểm tra các món có topping không còn bán
+        val itemsWithUnavailableToppings = addedItems.filter { item ->
+            item.toppingStatuses?.any { !it.available } == true
+        }
+        
+        if (itemsWithUnavailableToppings.isNotEmpty()) {
+            messageBuilder.append("ℹ️ Một số topping không còn bán:\n")
+            itemsWithUnavailableToppings.forEach { item ->
+                val unavailableToppings = item.toppingStatuses?.filter { !it.available }
+                unavailableToppings?.forEach { topping ->
+                    messageBuilder.append("• ${item.drinkName}: ${topping.toppingName}\n")
+                }
+            }
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("Kết quả đặt lại")
+            .setMessage(messageBuilder.toString().trim())
+            .setPositiveButton("Xem giỏ hàng") { _, _ ->
+                navigateToCart()
+            }
+            .setNegativeButton("Đóng", null)
+            .show()
+    }
+    
+    private fun navigateToCart() {
+        val intent = Intent(this, CartActivity::class.java)
+        startActivity(intent)
     }
 
     private fun loadOrderDetail(orderId: Int) {

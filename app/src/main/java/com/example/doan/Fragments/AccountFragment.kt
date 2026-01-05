@@ -12,7 +12,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -58,6 +60,12 @@ class AccountFragment : Fragment() {
     private lateinit var fabEditAvatar: FloatingActionButton
     private lateinit var deleteAccountOption: RelativeLayout
     private lateinit var memberTierOption: RelativeLayout
+    
+    // Avatar animation views
+    private lateinit var avatarContainer: FrameLayout
+    private lateinit var avatarGlowOuter: View
+    private lateinit var avatarGlowRing: View
+    private lateinit var avatarBorder: View
 
     // FIX C1: Use ActivityResultLauncher instead of deprecated startActivityForResult
     private val pickImageLauncher = registerForActivityResult(
@@ -100,6 +108,15 @@ class AccountFragment : Fragment() {
         logoutButton = view.findViewById(R.id.logout_button)
         deleteAccountOption = view.findViewById(R.id.delete_account_option)
         memberTierOption = view.findViewById(R.id.member_tier_option)
+        
+        // Avatar animation views
+        avatarContainer = view.findViewById(R.id.avatar_container)
+        avatarGlowOuter = view.findViewById(R.id.avatar_glow_outer)
+        avatarGlowRing = view.findViewById(R.id.avatar_glow_ring)
+        avatarBorder = view.findViewById(R.id.avatar_border)
+        
+        // Khởi động animation cho avatar
+        startAvatarAnimations()
 
         // Thiết lập sự kiện click.
         fabEditAvatar.setOnClickListener { openGalleryWithPermission() }
@@ -144,6 +161,35 @@ class AccountFragment : Fragment() {
             }
             .setNegativeButton("Hủy", null)
             .show()
+    }
+    
+    /**
+     * Khởi động các animation đẹp cho avatar
+     */
+    private fun startAvatarAnimations() {
+        // Animation bounce cho avatar khi xuất hiện
+        val bounceAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.avatar_bounce_in)
+        profileImage.startAnimation(bounceAnim)
+        
+        // Animation xoay cho vòng glow bên ngoài
+        val rotateAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.avatar_glow_rotate)
+        avatarGlowRing.startAnimation(rotateAnim)
+        
+        // Animation pulse cho border
+        val pulseAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.avatar_pulse)
+        avatarBorder.startAnimation(pulseAnim)
+        
+        // Animation scale cho FAB
+        val fabAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fab_scale_in)
+        fabEditAvatar.startAnimation(fabAnim)
+        
+        // Animation fade cho outer glow
+        avatarGlowOuter.alpha = 0f
+        avatarGlowOuter.animate()
+            .alpha(0.6f)
+            .setDuration(1000)
+            .setStartDelay(200)
+            .start()
     }
 
     private fun deleteAccount() {
