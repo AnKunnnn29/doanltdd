@@ -132,7 +132,11 @@ class SnowfallView @JvmOverloads constructor(
      */
     fun startSnowing() {
         isSnowing = true
-        visibility = VISIBLE
+        // Reinitialize snowflakes nếu cần
+        if (snowflakes.isEmpty() && width > 0 && height > 0) {
+            initSnowflakes()
+        }
+        // Visibility được quản lý bởi SeasonalEffectManager
         invalidate()
     }
 
@@ -141,7 +145,7 @@ class SnowfallView @JvmOverloads constructor(
      */
     fun stopSnowing() {
         isSnowing = false
-        visibility = GONE
+        // Visibility được quản lý bởi SeasonalEffectManager
     }
 
     /**

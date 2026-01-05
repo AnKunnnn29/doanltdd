@@ -1,178 +1,269 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wine_primary"
-    android:fillViewport="true"
+    android:background="@drawable/splash_gradient_bg"
     tools:context=".Activities.LoginActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="24dp">
+    <!-- Decorative circles - giống trang Start -->
+    <View
+        android:id="@+id/circle1"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="-100dp"
+        android:layout_marginEnd="-100dp"
+        android:background="@drawable/logo_circle_bg"
+        android:alpha="0.1"/>
 
-        <!-- Header: Rive Teddy Animation và App Name -->
+    <View
+        android:id="@+id/circle2"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="-50dp"
+        android:layout_marginStart="-50dp"
+        android:background="@drawable/logo_circle_bg"
+        android:alpha="0.1"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="24dp">
+            android:padding="24dp">
 
-            <!-- Rive Teddy Animation -->
-            <app.rive.runtime.kotlin.RiveAnimationView
-                android:id="@+id/rive_teddy"
-                android:layout_width="280dp"
-                android:layout_height="200dp"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Houjicha"
-                android:textSize="36sp"
-                android:textStyle="bold"
-                android:textColor="@color/wine_light_surface"
-                android:fontFamily="sans-serif-medium" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chào mừng bạn trở lại!"
-                android:textColor="@color/wine_light_surface"
-                android:alpha="0.9"
-                android:textSize="18sp"
-                android:layout_marginTop="8dp" />
-        </LinearLayout>
-
-        <!-- Login Form Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="@color/wine_light_surface"
-            android:layout_marginBottom="24dp">
-
+            <!-- Header: Rive Teddy Animation -->
             <LinearLayout
+                android:id="@+id/headerContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="32dp">
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Rive Teddy Animation với shadow effect giống Start -->
+                <FrameLayout
+                    android:id="@+id/riveContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Shadow circle -->
+                    <View
+                        android:layout_width="200dp"
+                        android:layout_height="160dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/logo_circle_bg"
+                        android:alpha="0.2"
+                        android:translationY="8dp"/>
+
+                    <app.rive.runtime.kotlin.RiveAnimationView
+                        android:id="@+id/rive_teddy"
+                        android:layout_width="220dp"
+                        android:layout_height="160dp"
+                        android:layout_gravity="center" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvAppName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Houjicha"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:id="@+id/tvWelcome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chào mừng bạn trở lại!"
+                    android:textColor="#FFFFFF"
+                    android:alpha="0.9"
+                    android:textSize="18sp"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+            <!-- Login Form Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/loginCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:cardBackgroundColor="@color/wine_light_surface"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="28dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Đăng Nhập"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/wine_dark_background"
+                        android:layout_marginBottom="24dp" />
+
+                    <!-- Username Input -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:startIconDrawable="@android:drawable/ic_dialog_email"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
+                        android:hint="Tên đăng nhập">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/input_login_username"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Password Input -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:passwordToggleEnabled="true"
+                        app:startIconDrawable="@android:drawable/ic_lock_lock"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
+                        android:hint="Mật khẩu">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/input_login_password"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:id="@+id/text_forgot_password"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quên mật khẩu?"
+                        android:textColor="@color/wine_primary"
+                        android:textSize="14sp"
+                        android:layout_gravity="end"
+                        android:layout_marginBottom="20dp" />
+
+                    <!-- Login Button - giống style nút Start -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_login"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="ĐĂNG NHẬP"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#8B4513"
+                        android:backgroundTint="#FFFFFF"
+                        app:cornerRadius="30dp"
+                        app:elevation="8dp"
+                        app:strokeColor="@color/wine_primary"
+                        app:strokeWidth="2dp"
+                        app:rippleColor="#CD853F" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Biometric Login -->
+            <ImageButton
+                android:id="@+id/btn_biometric_login"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_fingerprint"
+                android:background="@drawable/biometric_button_background"
+                android:contentDescription="Đăng nhập bằng vân tay"
+                android:scaleType="centerInside"
+                android:padding="12dp"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Sign-up Link -->
+            <LinearLayout
+                android:id="@+id/registerContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingBottom="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Đăng Nhập"
-                    android:textSize="32sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/wine_dark_background"
-                    android:layout_marginBottom="28dp" />
+                    android:text="Chưa có tài khoản? "
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:alpha="0.9" />
 
-                <!-- Username Input -->
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
-                    app:startIconDrawable="@android:drawable/ic_dialog_email"
-                    android:hint="Tên đăng nhập">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/input_login_username"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Password Input -->
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:passwordToggleEnabled="true"
-                    app:startIconDrawable="@android:drawable/ic_lock_lock"
-                    android:hint="Mật khẩu">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/input_login_password"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textPassword" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                 <TextView
-                    android:id="@+id/text_forgot_password"
+                <TextView
+                    android:id="@+id/text_register_link"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Quên mật khẩu?"
-                    android:textColor="@color/wine_primary"
-                    android:textSize="14sp"
-                    android:layout_gravity="end"
-                    android:layout_marginBottom="24dp" />
-
-
-                <!-- Login Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_login"
-                    android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:text="ĐĂNG NHẬP"
-                    android:textSize="18sp"
+                    android:text="Đăng ký ngay"
+                    android:textColor="@color/wine_accent_gold"
                     android:textStyle="bold"
-                    android:textColor="@color/wine_light_surface"
-                    android:backgroundTint="@color/wine_primary"
-                    app:cornerRadius="32dp" />
-
+                    android:textSize="16sp"
+                    android:layout_marginStart="4dp" />
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
-        <!-- Biometric Login -->
-        <ImageButton
-            android:id="@+id/btn_biometric_login"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:src="@drawable/ic_fingerprint"
-            android:background="@drawable/biometric_button_background"
-            android:contentDescription="Đăng nhập bằng vân tay"
-            android:scaleType="centerInside"
-            android:padding="12dp"
-            android:visibility="gone"
-            tools:visibility="visible"
-            android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+    </ScrollView>
 
-        <!-- Sign-up Link -->
-        <LinearLayout
+    <!-- Bottom branding - giống trang Start -->
+    <LinearLayout
+        android:id="@+id/brandingContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:paddingBottom="24dp">
+            android:text="Powered by"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:alpha="0.6"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chưa có tài khoản? "
-                android:textColor="@color/wine_light_surface"
-                android:textSize="16sp"
-                android:alpha="0.8" />
-
-            <TextView
-                android:id="@+id/text_register_link"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Đăng ký ngay"
-                android:textColor="@color/wine_accent_gold"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:layout_marginStart="4dp" />
-        </LinearLayout>
-
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Houjicha © 2025"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:alpha="0.8"/>
     </LinearLayout>
-</ScrollView>
+
+</RelativeLayout>

@@ -282,18 +282,43 @@ object SeasonalEffectManager {
         }
     }
     
+    /**
+     * Bắt đầu hiệu ứng hiện tại
+     * Sử dụng currentEffectView để đảm bảo start đúng view đang active
+     */
     fun startCurrentEffect() {
-        startEffectForSeason(getCurrentSeason())
+        currentEffectView?.let { view ->
+            view.visibility = View.VISIBLE
+            when (view) {
+                is SnowfallView -> view.startSnowing()
+                is SakuraView -> view.startFalling()
+                is SunshineView -> view.startShining()
+                is FallingLeavesView -> view.startFalling()
+                is HeartsView -> view.startFloating()
+                is FireworksView -> view.startFireworks()
+                is TetView -> view.startFalling()
+            }
+        }
     }
     
+    /**
+     * Dừng hiệu ứng hiện tại
+     * Sử dụng currentEffectView để đảm bảo stop đúng view đang active
+     */
     fun stopCurrentEffect() {
-        snowfallView?.stopSnowing()
-        sakuraView?.stopFalling()
-        sunshineView?.stopShining()
-        fallingLeavesView?.stopFalling()
-        heartsView?.stopFloating()
-        fireworksView?.stopFireworks()
-        tetView?.stopFalling()
+        currentEffectView?.let { view ->
+            when (view) {
+                is SnowfallView -> view.stopSnowing()
+                is SakuraView -> view.stopFalling()
+                is SunshineView -> view.stopShining()
+                is FallingLeavesView -> view.stopFalling()
+                is HeartsView -> view.stopFloating()
+                is FireworksView -> view.stopFireworks()
+                is TetView -> view.stopFalling()
+            }
+            // Ẩn view sau khi stop animation
+            view.visibility = View.INVISIBLE
+        }
     }
 
     fun addSnowfallEffect(container: ViewGroup, autoStart: Boolean = true): SnowfallView {

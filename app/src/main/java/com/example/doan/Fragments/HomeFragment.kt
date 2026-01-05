@@ -182,6 +182,7 @@ class HomeFragment : Fragment() {
      */
     private fun setupSeasonalEffects(view: View) {
         rootContainer = view as? RelativeLayout
+        
         rootContainer?.let { container ->
             // Kiểm tra settings trước khi thêm hiệu ứng
             if (SeasonalEffectManager.isSeasonalEffectsEnabled(requireContext())) {

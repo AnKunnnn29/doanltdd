@@ -6,8 +6,11 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +24,8 @@ import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
 import com.example.doan.Utils.KeyStoreManager
 import com.example.doan.Utils.SessionManager
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 import com.onesignal.OneSignal
 import retrofit2.Call
@@ -32,7 +37,7 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var usernameInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
-    private lateinit var loginButton: Button
+    private lateinit var loginButton: MaterialButton
     private lateinit var registerLink: TextView
     private lateinit var forgotPasswordLink: TextView
     private lateinit var sessionManager: SessionManager
@@ -42,6 +47,14 @@ class LoginActivity : AppCompatActivity() {
     // Rive Animation
     private lateinit var riveView: RiveAnimationView
     private val stateMachineName = "Login Machine"
+    
+    // Animation views
+    private var circle1: View? = null
+    private var circle2: View? = null
+    private var headerContainer: LinearLayout? = null
+    private var loginCard: MaterialCardView? = null
+    private var registerContainer: LinearLayout? = null
+    private var brandingContainer: LinearLayout? = null
 
     private lateinit var executor: Executor
     private lateinit var biometricPrompt: BiometricPrompt
@@ -63,22 +76,95 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
+        initViews()
+        setupAnimations()
+        setupRiveAnimation()
+        setupClickListeners()
+        setupBiometricLogin()
+    }
+    
+    private fun initViews() {
         usernameInput = findViewById(R.id.input_login_username)
         passwordInput = findViewById(R.id.input_login_password)
         loginButton = findViewById(R.id.btn_login)
         registerLink = findViewById(R.id.text_register_link)
         forgotPasswordLink = findViewById(R.id.text_forgot_password)
         biometricLoginButton = findViewById(R.id.btn_biometric_login)
-        
-        // Setup Rive Animation
         riveView = findViewById(R.id.rive_teddy)
-        setupRiveAnimation()
-
-        loginButton.setOnClickListener { attemptLogin() }
+        
+        // Animation views
+        circle1 = findViewById(R.id.circle1)
+        circle2 = findViewById(R.id.circle2)
+        headerContainer = findViewById(R.id.headerContainer)
+        loginCard = findViewById(R.id.loginCard)
+        registerContainer = findViewById(R.id.registerContainer)
+        brandingContainer = findViewById(R.id.brandingContainer)
+    }
+    
+    private fun setupAnimations() {
+        // Load animations
+        val slideUpFadeIn = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in)
+        val pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse_animation)
+        
+        // Initially hide views
+        headerContainer?.alpha = 0f
+        loginCard?.alpha = 0f
+        registerContainer?.alpha = 0f
+        brandingContainer?.alpha = 0f
+        
+        // Start animations with delays - giống StartActivity
+        headerContainer?.postDelayed({
+            headerContainer?.alpha = 1f
+            headerContainer?.startAnimation(slideUpFadeIn)
+        }, 200)
+        
+        loginCard?.postDelayed({
+            loginCard?.alpha = 1f
+            loginCard?.startAnimation(slideUpFadeIn)
+        }, 400)
+        
+        registerContainer?.postDelayed({
+            registerContainer?.alpha = 1f
+            registerContainer?.startAnimation(slideUpFadeIn)
+        }, 600)
+        
+        brandingContainer?.postDelayed({
+            brandingContainer?.alpha = 1f
+            brandingContainer?.startAnimation(slideUpFadeIn)
+        }, 800)
+        
+        // Pulse animation for decorative circles
+        circle1?.startAnimation(pulseAnimation)
+        circle2?.postDelayed({
+            circle2?.startAnimation(pulseAnimation)
+        }, 500)
+    }
+    
+    private fun setupClickListeners() {
+        loginButton.setOnClickListener { 
+            // Button press animation giống StartActivity
+            loginButton.animate()
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(100)
+                .withEndAction {
+                    loginButton.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(100)
+                        .withEndAction {
+                            attemptLogin()
+                        }
+                        .start()
+                }
+                .start()
+        }
+        
         registerLink.setOnClickListener { navigateToRegister() }
         forgotPasswordLink.setOnClickListener { navigateToForgotPassword() }
-
-        // Biometric Login
+    }
+    
+    private fun setupBiometricLogin() {
         if (KeyStoreManager.isBiometricEnrolled(this)) {
             biometricLoginButton.visibility = View.VISIBLE
             biometricLoginButton.setOnClickListener {
