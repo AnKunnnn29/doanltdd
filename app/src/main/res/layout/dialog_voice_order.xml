@@ -11,11 +11,13 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scrollbars="none">
+        android:scrollbars="none"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="520dp"
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
@@ -359,7 +361,8 @@
                         android:layout_weight="1"
                         android:backgroundTint="@color/wine_primary"
                         android:enabled="false"
-                        android:text="🛒 Thêm vào giỏ"
+                        android:text="Thêm vào giỏ"
+                        android:textColor="@color/white"
                         android:textSize="14sp"
                         app:cornerRadius="26dp" />
 

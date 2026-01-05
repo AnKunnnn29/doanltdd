@@ -73,6 +73,12 @@ class VoiceOrderDialog(
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_voice_order, null)
             setContentView(view)
             
+            // Set dialog width to match parent với margin
+            window?.setLayout(
+                android.view.WindowManager.LayoutParams.MATCH_PARENT,
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            
             initViews(view)
             setupListeners()
             
