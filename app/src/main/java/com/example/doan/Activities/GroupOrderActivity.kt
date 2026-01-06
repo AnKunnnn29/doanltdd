@@ -7,8 +7,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -63,6 +65,11 @@ class GroupOrderActivity : AppCompatActivity() {
     
     // Shipping fee - tính theo tỉnh/thành phố trong địa chỉ giao hàng
     private var shippingFee: Int = 0
+    
+    // ✅ OTP RATE LIMITING
+    private var lastOtpSentTime = 0L
+    private val OTP_COOLDOWN = 60_000L // 60 giây
+    private var currentUserProfile: UserProfileDto? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +87,21 @@ class GroupOrderActivity : AppCompatActivity() {
 
         initViews()
         loadGroupOrder()
+        loadUserProfile()
+    }
+    
+    private fun loadUserProfile() {
+        RetrofitClient.getInstance(this).apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
+            override fun onResponse(call: Call<ApiResponse<UserProfileDto>>, response: Response<ApiResponse<UserProfileDto>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    currentUserProfile = response.body()?.data
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
+                Log.e("GroupOrderActivity", "Failed to load user profile", t)
+            }
+        })
     }
 
     private fun initViews() {
@@ -482,8 +504,171 @@ class GroupOrderActivity : AppCompatActivity() {
             return
         }
 
-        // Hiển thị dialog chọn phương thức thanh toán
-        showPaymentMethodDialog()
+        // ✅ XÁC THỰC OTP TRƯỚC KHI THANH TOÁN
+        val phoneNumber = currentUserProfile?.phone
+        if (phoneNumber.isNullOrEmpty()) {
+            // Nếu chưa có số điện thoại, yêu cầu nhập
+            showEnterPhoneDialog()
+            return
+        }
+        
+        // Hiển thị dialog xác thực OTP
+        showOtpVerificationDialog(phoneNumber)
+    }
+    
+    /**
+     * Hiển thị dialog nhập số điện thoại nếu chưa có
+     */
+    private fun showEnterPhoneDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_enter_phone, null)
+        val edtPhoneNumber = dialogView.findViewById<EditText>(R.id.edt_phone_number)
+
+        AlertDialog.Builder(this)
+            .setTitle("Cập nhật số điện thoại")
+            .setMessage("Vui lòng cập nhật số điện thoại để tiếp tục đặt hàng.")
+            .setView(dialogView)
+            .setPositiveButton("Cập nhật") { _, _ ->
+                val newPhone = edtPhoneNumber.text.toString().trim()
+                if (newPhone.isNotEmpty()) {
+                    updatePhoneNumber(newPhone)
+                } else {
+                    Toast.makeText(this, "Số điện thoại không được để trống", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    /**
+     * Cập nhật số điện thoại cho user
+     */
+    private fun updatePhoneNumber(phone: String) {
+        val profile = currentUserProfile ?: return
+        val updateRequest = UpdateProfileRequest(
+            fullName = profile.fullName ?: "",
+            email = profile.email ?: "",
+            phone = phone,
+            address = profile.address ?: ""
+        )
+
+        RetrofitClient.getInstance(this).apiService.updateProfile(updateRequest).enqueue(object : Callback<ApiResponse<UserProfileDto>> {
+            override fun onResponse(call: Call<ApiResponse<UserProfileDto>>, response: Response<ApiResponse<UserProfileDto>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    currentUserProfile = response.body()?.data
+                    Toast.makeText(this@GroupOrderActivity, "Cập nhật số điện thoại thành công", Toast.LENGTH_SHORT).show()
+                    // Tiếp tục xác thực OTP
+                    showOtpVerificationDialog(phone)
+                } else {
+                    Toast.makeText(this@GroupOrderActivity, "Lỗi cập nhật số điện thoại: ${response.message()}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
+                Toast.makeText(this@GroupOrderActivity, "Lỗi mạng", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+    
+    /**
+     * Hiển thị dialog xác thực OTP trước khi thanh toán
+     */
+    private fun showOtpVerificationDialog(phoneNumber: String) {
+        // Gửi OTP
+        sendOtpToUser(phoneNumber)
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_otp_verify, null)
+        val edtOtp = dialogView.findViewById<EditText>(R.id.edt_otp_code)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Xác thực đặt hàng")
+            .setMessage("Mã OTP đã gửi đến $phoneNumber")
+            .setView(dialogView)
+            .setPositiveButton("Xác nhận", null) // Set null để tự xử lý
+            .setNeutralButton("Gửi lại", null) // Set null để không dismiss dialog
+            .setNegativeButton("Hủy", null)
+            .create()
+
+        dialog.setOnShowListener {
+            // Xử lý nút Xác nhận
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val code = edtOtp.text.toString().trim()
+                if (code.isEmpty()) {
+                    Toast.makeText(this, "Vui lòng nhập mã OTP", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                
+                // Verify OTP
+                verifyOtpAndProceed(phoneNumber, code, dialog)
+            }
+            
+            // Xử lý nút Gửi lại - không dismiss dialog
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                sendOtpToUser(phoneNumber)
+            }
+        }
+
+        dialog.show()
+    }
+    
+    /**
+     * Gửi OTP đến số điện thoại
+     */
+    private fun sendOtpToUser(phone: String) {
+        // ✅ CHECK RATE LIMITING
+        val now = System.currentTimeMillis()
+        if (now - lastOtpSentTime < OTP_COOLDOWN) {
+            val remaining = (OTP_COOLDOWN - (now - lastOtpSentTime)) / 1000
+            Toast.makeText(this, "Vui lòng đợi ${remaining}s trước khi gửi lại OTP", Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        lastOtpSentTime = now
+        
+        RetrofitClient.getInstance(this).apiService.sendOtp(phone).enqueue(object : Callback<ApiResponse<String>> {
+            override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@GroupOrderActivity, "Đã gửi OTP", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@GroupOrderActivity, "Lỗi gửi OTP: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    // Reset timer nếu gửi thất bại
+                    lastOtpSentTime = 0L
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
+                Toast.makeText(this@GroupOrderActivity, "Lỗi mạng", Toast.LENGTH_SHORT).show()
+                // Reset timer nếu gửi thất bại
+                lastOtpSentTime = 0L
+            }
+        })
+    }
+    
+    /**
+     * Xác thực OTP và tiếp tục thanh toán
+     */
+    private fun verifyOtpAndProceed(phone: String, code: String, dialog: AlertDialog) {
+        val verifyLoadingDialog = LoadingDialog(this)
+        verifyLoadingDialog.show("Đang xác thực...")
+        
+        RetrofitClient.getInstance(this).apiService.verifyOtp(phone, code)
+            .enqueue(object : Callback<ApiResponse<Boolean>> {
+                override fun onResponse(call: Call<ApiResponse<Boolean>>, response: Response<ApiResponse<Boolean>>) {
+                    verifyLoadingDialog.dismiss()
+                    
+                    if (response.isSuccessful && response.body()?.data == true) {
+                        // OTP hợp lệ, đóng dialog và hiển thị dialog chọn phương thức thanh toán
+                        dialog.dismiss()
+                        showPaymentMethodDialog()
+                    } else {
+                        Toast.makeText(this@GroupOrderActivity, "Mã OTP không đúng, vui lòng thử lại", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<Boolean>>, t: Throwable) {
+                    verifyLoadingDialog.dismiss()
+                    Toast.makeText(this@GroupOrderActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
     
     private fun showPaymentMethodDialog() {

@@ -385,14 +385,21 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
         val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
         
-        // Bỏ qua xác thực OTP, chuyển thẳng sang màn hình xem bill
-        navigateToBillPreview(selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
+        // ✅ BẬT LẠI XÁC THỰC OTP QUA ĐIỆN THOẠI
+        val phoneNumber = currentUserProfile?.phone
+        if (phoneNumber.isNullOrEmpty()) {
+            // Nếu chưa có số điện thoại, yêu cầu nhập
+            showEnterPhoneDialog()
+            return
+        }
+        
+        // Hiển thị dialog xác thực OTP
+        showOtpVerificationDialog(phoneNumber, selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
     }
     
     /**
-     * Hiển thị dialog xác thực OTP trước khi thanh toán (TẠM TẮT)
+     * Hiển thị dialog xác thực OTP trước khi thanh toán
      */
-    @Suppress("unused")
     private fun showOtpVerificationDialog(
         phoneNumber: String, 
         items: List<CartItem>, 
@@ -438,9 +445,8 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
     
     /**
-     * Xác thực OTP và tiếp tục thanh toán (TẠM TẮT)
+     * Xác thực OTP và tiếp tục thanh toán
      */
-    @Suppress("unused")
     private fun verifyOtpAndProceed(
         phone: String, 
         code: String, 
