@@ -116,6 +116,19 @@
                     android:paddingVertical="4dp"
                     android:visibility="gone" />
 
+                <!-- Nút Whitelist IP nhanh -->
+                <TextView
+                    android:id="@+id/btnWhitelistIP"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✅ Whitelist"
+                    android:textSize="11sp"
+                    android:textColor="@color/green"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/tvTime"
                     android:layout_width="wrap_content"

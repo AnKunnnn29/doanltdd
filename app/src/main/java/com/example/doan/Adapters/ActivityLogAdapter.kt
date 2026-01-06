@@ -20,7 +20,8 @@ import java.util.*
 class ActivityLogAdapter(
     private val items: MutableList<UserActivityLog>,
     private val onItemClick: (UserActivityLog) -> Unit,
-    private val onBlockIPClick: ((UserActivityLog) -> Unit)? = null  // Callback block IP
+    private val onBlockIPClick: ((UserActivityLog) -> Unit)? = null,  // Callback block IP
+    private val onWhitelistIPClick: ((UserActivityLog) -> Unit)? = null  // Callback whitelist IP
 ) : RecyclerView.Adapter<ActivityLogAdapter.ViewHolder>() {
 
     companion object {
@@ -38,6 +39,7 @@ class ActivityLogAdapter(
         val tvRiskLevel: TextView = view.findViewById(R.id.tvRiskLevel)
         val tvIpAddress: TextView = view.findViewById(R.id.tvIpAddress)
         val btnBlockIP: TextView = view.findViewById(R.id.btnBlockIP)
+        val btnWhitelistIP: TextView = view.findViewById(R.id.btnWhitelistIP)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -72,6 +74,14 @@ class ActivityLogAdapter(
             holder.btnBlockIP.setOnClickListener { onBlockIPClick.invoke(item) }
         } else {
             holder.btnBlockIP.visibility = View.GONE
+        }
+        
+        // Hiển thị nút Whitelist IP nếu có IP và có callback
+        if (!item.ipAddress.isNullOrEmpty() && onWhitelistIPClick != null) {
+            holder.btnWhitelistIP.visibility = View.VISIBLE
+            holder.btnWhitelistIP.setOnClickListener { onWhitelistIPClick.invoke(item) }
+        } else {
+            holder.btnWhitelistIP.visibility = View.GONE
         }
         
         holder.cardView.setOnClickListener { onItemClick(item) }

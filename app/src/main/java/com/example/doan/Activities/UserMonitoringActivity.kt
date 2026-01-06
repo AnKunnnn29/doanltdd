@@ -553,6 +553,12 @@ class UserMonitoringActivity : AppCompatActivity() {
                                     if (!log.ipAddress.isNullOrEmpty()) {
                                         quickBlockIP(log.ipAddress, log.userId, log.username)
                                     }
+                                },
+                                { log ->
+                                    // Whitelist IP nhanh từ nút trong item
+                                    if (!log.ipAddress.isNullOrEmpty()) {
+                                        quickWhitelistIP(log.ipAddress, log.userId, log.username)
+                                    }
                                 }
                             )
                             recyclerView.adapter = activityLogAdapter
@@ -725,6 +731,14 @@ class UserMonitoringActivity : AppCompatActivity() {
     private fun quickBlockIP(ip: String, userId: Long?, username: String?) {
         val reason = "Block nhanh từ Activity Log - User: ${username ?: "N/A"}"
         executeBlockIP(ip, "TEMPORARY", reason, 24)
+    }
+
+    /**
+     * ✅ Whitelist IP nhanh - không cần confirm
+     */
+    private fun quickWhitelistIP(ip: String, userId: Long?, username: String?) {
+        val description = "Whitelist nhanh từ Activity Log - User: ${username ?: "N/A"}"
+        addToWhitelist(ip, description)
     }
 
     private fun showRiskScoreDetail(score: UserRiskScore) {
