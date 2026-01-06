@@ -16,6 +16,9 @@ data class MonitoringAlert(
     @SerializedName("targetUserFullName") val targetUserFullName: String?,
     @SerializedName("targetUserAvatarUrl") val targetUserAvatarUrl: String?,
     
+    // IP address liên quan đến alert
+    @SerializedName("ipAddress") val ipAddress: String?,
+    
     @SerializedName("alertType") val alertType: String,
     @SerializedName("alertTypeDisplay") val alertTypeDisplay: String?,
     @SerializedName("severity") val severity: String,

@@ -483,7 +483,7 @@ class UserMonitoringActivity : AppCompatActivity() {
             rvTopRiskyUsers.adapter = RiskScoreAdapter(users.take(5).toMutableList()) { showRiskScoreDetail(it) }
         }
         dashboard.recentActivities?.let { activities ->
-            rvRecentActivities.adapter = ActivityLogAdapter(activities.take(5).toMutableList()) { showActivityDetail(it) }
+            rvRecentActivities.adapter = ActivityLogAdapter(activities.take(5).toMutableList(), { showActivityDetail(it) }, null)
         }
     }
 
@@ -529,7 +529,16 @@ class UserMonitoringActivity : AppCompatActivity() {
                         val pageData = response.body()?.data
                         val activities = pageData?.content ?: emptyList()
                         if (currentPage == 0) {
-                            activityLogAdapter = ActivityLogAdapter(activities.toMutableList()) { showActivityDetail(it) }
+                            activityLogAdapter = ActivityLogAdapter(
+                                activities.toMutableList(), 
+                                { showActivityDetail(it) },
+                                { log -> 
+                                    // Block IP nhanh từ nút trong item
+                                    if (!log.ipAddress.isNullOrEmpty()) {
+                                        quickBlockIP(log.ipAddress, log.userId, log.username)
+                                    }
+                                }
+                            )
                             recyclerView.adapter = activityLogAdapter
                         } else activityLogAdapter?.addItems(activities)
                         hasMoreData = pageData?.isLast != true
@@ -614,21 +623,31 @@ class UserMonitoringActivity : AppCompatActivity() {
         val options = arrayOf(
             "✅ Đánh dấu đã xử lý",
             "🚫 Block User",
-            "🔒 Block IP của User",
+            "⚡ Block IP ngay (24h)",
+            "🔒 Block IP (chọn thời gian)",
             "🗑️ Xóa User",
             "❌ Bỏ qua"
         )
         
         AlertDialog.Builder(this)
             .setTitle(alert.title)
-            .setMessage("👤 User: ${alert.targetUsername}\n📧 Email: ${alert.targetUserEmail ?: "N/A"}\n\n${alert.message}")
+            .setMessage("👤 User: ${alert.targetUsername}\n📧 Email: ${alert.targetUserEmail ?: "N/A"}\n🌐 IP: ${alert.ipAddress ?: "N/A"}\n\n${alert.message}")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> handleAlert(alert.id, "RESOLVED", "NONE")
                     1 -> alert.targetUserId?.let { showBlockUserDialog(it, alert.targetUsername ?: "User") }
-                    2 -> showBlockIPDialogForUser(alert.targetUserId, alert.targetUsername)
-                    3 -> alert.targetUserId?.let { showDeleteUserDialog(it, alert.targetUsername ?: "User") }
-                    4 -> handleAlert(alert.id, "DISMISSED", "FALSE_POSITIVE")
+                    2 -> {
+                        // Block IP ngay 24h
+                        val ip = alert.ipAddress
+                        if (!ip.isNullOrEmpty()) {
+                            quickBlockIP(ip, alert.targetUserId, alert.targetUsername)
+                        } else {
+                            Toast.makeText(this, "Không có IP để block", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    3 -> showBlockIPDialogForUser(alert.targetUserId, alert.targetUsername)
+                    4 -> alert.targetUserId?.let { showDeleteUserDialog(it, alert.targetUsername ?: "User") }
+                    5 -> handleAlert(alert.id, "DISMISSED", "FALSE_POSITIVE")
                 }
             }
             .setNegativeButton("Đóng", null)
@@ -642,7 +661,8 @@ class UserMonitoringActivity : AppCompatActivity() {
             options.add("🗑️ Xóa User")
         }
         if (!log.ipAddress.isNullOrEmpty()) {
-            options.add("🔒 Block IP: ${log.ipAddress}")
+            options.add("⚡ Block IP ngay (24h)")  // Block nhanh 24h
+            options.add("🔒 Block IP (chọn thời gian)")  // Chọn thời gian
         }
         options.add("📋 Xem chi tiết đầy đủ")
         
@@ -665,7 +685,16 @@ class UserMonitoringActivity : AppCompatActivity() {
                     idx++
                 }
                 if (!log.ipAddress.isNullOrEmpty()) {
-                    if (which == idx) { showBlockIPDialogWithIP(log.ipAddress, log.userId, log.username); return@setItems }
+                    if (which == idx) { 
+                        // Block IP ngay 24h - không cần confirm
+                        quickBlockIP(log.ipAddress, log.userId, log.username)
+                        return@setItems 
+                    }
+                    idx++
+                    if (which == idx) { 
+                        showBlockIPDialogWithIP(log.ipAddress, log.userId, log.username)
+                        return@setItems 
+                    }
                     idx++
                 }
                 if (which == idx) showFullActivityDetail(log)
@@ -673,12 +702,21 @@ class UserMonitoringActivity : AppCompatActivity() {
             .setNegativeButton("Đóng", null)
             .show()
     }
+    
+    /**
+     * ⚡ Block IP nhanh 24h - không cần confirm
+     */
+    private fun quickBlockIP(ip: String, userId: Long?, username: String?) {
+        val reason = "Block nhanh từ Activity Log - User: ${username ?: "N/A"}"
+        executeBlockIP(ip, "TEMPORARY", reason, 24)
+    }
 
     private fun showRiskScoreDetail(score: UserRiskScore) {
-        val options = arrayOf("🚫 Block User", "🔒 Block IP của User", "🔄 Reset điểm rủi ro", "🗑️ Xóa User")
+        val options = arrayOf("🚫 Block User", "⚡ Block IP ngay (24h)", "🔒 Block IP (chọn thời gian)", "🔄 Reset điểm rủi ro", "🗑️ Xóa User")
         
         val message = "👤 User: ${score.userFullName ?: score.username ?: "N/A"}\n" +
             "📧 Email: ${score.userEmail ?: "N/A"}\n" +
+            "🌐 IP gần nhất: ${score.lastIpAddress ?: "N/A"}\n" +
             "📊 Điểm rủi ro: ${score.totalScore}/100\n" +
             "⚠️ Mức độ: ${score.riskLevelDisplay ?: score.riskLevel}\n\n" +
             "📈 Chi tiết:\n" +
@@ -694,9 +732,18 @@ class UserMonitoringActivity : AppCompatActivity() {
                 score.userId?.let { userId ->
                     when (which) {
                         0 -> showBlockUserDialog(userId, score.username ?: "User")
-                        1 -> showBlockIPDialogForUser(userId, score.username)
-                        2 -> resetUserRiskScore(userId)
-                        3 -> showDeleteUserDialog(userId, score.username ?: "User")
+                        1 -> {
+                            // Block IP ngay 24h
+                            val ip = score.lastIpAddress
+                            if (!ip.isNullOrEmpty()) {
+                                quickBlockIP(ip, userId, score.username)
+                            } else {
+                                Toast.makeText(this, "Không có IP để block", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        2 -> showBlockIPDialogForUser(userId, score.username)
+                        3 -> resetUserRiskScore(userId)
+                        4 -> showDeleteUserDialog(userId, score.username ?: "User")
                     }
                 }
             }

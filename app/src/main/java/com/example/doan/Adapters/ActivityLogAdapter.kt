@@ -19,7 +19,8 @@ import java.util.*
  */
 class ActivityLogAdapter(
     private val items: MutableList<UserActivityLog>,
-    private val onItemClick: (UserActivityLog) -> Unit
+    private val onItemClick: (UserActivityLog) -> Unit,
+    private val onBlockIPClick: ((UserActivityLog) -> Unit)? = null  // Callback block IP
 ) : RecyclerView.Adapter<ActivityLogAdapter.ViewHolder>() {
 
     companion object {
@@ -36,6 +37,7 @@ class ActivityLogAdapter(
         val tvTime: TextView = view.findViewById(R.id.tvTime)
         val tvRiskLevel: TextView = view.findViewById(R.id.tvRiskLevel)
         val tvIpAddress: TextView = view.findViewById(R.id.tvIpAddress)
+        val btnBlockIP: TextView = view.findViewById(R.id.btnBlockIP)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -63,6 +65,14 @@ class ActivityLogAdapter(
         
         // Set icon
         holder.ivIcon.setImageResource(item.getActivityIcon())
+        
+        // Hiển thị nút Block IP nếu có IP và có callback
+        if (!item.ipAddress.isNullOrEmpty() && onBlockIPClick != null) {
+            holder.btnBlockIP.visibility = View.VISIBLE
+            holder.btnBlockIP.setOnClickListener { onBlockIPClick.invoke(item) }
+        } else {
+            holder.btnBlockIP.visibility = View.GONE
+        }
         
         holder.cardView.setOnClickListener { onItemClick(item) }
     }

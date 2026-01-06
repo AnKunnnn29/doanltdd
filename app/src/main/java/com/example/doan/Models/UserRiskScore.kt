@@ -28,6 +28,9 @@ data class UserRiskScore(
     @SerializedName("promotionAbuseCount") val promotionAbuseCount: Int?,
     @SerializedName("spamRequestCount") val spamRequestCount: Int?,
     
+    // IP gần nhất của user
+    @SerializedName("lastIpAddress") val lastIpAddress: String?,
+    
     @SerializedName("lastScoreReset") val lastScoreReset: String?,
     
     // Admin note
