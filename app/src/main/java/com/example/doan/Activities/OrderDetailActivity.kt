@@ -139,7 +139,15 @@ class OrderDetailActivity : AppCompatActivity() {
         if (!isManagerOrAdmin) return
         
         btnStatusMaking.setOnClickListener { updateOrderStatus("MAKING") }
-        btnStatusShipping.setOnClickListener { updateOrderStatus("SHIPPING") }
+        btnStatusShipping.setOnClickListener { 
+            // Kiểm tra loại đơn hàng để gửi đúng status
+            val orderType = currentOrder?.type
+            if (orderType == "PICKUP") {
+                updateOrderStatus("READY") // Đơn lấy tại quầy → Sẵn sàng
+            } else {
+                updateOrderStatus("SHIPPING") // Đơn giao hàng → Đang giao
+            }
+        }
         btnStatusDone.setOnClickListener { updateOrderStatus("DONE") }
         btnStatusCancel.setOnClickListener { 
             AlertDialog.Builder(this)
@@ -186,12 +194,13 @@ class OrderDetailActivity : AppCompatActivity() {
     }
     
     private fun updateStatusButtons(currentStatus: String?) {
-        // Flow hợp lý: PENDING → MAKING → SHIPPING → DONE
-        // Có thể hủy bất kỳ lúc nào trước khi DONE
+        // Flow hợp lý: 
+        // - DELIVERY: PENDING → MAKING → SHIPPING → DONE
+        // - PICKUP: PENDING → MAKING → READY → DONE
+        // Chỉ có thể hủy khi: PENDING (chưa bắt đầu làm)
+        // KHÔNG thể hủy khi: MAKING, SHIPPING, READY, DONE, CANCELED
         
-        val isDone = currentStatus == "DONE"
-        val isCanceled = currentStatus == "CANCELED"
-        val isFinished = isDone || isCanceled
+        val orderType = currentOrder?.type
         
         when (currentStatus) {
             "PENDING" -> {
@@ -203,26 +212,58 @@ class OrderDetailActivity : AppCompatActivity() {
                 
                 btnStatusMaking.isEnabled = true
                 btnStatusCancel.isEnabled = true
+                btnStatusCancel.alpha = 1f
             }
             "MAKING" -> {
-                // Từ MAKING: chỉ có thể chuyển sang SHIPPING hoặc hủy
+                // Từ MAKING: 
+                // - DELIVERY → SHIPPING
+                // - PICKUP → READY (Sẵn sàng lấy)
+                // KHÔNG cho hủy vì đã bắt đầu làm
                 btnStatusMaking.visibility = View.GONE
-                btnStatusShipping.visibility = View.VISIBLE
-                btnStatusDone.visibility = View.GONE
+                
+                if (orderType == "DELIVERY") {
+                    btnStatusShipping.visibility = View.VISIBLE
+                    btnStatusShipping.text = "Giao hàng"
+                    btnStatusDone.visibility = View.GONE
+                } else {
+                    // PICKUP - hiển thị nút "Sẵn sàng" thay vì "Giao hàng"
+                    btnStatusShipping.visibility = View.VISIBLE
+                    btnStatusShipping.text = "Sẵn sàng"
+                    btnStatusDone.visibility = View.GONE
+                }
+                
+                // Nút hủy bị disable và mờ đi
                 btnStatusCancel.visibility = View.VISIBLE
+                btnStatusCancel.isEnabled = false
+                btnStatusCancel.alpha = 0.4f
                 
                 btnStatusShipping.isEnabled = true
-                btnStatusCancel.isEnabled = true
             }
             "SHIPPING" -> {
-                // Từ SHIPPING: chỉ có thể chuyển sang DONE hoặc hủy
+                // Từ SHIPPING: chỉ có thể chuyển sang DONE
                 btnStatusMaking.visibility = View.GONE
                 btnStatusShipping.visibility = View.GONE
                 btnStatusDone.visibility = View.VISIBLE
+                
+                // Nút hủy bị disable và mờ đi
                 btnStatusCancel.visibility = View.VISIBLE
+                btnStatusCancel.isEnabled = false
+                btnStatusCancel.alpha = 0.4f
                 
                 btnStatusDone.isEnabled = true
-                btnStatusCancel.isEnabled = true
+            }
+            "READY" -> {
+                // Từ READY: chỉ có thể chuyển sang DONE
+                btnStatusMaking.visibility = View.GONE
+                btnStatusShipping.visibility = View.GONE
+                btnStatusDone.visibility = View.VISIBLE
+                
+                // Nút hủy bị disable và mờ đi
+                btnStatusCancel.visibility = View.VISIBLE
+                btnStatusCancel.isEnabled = false
+                btnStatusCancel.alpha = 0.4f
+                
+                btnStatusDone.isEnabled = true
             }
             "DONE", "CANCELED" -> {
                 // Đã hoàn thành hoặc đã hủy: ẩn tất cả nút
@@ -243,11 +284,10 @@ class OrderDetailActivity : AppCompatActivity() {
             }
         }
         
-        // Đổi alpha để hiển thị trạng thái
-        btnStatusMaking.alpha = if (btnStatusMaking.isEnabled) 1f else 0.5f
-        btnStatusShipping.alpha = if (btnStatusShipping.isEnabled) 1f else 0.5f
-        btnStatusDone.alpha = if (btnStatusDone.isEnabled) 1f else 0.5f
-        btnStatusCancel.alpha = if (btnStatusCancel.isEnabled) 1f else 0.5f
+        // Đổi alpha để hiển thị trạng thái (cho các nút khác ngoài cancel)
+        btnStatusMaking.alpha = if (btnStatusMaking.isEnabled) 1f else 0.4f
+        btnStatusShipping.alpha = if (btnStatusShipping.isEnabled) 1f else 0.4f
+        btnStatusDone.alpha = if (btnStatusDone.isEnabled) 1f else 0.4f
     }
     
     private fun reorderFromHistory(orderId: Long) {

@@ -562,6 +562,8 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
 
     private fun updateOrderStatus(orderId: Int, newStatus: String) {
         progressBar.visibility = View.VISIBLE
+        
+        Log.d(TAG, "Updating order $orderId to status $newStatus")
 
         RetrofitClient.getInstance(requireContext()).apiService
             .updateOrderStatus(orderId, newStatus)
@@ -571,18 +573,34 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                     response: Response<ApiResponse<Order>>
                 ) {
                     progressBar.visibility = View.GONE
+                    
+                    Log.d(TAG, "Response code: ${response.code()}")
+                    Log.d(TAG, "Response body: ${response.body()}")
 
                     if (response.isSuccessful && response.body()?.success == true) {
                         Toast.makeText(context, "Cập nhật trạng thái thành công", Toast.LENGTH_SHORT).show()
                         loadOrders()
                     } else {
-                        val errorMsg = response.body()?.message ?: "Không thể cập nhật trạng thái"
-                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                        // Lấy error message chi tiết hơn
+                        val errorMsg = if (response.body() != null) {
+                            response.body()?.message ?: "Không thể cập nhật trạng thái"
+                        } else {
+                            try {
+                                val errorBody = response.errorBody()?.string()
+                                Log.e(TAG, "Error body: $errorBody")
+                                "Lỗi: ${response.code()} - $errorBody"
+                            } catch (e: Exception) {
+                                "Lỗi: ${response.code()}"
+                            }
+                        }
+                        Log.e(TAG, "Update failed: $errorMsg")
+                        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
                     progressBar.visibility = View.GONE
+                    Log.e(TAG, "Network error: ${t.message}", t)
                     Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
