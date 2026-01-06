@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingBottom="80dp">
+        android:paddingBottom="56dp">
 
         <!-- Header -->
         <LinearLayout
@@ -17,9 +17,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="12dp"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
             android:gravity="center_vertical">
 
             <TextView
@@ -29,31 +29,34 @@
                 android:layout_weight="1"
                 android:text="Quản Lý Đơn Hàng"
                 android:textColor="@color/wine_dark_background"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:lineSpacingExtra="4dp" />
+                android:maxLines="2"
+                android:lineSpacingExtra="2dp" />
 
             <!-- Realtime Connection Status -->
             <TextView
                 android:id="@+id/tv_connection_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="○ Offline"
+                android:text="○"
                 android:textColor="@android:color/holo_red_dark"
-                android:textSize="11sp"
-                android:layout_marginEnd="12dp" />
+                android:textSize="10sp"
+                android:layout_marginEnd="8dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_refresh"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 app:icon="@android:drawable/stat_notify_sync"
-                app:iconSize="20dp"
+                app:iconSize="18dp"
                 app:iconGravity="textStart"
-                app:iconTint="@color/white"
-                app:cornerRadius="22dp"
+                app:iconTint="@color/wine_primary"
+                app:cornerRadius="18dp"
+                app:strokeColor="@color/wine_neutral_light"
+                app:strokeWidth="1dp"
                 style="@style/Widget.Material3.Button.IconButton.Outlined" />
         </LinearLayout>
 
@@ -62,24 +65,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingHorizontal="20dp"
-            android:layout_marginBottom="12dp">
+            android:paddingHorizontal="16dp"
+            android:layout_marginBottom="8dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                android:layout_marginEnd="4dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/status_making_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:gravity="center">
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    android:gravity="center_vertical">
 
                     <TextView
                         android:id="@+id/tv_pending_count"
@@ -87,15 +90,16 @@
                         android:layout_height="wrap_content"
                         android:text="0"
                         android:textColor="@color/warning"
-                        android:textSize="20sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
                         android:text="Chờ xử lý"
                         android:textColor="@color/wine_neutral_dark"
-                        android:textSize="11sp" />
+                        android:textSize="10sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -103,17 +107,17 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginHorizontal="6dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                android:layout_marginHorizontal="4dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/status_pending_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:gravity="center">
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    android:gravity="center_vertical">
 
                     <TextView
                         android:id="@+id/tv_making_count"
@@ -121,15 +125,16 @@
                         android:layout_height="wrap_content"
                         android:text="0"
                         android:textColor="@color/info"
-                        android:textSize="20sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
                         android:text="Đang làm"
                         android:textColor="@color/wine_neutral_dark"
-                        android:textSize="11sp" />
+                        android:textSize="10sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -137,17 +142,17 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                android:layout_marginStart="4dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/status_done_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:gravity="center">
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    android:gravity="center_vertical">
 
                     <TextView
                         android:id="@+id/tv_done_count"
@@ -155,76 +160,67 @@
                         android:layout_height="wrap_content"
                         android:text="0"
                         android:textColor="@color/success"
-                        android:textSize="20sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
                         android:text="Hoàn thành"
                         android:textColor="@color/wine_neutral_dark"
-                        android:textSize="11sp" />
+                        android:textSize="10sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
         <!-- Store Filter -->
-        <LinearLayout
-            android:id="@+id/store_filter_layout"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_store_filter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingHorizontal="20dp"
-            android:layout_marginBottom="12dp"
-            android:gravity="center_vertical">
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/wine_neutral_light"
+            android:clickable="true"
+            android:focusable="true"
+            app:rippleColor="@color/wine_neutral_dark">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🏪"
-                android:textSize="18sp"
-                android:layout_marginEnd="8dp" />
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp"
+                android:gravity="center_vertical">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_store_filter"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="1dp"
-                app:cardBackgroundColor="@color/wine_light_surface"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/wine_neutral_light"
-                android:clickable="true"
-                android:focusable="true"
-                app:rippleColor="@color/wine_neutral_light">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
+                    android:text="🏪"
+                    android:textSize="14sp" />
 
-                    <TextView
-                        android:id="@+id/tv_selected_store"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Tất cả chi nhánh"
-                        android:textColor="@color/wine_dark_background"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
+                <TextView
+                    android:id="@+id/tv_selected_store"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Tất cả chi nhánh"
+                    android:textColor="@color/wine_dark_background"
+                    android:textSize="13sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/arrow_down_float"
-                        app:tint="@color/wine_neutral_dark" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    app:tint="@color/wine_neutral_dark" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Filter Tabs -->
         <HorizontalScrollView
@@ -232,22 +228,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
-            android:paddingHorizontal="16dp"
-            android:layout_marginBottom="8dp">
+            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="4dp">
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tab_layout"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="36dp"
                 android:background="@android:color/transparent"
                 app:tabTextColor="@color/wine_neutral_dark"
                 app:tabSelectedTextColor="@color/wine_primary"
                 app:tabIndicatorColor="@color/wine_primary"
-                app:tabIndicatorHeight="3dp"
+                app:tabIndicatorHeight="2dp"
                 app:tabIndicatorFullWidth="false"
                 app:tabRippleColor="@color/wine_neutral_light"
-                app:tabPaddingStart="12dp"
-                app:tabPaddingEnd="12dp"
+                app:tabPaddingStart="8dp"
+                app:tabPaddingEnd="8dp"
                 app:tabMode="scrollable"
                 app:tabGravity="start"
                 app:tabTextAppearance="@style/TabTextAppearance">
@@ -304,29 +300,11 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_orders"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:paddingHorizontal="20dp"
-                    android:paddingTop="12dp"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="8dp"
                     android:paddingBottom="8dp"
                     android:clipToPadding="false" />
-
-                <!-- Nút Xem thêm -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_load_more"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginBottom="16dp"
-                    android:text="Xem thêm"
-                    android:textColor="@color/wine_primary"
-                    android:visibility="gone"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    app:strokeColor="@color/wine_primary"
-                    app:cornerRadius="12dp"
-                    app:icon="@android:drawable/ic_menu_more"
-                    app:iconGravity="textStart"
-                    app:iconTint="@color/wine_primary" />
 
             </LinearLayout>
 
@@ -334,7 +312,35 @@
 
     </LinearLayout>
 
-    <!-- Progress Bar -->
+    <!-- Loading State với Lottie -->
+    <LinearLayout
+        android:id="@+id/loading_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:padding="32dp">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottie_loading"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:lottie_rawRes="@raw/cutedoggie"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Đang tải đơn hàng..."
+            android:textSize="14sp"
+            android:textColor="@color/wine_neutral_dark" />
+    </LinearLayout>
+
+    <!-- Progress Bar (backup) -->
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"

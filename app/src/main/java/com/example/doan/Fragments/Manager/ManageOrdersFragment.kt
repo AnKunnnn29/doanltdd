@@ -67,8 +67,8 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     private lateinit var webSocketManager: OrderWebSocketManager
     private var notificationSound: MediaPlayer? = null
     
-    // Pagination - gọi API thực sự
-    private val PAGE_SIZE = 10
+    // Pagination - gọi API thực sự (5 đơn/trang như Shopee Partner)
+    private val PAGE_SIZE = 5
     private var currentPage = 0
     private var totalPages = 0
     private var totalElements = 0L
@@ -144,78 +144,56 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         if (existingIndex >= 0) {
             Log.d(TAG, "Order already exists, updating")
             allOrders[existingIndex] = newOrder
+            val displayIndex = displayedOrders.indexOfFirst { it.id == newOrder.id }
+            if (displayIndex >= 0) {
+                displayedOrders[displayIndex] = newOrder
+                adapter.notifyItemChanged(displayIndex)
+            }
         } else {
             // Add new order to the beginning
             allOrders.add(0, newOrder)
+            displayedOrders.add(0, newOrder)
+            adapter.notifyItemInserted(0)
+            rvOrders.scrollToPosition(0)
             
-            // Chỉ thêm vào displayedOrders nếu phù hợp với filter hiện tại
-            val shouldDisplay = when {
-                // Tab "Tất cả" (NOT_COMPLETED) - chỉ hiển thị đơn chưa hoàn thành
-                currentStatus == "NOT_COMPLETED" -> newOrder.status != "DONE" && newOrder.status != "CANCELED"
-                // Tab cụ thể - chỉ hiển thị đơn có status tương ứng
-                currentStatus != null -> newOrder.status == currentStatus
-                // Không có filter - hiển thị tất cả
-                else -> true
-            }
+            // Play notification sound
+            playNotificationSound()
             
-            if (shouldDisplay) {
-                displayedOrders.add(0, newOrder)
-                
-                // Play notification sound
-                playNotificationSound()
-                
-                // Show toast
-                Toast.makeText(
-                    context,
-                    "🔔 Đơn hàng mới #${newOrder.id}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            // Show toast
+            Toast.makeText(
+                context,
+                "🔔 Đơn hàng mới #${newOrder.id}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
         
-        // Refresh display
         updateStats()
-        adapter.notifyDataSetChanged()
+        
+        // Ẩn empty state nếu có đơn
+        if (displayedOrders.isNotEmpty()) {
+            emptyState.visibility = View.GONE
+        }
     }
     
     private fun handleOrderStatusUpdate(updatedOrder: Order) {
         Log.d(TAG, "Order status update via WebSocket: #${updatedOrder.id} -> ${updatedOrder.status}")
         
-        // Find and update the order in allOrders
-        val index = allOrders.indexOfFirst { it.id == updatedOrder.id }
-        if (index >= 0) {
-            allOrders[index] = updatedOrder
-        }
-        
-        // Cập nhật displayedOrders dựa trên filter hiện tại
+        // Chỉ update item đó, không reload tất cả
+        val allIndex = allOrders.indexOfFirst { it.id == updatedOrder.id }
         val displayIndex = displayedOrders.indexOfFirst { it.id == updatedOrder.id }
         
-        val shouldDisplay = when {
-            // Filter theo store
-            selectedStoreId != null && updatedOrder.storeId != selectedStoreId -> false
-            // Tab "Tất cả" (NOT_COMPLETED) - chỉ hiển thị đơn chưa hoàn thành
-            currentStatus == "NOT_COMPLETED" -> updatedOrder.status != "DONE" && updatedOrder.status != "CANCELED"
-            // Tab cụ thể - chỉ hiển thị đơn có status tương ứng
-            currentStatus != null -> updatedOrder.status == currentStatus
-            // Không có filter - hiển thị tất cả
-            else -> true
+        if (allIndex >= 0 && allIndex < allOrders.size) {
+            allOrders[allIndex] = updatedOrder
         }
-        
-        if (displayIndex >= 0) {
-            if (shouldDisplay) {
-                // Cập nhật order
-                displayedOrders[displayIndex] = updatedOrder
-            } else {
-                // Remove khỏi danh sách hiển thị (ví dụ: đơn chuyển sang DONE khi đang ở tab "Tất cả")
-                displayedOrders.removeAt(displayIndex)
+        if (displayIndex >= 0 && displayIndex < displayedOrders.size) {
+            displayedOrders[displayIndex] = updatedOrder
+            try {
+                adapter.notifyItemChanged(displayIndex)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error notifying WebSocket update: ${e.message}")
             }
-        } else if (shouldDisplay && index >= 0) {
-            // Thêm vào danh sách hiển thị nếu phù hợp filter
-            displayedOrders.add(0, updatedOrder)
         }
-        
         updateStats()
-        adapter.notifyDataSetChanged()
     }
     
     private fun updateConnectionStatus(connected: Boolean) {
@@ -299,13 +277,33 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun setupRecyclerView() {
-        rvOrders.layoutManager = LinearLayoutManager(context)
+        val layoutManager = LinearLayoutManager(context)
+        rvOrders.layoutManager = layoutManager
         rvOrders.layoutAnimation = AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_fall_down)
         adapter = ManagerOrderAdapter(requireContext(), displayedOrders)
         adapter.setOnOrderActionListener(this)
         rvOrders.adapter = adapter
         
-        // Không dùng scroll listener nữa, dùng nút "Xem thêm" thay thế
+        // Infinite scroll như Shopee Partner - tự động load khi cuộn
+        rvOrders.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                
+                // Chỉ load khi cuộn xuống
+                if (dy <= 0) return
+                
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+                
+                // Khi còn 2 item nữa là hết → load thêm
+                if (!isLoading && hasMoreData) {
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 2) {
+                        loadMoreOrders()
+                    }
+                }
+            }
+        })
     }
 
     private fun setupListeners() {
@@ -330,7 +328,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 currentStatus = when (tab.position) {
-                    0 -> "NOT_COMPLETED" // Tất cả đơn chưa hoàn thành (filter ở client)
+                    0 -> null
                     1 -> "PENDING"
                     2 -> "MAKING"
                     3 -> "SHIPPING"
@@ -436,12 +434,10 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         emptyState.visibility = View.GONE
         btnLoadMore?.visibility = View.GONE
 
-        // Nếu là NOT_COMPLETED, gọi API với status = null rồi filter ở client
-        val apiStatus = if (currentStatus == "NOT_COMPLETED") null else currentStatus
-        Log.d(TAG, "Loading orders page $page with status: $apiStatus (currentStatus: $currentStatus), size: $PAGE_SIZE")
+        Log.d(TAG, "Loading orders page $page with status: $currentStatus, size: $PAGE_SIZE")
 
         RetrofitClient.getInstance(requireContext()).apiService
-            .getManagerOrders(apiStatus, page, PAGE_SIZE)
+            .getManagerOrders(currentStatus, page, PAGE_SIZE)
             .enqueue(object : Callback<ApiResponse<PageResponse<Order>>> {
                 override fun onResponse(
                     call: Call<ApiResponse<PageResponse<Order>>>,
@@ -467,25 +463,16 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                             pageResponse.content?.let { newOrders ->
                                 allOrders.addAll(newOrders)
                                 
-                                // Filter theo store và status
-                                var filteredNewOrders = newOrders.toList()
-                                
                                 // Filter theo store nếu cần
-                                if (selectedStoreId != null) {
-                                    filteredNewOrders = filteredNewOrders.filter { it.storeId == selectedStoreId }
+                                val filteredNewOrders = if (selectedStoreId != null) {
+                                    newOrders.filter { it.storeId == selectedStoreId }
+                                } else {
+                                    newOrders
                                 }
-                                
-                                // Filter bỏ DONE và CANCELED nếu đang ở tab "Tất cả" (NOT_COMPLETED)
-                                if (currentStatus == "NOT_COMPLETED") {
-                                    filteredNewOrders = filteredNewOrders.filter { 
-                                        it.status != "DONE" && it.status != "CANCELED" 
-                                    }
-                                }
-                                
                                 displayedOrders.addAll(filteredNewOrders)
                             }
 
-                            Log.d(TAG, "Orders loaded: page=$page, total=${allOrders.size}, displayed=${displayedOrders.size}, hasMore=$hasMoreData")
+                            Log.d(TAG, "Orders loaded: page=$page, total=${allOrders.size}, hasMore=$hasMoreData")
 
                             adapter.notifyDataSetChanged()
                             updateStats()
@@ -501,7 +488,6 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                                 emptyState.visibility = View.VISIBLE
                                 view?.findViewById<TextView>(R.id.tv_empty_message)?.text =
                                     if (selectedStoreId != null) "Không có đơn hàng tại chi nhánh này"
-                                    else if (currentStatus == "NOT_COMPLETED") "Không có đơn hàng đang xử lý"
                                     else "Đơn hàng mới sẽ xuất hiện ở đây"
                             } else {
                                 emptyState.visibility = View.GONE
@@ -560,15 +546,8 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
     
     private fun updateLoadMoreButton() {
-        btnLoadMore?.apply {
-            if (hasMoreData) {
-                visibility = View.VISIBLE
-                val loaded = displayedOrders.size
-                text = "Xem thêm (đã tải $loaded đơn)"
-            } else {
-                visibility = View.GONE
-            }
-        }
+        // Ẩn nút vì đã có infinite scroll
+        btnLoadMore?.visibility = View.GONE
     }
 
     override fun onOrderClick(order: Order) {
@@ -615,9 +594,24 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
     }
 
     private fun updateOrderStatus(orderId: Int, newStatus: String) {
-        progressBar.visibility = View.VISIBLE
+        // Tìm index trong cả 2 list
+        val allIndex = allOrders.indexOfFirst { it.id == orderId }
+        val displayIndex = displayedOrders.indexOfFirst { it.id == orderId }
+        val oldStatus = if (allIndex >= 0) allOrders[allIndex].status else null
         
-        Log.d(TAG, "Updating order $orderId to status $newStatus")
+        // Optimistic update - cập nhật UI trước
+        if (allIndex >= 0 && allIndex < allOrders.size) {
+            allOrders[allIndex].status = newStatus
+        }
+        if (displayIndex >= 0 && displayIndex < displayedOrders.size) {
+            displayedOrders[displayIndex].status = newStatus
+            try {
+                adapter.notifyItemChanged(displayIndex)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error notifying item change: ${e.message}")
+            }
+        }
+        updateStats()
 
         RetrofitClient.getInstance(requireContext()).apiService
             .updateOrderStatus(orderId, newStatus)
@@ -626,38 +620,62 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                     call: Call<ApiResponse<Order>>,
                     response: Response<ApiResponse<Order>>
                 ) {
-                    progressBar.visibility = View.GONE
+                    if (!isAdded) return
                     
-                    Log.d(TAG, "Response code: ${response.code()}")
-                    Log.d(TAG, "Response body: ${response.body()}")
-
                     if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(context, "Cập nhật trạng thái thành công", Toast.LENGTH_SHORT).show()
-                        loadOrders()
-                    } else {
-                        // Lấy error message chi tiết hơn
-                        val errorMsg = if (response.body() != null) {
-                            response.body()?.message ?: "Không thể cập nhật trạng thái"
-                        } else {
-                            try {
-                                val errorBody = response.errorBody()?.string()
-                                Log.e(TAG, "Error body: $errorBody")
-                                "Lỗi: ${response.code()} - $errorBody"
-                            } catch (e: Exception) {
-                                "Lỗi: ${response.code()}"
+                        val updatedOrder = response.body()?.data
+                        if (updatedOrder != null) {
+                            // Cập nhật với data từ server
+                            val newAllIndex = allOrders.indexOfFirst { it.id == orderId }
+                            val newDisplayIndex = displayedOrders.indexOfFirst { it.id == orderId }
+                            
+                            if (newAllIndex >= 0 && newAllIndex < allOrders.size) {
+                                allOrders[newAllIndex] = updatedOrder
+                            }
+                            if (newDisplayIndex >= 0 && newDisplayIndex < displayedOrders.size) {
+                                displayedOrders[newDisplayIndex] = updatedOrder
+                                try {
+                                    adapter.notifyItemChanged(newDisplayIndex)
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Error notifying: ${e.message}")
+                                }
                             }
                         }
-                        Log.e(TAG, "Update failed: $errorMsg")
-                        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "✓ Đã cập nhật", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Rollback nếu thất bại
+                        rollbackStatus(orderId, oldStatus)
+                        val errorMsg = response.body()?.message ?: "Không thể cập nhật"
+                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<Order>>, t: Throwable) {
-                    progressBar.visibility = View.GONE
-                    Log.e(TAG, "Network error: ${t.message}", t)
-                    Toast.makeText(context, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                    if (!isAdded) return
+                    rollbackStatus(orderId, oldStatus)
+                    Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+    
+    private fun rollbackStatus(orderId: Int, oldStatus: String?) {
+        if (oldStatus == null) return
+        
+        val allIndex = allOrders.indexOfFirst { it.id == orderId }
+        val displayIndex = displayedOrders.indexOfFirst { it.id == orderId }
+        
+        if (allIndex >= 0 && allIndex < allOrders.size) {
+            allOrders[allIndex].status = oldStatus
+        }
+        if (displayIndex >= 0 && displayIndex < displayedOrders.size) {
+            displayedOrders[displayIndex].status = oldStatus
+            try {
+                adapter.notifyItemChanged(displayIndex)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error rollback: ${e.message}")
+            }
+        }
+        updateStats()
     }
 
     companion object {

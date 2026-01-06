@@ -96,52 +96,42 @@ class ManagerOrderAdapter(
     private fun setupActionButtons(holder: ViewHolder, order: Order, status: String) {
         holder.layoutActions.removeAllViews()
 
-        // Flow hợp lý:
-        // - DELIVERY: PENDING → MAKING → SHIPPING → DONE
-        // - PICKUP: PENDING → MAKING → READY → DONE
-        // Chỉ có thể hủy khi: PENDING (chưa bắt đầu làm)
-        // KHÔNG thể hủy khi: MAKING, SHIPPING, READY, DONE, CANCELED
-
         when (status) {
             "PENDING" -> {
                 // Chờ xử lý → có thể chuyển sang "Đang làm" hoặc "Hủy"
-                addActionButton(holder, "Bắt đầu làm", R.color.status_making, true) {
+                addActionButton(holder, "Bắt đầu làm", R.color.status_making) {
                     listener?.onUpdateStatus(order, "MAKING")
                 }
-                addActionButton(holder, "Hủy đơn", R.color.status_canceled, true) {
+                addActionButton(holder, "Hủy đơn", R.color.status_canceled) {
                     listener?.onCancelOrder(order)
                 }
             }
             "MAKING" -> {
-                // Đang làm → chỉ có thể chuyển sang "Đang giao" (nếu delivery) hoặc "Sẵn sàng" (nếu pickup)
-                // KHÔNG cho hủy vì đã bắt đầu làm
+                // Đang làm → có thể chuyển sang "Đang giao" (nếu delivery) hoặc "Sẵn sàng" (nếu pickup)
                 if (order.type == "DELIVERY") {
-                    addActionButton(holder, "Giao hàng", R.color.status_shipping, true) {
+                    addActionButton(holder, "Giao hàng", R.color.status_shipping) {
                         listener?.onUpdateStatus(order, "SHIPPING")
                     }
                 } else {
-                    addActionButton(holder, "Sẵn sàng", R.color.status_done, true) {
+                    addActionButton(holder, "Sẵn sàng", R.color.status_done) {
                         listener?.onUpdateStatus(order, "READY")
                     }
                 }
-                // Nút hủy bị disable và mờ đi
-                addActionButton(holder, "Hủy đơn", R.color.status_canceled, false) {}
+                addActionButton(holder, "Hủy đơn", R.color.status_canceled) {
+                    listener?.onCancelOrder(order)
+                }
             }
             "SHIPPING" -> {
-                // Đang giao → chỉ có thể chuyển sang "Hoàn thành"
-                addActionButton(holder, "Hoàn thành", R.color.status_done, true) {
+                // Đang giao → có thể chuyển sang "Hoàn thành"
+                addActionButton(holder, "Hoàn thành", R.color.status_done) {
                     listener?.onUpdateStatus(order, "DONE")
                 }
-                // Nút hủy bị disable và mờ đi
-                addActionButton(holder, "Hủy đơn", R.color.status_canceled, false) {}
             }
             "READY" -> {
-                // Sẵn sàng → chỉ có thể chuyển sang "Hoàn thành"
-                addActionButton(holder, "Hoàn thành", R.color.status_done, true) {
+                // Sẵn sàng → có thể chuyển sang "Hoàn thành"
+                addActionButton(holder, "Hoàn thành", R.color.status_done) {
                     listener?.onUpdateStatus(order, "DONE")
                 }
-                // Nút hủy bị disable và mờ đi
-                addActionButton(holder, "Hủy đơn", R.color.status_canceled, false) {}
             }
             "DONE", "CANCELED" -> {
                 // Đã hoàn thành hoặc đã hủy → không có action
@@ -150,7 +140,7 @@ class ManagerOrderAdapter(
         }
     }
 
-    private fun addActionButton(holder: ViewHolder, text: String, colorRes: Int, enabled: Boolean, onClick: () -> Unit) {
+    private fun addActionButton(holder: ViewHolder, text: String, colorRes: Int, onClick: () -> Unit) {
         val button = Button(context).apply {
             this.text = text
             setBackgroundColor(context.getColor(colorRes))
@@ -162,14 +152,7 @@ class ManagerOrderAdapter(
             ).apply {
                 marginEnd = 16
             }
-            
-            // Xử lý enable/disable
-            isEnabled = enabled
-            alpha = if (enabled) 1f else 0.4f
-            
-            if (enabled) {
-                setOnClickListener { onClick() }
-            }
+            setOnClickListener { onClick() }
         }
         holder.layoutActions.addView(button)
         holder.layoutActions.visibility = View.VISIBLE
