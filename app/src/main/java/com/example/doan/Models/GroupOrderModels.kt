@@ -28,7 +28,12 @@ data class GroupOrderDto(
     val members: List<GroupOrderMemberDto>?,
     val items: List<GroupOrderItemDto>?,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
+    /**
+     * Flag để phân biệt phiên mới tạo (true) hay phiên cũ được trả về (false)
+     * Dùng khi gọi API createGroupOrder
+     */
+    val isNewSession: Boolean? = null
 )
 
 data class GroupOrderMemberDto(

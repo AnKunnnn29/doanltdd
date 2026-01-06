@@ -158,9 +158,8 @@ class CreateGroupOrderActivity : AppCompatActivity() {
                     if (response.isSuccessful && response.body()?.success == true) {
                         val groupOrder = response.body()?.data
                         
-                        // Kiểm tra xem có phải phiên mới tạo hay phiên cũ được trả về
-                        val isExistingSession = groupOrder?.status == GroupOrderStatus.OPEN || 
-                                                groupOrder?.status == GroupOrderStatus.LOCKED
+                        // Sử dụng isNewSession từ backend để xác định message
+                        val isNewSession = groupOrder?.isNewSession == true
                         
                         // Kiểm tra xem phiên có hết hạn chưa (client-side check)
                         val isExpired = try {
@@ -191,17 +190,12 @@ class CreateGroupOrderActivity : AppCompatActivity() {
                         // Reset retry count khi thành công
                         retryCount = 0
                         
-                        val message = if (groupOrder?.createdAt != null) {
-                            // Nếu phiên vừa được tạo (trong vòng 5 giây)
-                            try {
-                                val formatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                                val createdTime = java.time.LocalDateTime.parse(groupOrder.createdAt, formatter)
-                                val secondsAgo = java.time.temporal.ChronoUnit.SECONDS.between(createdTime, java.time.LocalDateTime.now())
-                                if (secondsAgo < 5) "Tạo phiên thành công!" else "Đã có phiên đang hoạt động!"
-                            } catch (e: Exception) {
-                                "Tạo phiên thành công!"
-                            }
-                        } else "Tạo phiên thành công!"
+                        // Hiển thị message phù hợp dựa trên isNewSession
+                        val message = if (isNewSession) {
+                            "Tạo phiên thành công!"
+                        } else {
+                            "Đã có phiên đang hoạt động!"
+                        }
                         
                         Toast.makeText(this@CreateGroupOrderActivity, message, Toast.LENGTH_SHORT).show()
                         
