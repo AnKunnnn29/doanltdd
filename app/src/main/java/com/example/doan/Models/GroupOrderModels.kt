@@ -92,3 +92,10 @@ data class CheckoutGroupOrderRequest(
     val promotionCode: String? = null,
     val spinVoucherCode: String? = null
 )
+
+data class PreviewGroupOrderBillRequest(
+    val paymentMethod: String? = null,
+    val promotionCode: String? = null,
+    val spinVoucherCode: String? = null,
+    val shippingFee: Int? = null
+)

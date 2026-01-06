@@ -60,6 +60,9 @@ class GroupOrderActivity : AppCompatActivity() {
     private var groupOrder: GroupOrderDto? = null
     private var isHost = false
     private var countDownTimer: CountDownTimer? = null
+    
+    // Shipping fee - tính theo tỉnh/thành phố trong địa chỉ giao hàng
+    private var shippingFee: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -226,6 +229,9 @@ class GroupOrderActivity : AppCompatActivity() {
 
         // Expiration countdown
         startExpirationCountdown(order.expiresAt)
+        
+        // Calculate shipping fee if DELIVERY
+        calculateShippingFee()
 
         // Members
         memberAdapter = GroupOrderMemberAdapter(
@@ -254,6 +260,38 @@ class GroupOrderActivity : AppCompatActivity() {
 
         // Action buttons visibility
         updateActionButtons(order.status)
+    }
+    
+    /**
+     * Tính phí ship dựa trên địa chỉ giao hàng
+     * Sử dụng VietnamProvinces để tính phí ship theo tỉnh/thành phố
+     */
+    private fun calculateShippingFee() {
+        val order = groupOrder ?: return
+        
+        if (order.orderType == "DELIVERY" && !order.deliveryAddress.isNullOrEmpty()) {
+            // Tìm tỉnh/thành phố trong địa chỉ
+            val address = order.deliveryAddress!!
+            val provinceNames = com.example.doan.Utils.VietnamProvinces.getProvinceNames()
+            
+            // Tìm tỉnh/thành phố trong địa chỉ
+            var foundProvince: String? = null
+            for (province in provinceNames) {
+                if (address.contains(province, ignoreCase = true)) {
+                    foundProvince = province
+                    break
+                }
+            }
+            
+            shippingFee = if (foundProvince != null) {
+                com.example.doan.Utils.VietnamProvinces.getShippingFee(foundProvince)
+            } else {
+                // Mặc định phí ship nếu không tìm thấy tỉnh
+                30000
+            }
+        } else {
+            shippingFee = 0
+        }
     }
 
     private fun updateStatusUI(status: GroupOrderStatus?) {
@@ -444,19 +482,125 @@ class GroupOrderActivity : AppCompatActivity() {
             return
         }
 
-        val paymentMethods = arrayOf("COD - Tiền mặt", "VNPAY - Thanh toán online")
-        var selectedMethod = "COD"
+        // Hiển thị dialog chọn phương thức thanh toán
+        showPaymentMethodDialog()
+    }
+    
+    private fun showPaymentMethodDialog() {
+        val paymentMethods = arrayOf(
+            "COD - Tiền mặt", 
+            "VNPAY - Thanh toán online",
+            "MOMO - Ví MoMo",
+            "VIETQR - Quét mã QR",
+            "PAYPAL - Thanh toán quốc tế"
+        )
+        val paymentCodes = arrayOf("COD", "VNPAY", "MOMO", "VIETQR", "PAYPAL")
+        var selectedIndex = 0
 
         AlertDialog.Builder(this)
             .setTitle("Chọn phương thức thanh toán")
             .setSingleChoiceItems(paymentMethods, 0) { _, which ->
-                selectedMethod = if (which == 0) "COD" else "VNPAY"
+                selectedIndex = which
             }
-            .setPositiveButton("Thanh toán") { _, _ ->
-                checkout(selectedMethod)
+            .setPositiveButton("Tiếp tục") { _, _ ->
+                // Chuyển sang màn hình Bill Preview
+                navigateToBillPreview(paymentCodes[selectedIndex])
             }
             .setNegativeButton("Hủy", null)
             .show()
+    }
+    
+    /**
+     * Chuyển sang màn hình xem bill trước khi thanh toán
+     */
+    private fun navigateToBillPreview(paymentMethod: String) {
+        val intent = Intent(this, GroupOrderBillPreviewActivity::class.java).apply {
+            putExtra(GroupOrderBillPreviewActivity.EXTRA_GROUP_ORDER_ID, groupOrderId)
+            putExtra(GroupOrderBillPreviewActivity.EXTRA_PAYMENT_METHOD, paymentMethod)
+            // Truyền shipping fee đã tính
+            putExtra(GroupOrderBillPreviewActivity.EXTRA_SHIPPING_FEE, shippingFee)
+            // Có thể thêm voucher code nếu có
+            // putExtra(GroupOrderBillPreviewActivity.EXTRA_PROMOTION_CODE, promotionCode)
+            // putExtra(GroupOrderBillPreviewActivity.EXTRA_SPIN_VOUCHER_CODE, spinVoucherCode)
+        }
+        startActivity(intent)
+    }
+    
+    // Giữ lại method cũ để backward compatible (có thể xóa sau)
+    @Suppress("unused")
+    private fun showBillPreviewOld(paymentMethod: String) {
+        loadingDialog.show("Đang tải bill...")
+        
+        val request = PreviewGroupOrderBillRequest(paymentMethod = paymentMethod)
+        RetrofitClient.getInstance(this).apiService.previewGroupOrderBill(groupOrderId, request)
+            .enqueue(object : Callback<ApiResponse<BillPreview>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<BillPreview>>,
+                    response: Response<ApiResponse<BillPreview>>
+                ) {
+                    loadingDialog.dismiss()
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val bill = response.body()?.data
+                        showBillPreviewDialog(bill, paymentMethod)
+                    } else {
+                        Toast.makeText(this@GroupOrderActivity,
+                            response.body()?.message ?: "Lỗi tải bill", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<BillPreview>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@GroupOrderActivity, 
+                        "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    private fun showBillPreviewDialog(bill: BillPreview?, paymentMethod: String) {
+        if (bill == null) {
+            Toast.makeText(this, "Không thể tải thông tin bill", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val message = StringBuilder()
+        message.append("📍 Chi nhánh: ${bill.storeName ?: "N/A"}\n")
+        message.append("📦 Loại đơn: ${if (bill.orderType == "DELIVERY") "Giao hàng" else "Tự đến lấy"}\n")
+        if (bill.orderType == "DELIVERY") {
+            message.append("🏠 Địa chỉ: ${bill.deliveryAddress ?: "N/A"}\n")
+        }
+        message.append("\n")
+        message.append("💰 Tổng tiền hàng: ${formatPrice(bill.subtotal ?: 0.0)}\n")
+        
+        if ((bill.shippingFee ?: 0.0) > 0) {
+            message.append("🚚 Phí giao hàng: ${formatPrice(bill.shippingFee ?: 0.0)}\n")
+        }
+        if (bill.freeShipping == true) {
+            message.append("🎉 ${bill.freeShippingReason ?: "Miễn phí ship"}\n")
+        }
+        
+        if ((bill.voucherDiscount ?: 0.0) > 0) {
+            message.append("🎫 Giảm voucher: -${formatPrice(bill.voucherDiscount ?: 0.0)}\n")
+        }
+        if ((bill.tierDiscountAmount ?: 0.0) > 0) {
+            message.append("⭐ Giảm hạng ${bill.tierName}: -${formatPrice(bill.tierDiscountAmount ?: 0.0)}\n")
+        }
+        
+        message.append("\n")
+        message.append("💵 THÀNH TIỀN: ${formatPrice(bill.finalPrice ?: 0.0)}\n")
+        message.append("💳 Thanh toán: ${if (paymentMethod == "COD") "Tiền mặt" else "VNPay"}")
+        
+        AlertDialog.Builder(this)
+            .setTitle("🧾 Xác nhận đơn hàng")
+            .setMessage(message.toString())
+            .setPositiveButton("Thanh toán") { _, _ ->
+                checkout(paymentMethod)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    private fun formatPrice(price: Double): String {
+        return String.format(Locale.getDefault(), "%,.0f VNĐ", price)
     }
 
     private fun checkout(paymentMethod: String) {

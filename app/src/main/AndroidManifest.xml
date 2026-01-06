@@ -231,6 +231,12 @@
             android:name=".Activities.BillPreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.DoAn" />
+        
+        <!-- Group Order Bill Preview Activity -->
+        <activity
+            android:name=".Activities.GroupOrderBillPreviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DoAn" />
 
     </application>
 

@@ -579,6 +579,12 @@ interface ApiService {
     @POST("group-orders/{id}/leave")
     fun leaveGroupOrder(@Path("id") id: Long): Call<ApiResponse<GroupOrderDto>>
     
+    @POST("group-orders/{id}/preview-bill")
+    fun previewGroupOrderBill(
+        @Path("id") id: Long,
+        @Body request: PreviewGroupOrderBillRequest?
+    ): Call<ApiResponse<BillPreview>>
+    
     @POST("group-orders/{id}/checkout")
     fun checkoutGroupOrder(
         @Path("id") id: Long,

@@ -31,6 +31,7 @@ class CreateGroupOrderActivity : AppCompatActivity() {
     private lateinit var loadingDialog: LoadingDialog
 
     private var storeList = mutableListOf<Store>()
+    private var retryCount = 0 // Đếm số lần retry để tránh vòng lặp vô hạn
     private val expirationOptions = listOf(
         Pair("15 phút", 15),
         Pair("30 phút", 30),
@@ -156,8 +157,53 @@ class CreateGroupOrderActivity : AppCompatActivity() {
                     loadingDialog.dismiss()
                     if (response.isSuccessful && response.body()?.success == true) {
                         val groupOrder = response.body()?.data
-                        Toast.makeText(this@CreateGroupOrderActivity, 
-                            "Tạo phiên thành công!", Toast.LENGTH_SHORT).show()
+                        
+                        // Kiểm tra xem có phải phiên mới tạo hay phiên cũ được trả về
+                        val isExistingSession = groupOrder?.status == GroupOrderStatus.OPEN || 
+                                                groupOrder?.status == GroupOrderStatus.LOCKED
+                        
+                        // Kiểm tra xem phiên có hết hạn chưa (client-side check)
+                        val isExpired = try {
+                            if (groupOrder?.expiresAt != null) {
+                                val formatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                                val expireTime = java.time.LocalDateTime.parse(groupOrder.expiresAt, formatter)
+                                expireTime.isBefore(java.time.LocalDateTime.now())
+                            } else false
+                        } catch (e: Exception) { false }
+                        
+                        if (isExpired) {
+                            // Phiên đã hết hạn, thông báo và reload (tối đa 1 lần retry)
+                            if (retryCount < 1) {
+                                retryCount++
+                                Toast.makeText(this@CreateGroupOrderActivity, 
+                                    "Phiên cũ đã hết hạn, đang tạo phiên mới...", Toast.LENGTH_SHORT).show()
+                                // Gọi lại API để tạo phiên mới (backend sẽ tự động expire phiên cũ)
+                                createGroupOrder()
+                                return
+                            } else {
+                                // Đã retry rồi mà vẫn lỗi, hiển thị thông báo
+                                Toast.makeText(this@CreateGroupOrderActivity, 
+                                    "Không thể tạo phiên mới, vui lòng thử lại sau", Toast.LENGTH_SHORT).show()
+                                return
+                            }
+                        }
+                        
+                        // Reset retry count khi thành công
+                        retryCount = 0
+                        
+                        val message = if (groupOrder?.createdAt != null) {
+                            // Nếu phiên vừa được tạo (trong vòng 5 giây)
+                            try {
+                                val formatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                                val createdTime = java.time.LocalDateTime.parse(groupOrder.createdAt, formatter)
+                                val secondsAgo = java.time.temporal.ChronoUnit.SECONDS.between(createdTime, java.time.LocalDateTime.now())
+                                if (secondsAgo < 5) "Tạo phiên thành công!" else "Đã có phiên đang hoạt động!"
+                            } catch (e: Exception) {
+                                "Tạo phiên thành công!"
+                            }
+                        } else "Tạo phiên thành công!"
+                        
+                        Toast.makeText(this@CreateGroupOrderActivity, message, Toast.LENGTH_SHORT).show()
                         
                         // Navigate to GroupOrderActivity
                         val intent = Intent(this@CreateGroupOrderActivity, GroupOrderActivity::class.java)
