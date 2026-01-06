@@ -15,11 +15,13 @@ import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import com.example.doan.Utils.IpBlockHandler
 import java.io.IOException
 
 /**
  * FIX High #8: Interceptor với auto token refresh
  * Khi nhận 401, sẽ thử refresh token trước khi logout
+ * Khi nhận 403 với IP_BLOCKED, gửi broadcast để hiển thị thông báo
  */
 class AuthInterceptor(private val context: Context) : Interceptor {
     
@@ -70,6 +72,19 @@ class AuthInterceptor(private val context: Context) : Interceptor {
                 Log.w(TAG, "No token available! User may need to login again.")
             }
             chain.proceed(originalRequest)
+        }
+        
+        // Xử lý HTTP 403 - IP_BLOCKED
+        if (response.code == 403) {
+            val responseBody = response.peekBody(Long.MAX_VALUE).string()
+            if (IpBlockHandler.isIpBlockedError(403, responseBody)) {
+                if (BuildConfig.DEBUG) {
+                    Log.w(TAG, "IP Blocked detected (403). Sending broadcast...")
+                }
+                // Gửi broadcast để Activity hiển thị dialog
+                val intent = Intent(ACTION_IP_BLOCKED)
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+            }
         }
         
         // FIX High #8: Xử lý token hết hạn với auto refresh
@@ -174,5 +189,6 @@ class AuthInterceptor(private val context: Context) : Interceptor {
         private const val TAG = "AuthInterceptor"
         private const val PREF_NAME = "UTETeaPrefs"
         const val ACTION_TOKEN_EXPIRED = "com.example.doan.TOKEN_EXPIRED"
+        const val ACTION_IP_BLOCKED = "com.example.doan.IP_BLOCKED"
     }
 }
