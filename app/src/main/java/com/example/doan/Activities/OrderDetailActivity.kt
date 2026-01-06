@@ -44,6 +44,8 @@ class OrderDetailActivity : AppCompatActivity() {
     private lateinit var rvOrderItems: RecyclerView
     private lateinit var orderDetailItemAdapter: OrderDetailItemAdapter
     private lateinit var btnReorder: MaterialButton
+    private lateinit var btnCancelOrder: MaterialButton
+    private lateinit var llUserActions: android.widget.LinearLayout
     private lateinit var loadingDialog: LoadingDialog
     private lateinit var sessionManager: SessionManager
     
@@ -99,6 +101,8 @@ class OrderDetailActivity : AppCompatActivity() {
         tvPaymentMethod = findViewById(R.id.tv_payment_method)
         rvOrderItems = findViewById(R.id.rv_order_detail_items)
         btnReorder = findViewById(R.id.btn_reorder)
+        btnCancelOrder = findViewById(R.id.btn_cancel_order)
+        llUserActions = findViewById(R.id.ll_user_actions)
         
         // Manager/Admin views
         cardCustomerInfo = findViewById(R.id.card_customer_info)
@@ -112,7 +116,7 @@ class OrderDetailActivity : AppCompatActivity() {
         
         // Ẩn nút đặt lại đơn hàng nếu là Manager/Admin, hiện các control quản lý
         if (isManagerOrAdmin) {
-            btnReorder.visibility = View.GONE
+            llUserActions.visibility = View.GONE
             cardCustomerInfo.visibility = View.VISIBLE
             cardStatusControl.visibility = View.VISIBLE
         }
@@ -133,6 +137,95 @@ class OrderDetailActivity : AppCompatActivity() {
                 reorderFromHistory(order.id.toLong())
             }
         }
+        
+        // Setup cancel order button for User
+        btnCancelOrder.setOnClickListener {
+            currentOrder?.let { order ->
+                showUserCancelOrderDialog(order)
+            }
+        }
+    }
+    
+    /**
+     * Hiển thị dialog xác nhận hủy đơn cho User
+     */
+    private fun showUserCancelOrderDialog(order: Order) {
+        AlertDialog.Builder(this)
+            .setTitle("Xác nhận hủy đơn")
+            .setMessage("Bạn có chắc muốn hủy đơn hàng #${order.getDisplayOrderNumber()}?\n\nĐơn hàng đang ở trạng thái chờ xử lý và có thể hủy được.")
+            .setPositiveButton("Hủy đơn") { _, _ -> 
+                cancelOrderByUser(order.id)
+            }
+            .setNegativeButton("Không", null)
+            .show()
+    }
+    
+    /**
+     * Gọi API hủy đơn hàng cho User
+     */
+    private fun cancelOrderByUser(orderId: Int) {
+        loadingDialog.show("Đang hủy đơn hàng...")
+        
+        RetrofitClient.getInstance(this).apiService.cancelOrder(orderId)
+            .enqueue(object : Callback<ApiResponse<String>> {
+                override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
+                    loadingDialog.dismiss()
+                    
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        Toast.makeText(this@OrderDetailActivity, "✅ Đã hủy đơn hàng thành công", Toast.LENGTH_SHORT).show()
+                        
+                        // Cập nhật UI
+                        currentOrder?.let { order ->
+                            val updatedOrder = order.copy(status = "CANCELED")
+                            currentOrder = updatedOrder
+                            updateUi(updatedOrder)
+                            updateUserCancelButton(updatedOrder.status)
+                        }
+                        
+                        // Clear cache để refresh danh sách đơn hàng
+                        com.example.doan.Utils.DataCache.orderHistory = null
+                        
+                        // Gửi result về để refresh list
+                        setResult(RESULT_OK)
+                    } else {
+                        // Xử lý lỗi từ response body hoặc error body
+                        val errorMsg = if (response.body() != null) {
+                            response.body()?.message ?: "Không thể hủy đơn hàng"
+                        } else {
+                            // Parse error body khi HTTP status không phải 2xx
+                            try {
+                                val errorBody = response.errorBody()?.string()
+                                val errorResponse = Gson().fromJson(errorBody, ApiResponse::class.java)
+                                errorResponse?.message ?: "Không thể hủy đơn hàng"
+                            } catch (e: Exception) {
+                                "Không thể hủy đơn hàng"
+                            }
+                        }
+                        Toast.makeText(this@OrderDetailActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                        
+                        // Reload lại order detail để cập nhật UI đúng trạng thái
+                        currentOrder?.let { loadOrderDetail(it.id) }
+                    }
+                }
+                
+                override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@OrderDetailActivity, "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    /**
+     * Cập nhật hiển thị nút hủy đơn cho User dựa trên trạng thái đơn hàng
+     */
+    private fun updateUserCancelButton(status: String?) {
+        if (isManagerOrAdmin) {
+            btnCancelOrder.visibility = View.GONE
+            return
+        }
+        
+        // Chỉ hiển thị nút hủy khi đơn hàng đang ở trạng thái PENDING
+        btnCancelOrder.visibility = if (status == "PENDING") View.VISIBLE else View.GONE
     }
     
     private fun setupManagerControls() {
@@ -543,6 +636,11 @@ class OrderDetailActivity : AppCompatActivity() {
         // Items
         order.items?.let {
             orderDetailItemAdapter.updateItems(it)
+        }
+        
+        // User: Cập nhật nút hủy đơn
+        if (!isManagerOrAdmin) {
+            updateUserCancelButton(order.status)
         }
         
         // Manager/Admin: Hiển thị thông tin khách hàng và cập nhật nút trạng thái

@@ -174,20 +174,43 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
             
-            <!-- Reorder Button (User only) -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_reorder"
+            <!-- User Action Buttons -->
+            <LinearLayout
+                android:id="@+id/ll_user_actions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
-                android:text="🔄 Đặt lại đơn hàng này"
-                android:textAllCaps="false"
-                app:cornerRadius="12dp"
-                app:icon="@drawable/ic_shopping_cart"
-                app:iconGravity="textStart"
-                app:backgroundTint="@color/wine_primary" />
+                android:orientation="vertical">
+                
+                <!-- Cancel Order Button (User only - visible when PENDING) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_cancel_order"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="❌ Hủy đơn hàng"
+                    android:textAllCaps="false"
+                    android:visibility="gone"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/status_canceled"
+                    android:textColor="@color/status_canceled" />
+                
+                <!-- Reorder Button (User only) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_reorder"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🔄 Đặt lại đơn hàng này"
+                    android:textAllCaps="false"
+                    app:cornerRadius="12dp"
+                    app:icon="@drawable/ic_shopping_cart"
+                    app:iconGravity="textStart"
+                    app:backgroundTint="@color/wine_primary" />
+                    
+            </LinearLayout>
             
             <!-- Manager/Admin: Customer Info Card -->
             <com.google.android.material.card.MaterialCardView
