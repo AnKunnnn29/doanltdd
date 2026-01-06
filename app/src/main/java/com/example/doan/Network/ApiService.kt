@@ -737,6 +737,31 @@ interface ApiService {
     @GET("blocked-ips/check")
     fun checkIPStatus(@Query("ip") ip: String): Call<ApiResponse<Map<String, Any>>>
 
+    // ==================== 🔓 WHITELIST IP MANAGEMENT ====================
+    
+    @POST("whitelist-ips/add")
+    fun addToWhitelist(@Body request: Map<String, String>): Call<ApiResponse<WhitelistedIP>>
+    
+    @POST("whitelist-ips/{id}/remove")
+    fun removeFromWhitelist(@Path("id") id: Long): Call<ApiResponse<String>>
+    
+    @GET("whitelist-ips")
+    fun getActiveWhitelistIPs(): Call<ApiResponse<List<WhitelistedIP>>>
+    
+    @GET("whitelist-ips/all")
+    fun getAllWhitelistIPs(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<WhitelistedIP>>>
+    
+    @GET("whitelist-ips/check")
+    fun checkIPWhitelist(@Query("ip") ip: String): Call<ApiResponse<Map<String, Any>>>
+    
+    // ==================== 🌐 IP CHECK ====================
+    
+    @GET("auth/my-ip")
+    fun getMyIP(): Call<ApiResponse<Map<String, Any>>>
+
     // ==================== LEGACY (Giữ lại để tương thích) ====================
     @GET("orders")
     fun getOrders(@Query("userId") userId: Int): Call<List<Order>>

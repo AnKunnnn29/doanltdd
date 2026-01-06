@@ -148,32 +148,74 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
             // Add new order to the beginning
             allOrders.add(0, newOrder)
             
-            // Play notification sound
-            playNotificationSound()
+            // Chỉ thêm vào displayedOrders nếu phù hợp với filter hiện tại
+            val shouldDisplay = when {
+                // Tab "Tất cả" (NOT_COMPLETED) - chỉ hiển thị đơn chưa hoàn thành
+                currentStatus == "NOT_COMPLETED" -> newOrder.status != "DONE" && newOrder.status != "CANCELED"
+                // Tab cụ thể - chỉ hiển thị đơn có status tương ứng
+                currentStatus != null -> newOrder.status == currentStatus
+                // Không có filter - hiển thị tất cả
+                else -> true
+            }
             
-            // Show toast
-            Toast.makeText(
-                context,
-                "🔔 Đơn hàng mới #${newOrder.id}",
-                Toast.LENGTH_SHORT
-            ).show()
+            if (shouldDisplay) {
+                displayedOrders.add(0, newOrder)
+                
+                // Play notification sound
+                playNotificationSound()
+                
+                // Show toast
+                Toast.makeText(
+                    context,
+                    "🔔 Đơn hàng mới #${newOrder.id}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
         
         // Refresh display
         updateStats()
-        applyFilters()
+        adapter.notifyDataSetChanged()
     }
     
     private fun handleOrderStatusUpdate(updatedOrder: Order) {
         Log.d(TAG, "Order status update via WebSocket: #${updatedOrder.id} -> ${updatedOrder.status}")
         
-        // Find and update the order
+        // Find and update the order in allOrders
         val index = allOrders.indexOfFirst { it.id == updatedOrder.id }
         if (index >= 0) {
             allOrders[index] = updatedOrder
-            updateStats()
-            applyFilters()
         }
+        
+        // Cập nhật displayedOrders dựa trên filter hiện tại
+        val displayIndex = displayedOrders.indexOfFirst { it.id == updatedOrder.id }
+        
+        val shouldDisplay = when {
+            // Filter theo store
+            selectedStoreId != null && updatedOrder.storeId != selectedStoreId -> false
+            // Tab "Tất cả" (NOT_COMPLETED) - chỉ hiển thị đơn chưa hoàn thành
+            currentStatus == "NOT_COMPLETED" -> updatedOrder.status != "DONE" && updatedOrder.status != "CANCELED"
+            // Tab cụ thể - chỉ hiển thị đơn có status tương ứng
+            currentStatus != null -> updatedOrder.status == currentStatus
+            // Không có filter - hiển thị tất cả
+            else -> true
+        }
+        
+        if (displayIndex >= 0) {
+            if (shouldDisplay) {
+                // Cập nhật order
+                displayedOrders[displayIndex] = updatedOrder
+            } else {
+                // Remove khỏi danh sách hiển thị (ví dụ: đơn chuyển sang DONE khi đang ở tab "Tất cả")
+                displayedOrders.removeAt(displayIndex)
+            }
+        } else if (shouldDisplay && index >= 0) {
+            // Thêm vào danh sách hiển thị nếu phù hợp filter
+            displayedOrders.add(0, updatedOrder)
+        }
+        
+        updateStats()
+        adapter.notifyDataSetChanged()
     }
     
     private fun updateConnectionStatus(connected: Boolean) {
@@ -288,7 +330,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 currentStatus = when (tab.position) {
-                    0 -> null
+                    0 -> "NOT_COMPLETED" // Tất cả đơn chưa hoàn thành (filter ở client)
                     1 -> "PENDING"
                     2 -> "MAKING"
                     3 -> "SHIPPING"
@@ -394,10 +436,12 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         emptyState.visibility = View.GONE
         btnLoadMore?.visibility = View.GONE
 
-        Log.d(TAG, "Loading orders page $page with status: $currentStatus, size: $PAGE_SIZE")
+        // Nếu là NOT_COMPLETED, gọi API với status = null rồi filter ở client
+        val apiStatus = if (currentStatus == "NOT_COMPLETED") null else currentStatus
+        Log.d(TAG, "Loading orders page $page with status: $apiStatus (currentStatus: $currentStatus), size: $PAGE_SIZE")
 
         RetrofitClient.getInstance(requireContext()).apiService
-            .getManagerOrders(currentStatus, page, PAGE_SIZE)
+            .getManagerOrders(apiStatus, page, PAGE_SIZE)
             .enqueue(object : Callback<ApiResponse<PageResponse<Order>>> {
                 override fun onResponse(
                     call: Call<ApiResponse<PageResponse<Order>>>,
@@ -423,16 +467,25 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                             pageResponse.content?.let { newOrders ->
                                 allOrders.addAll(newOrders)
                                 
+                                // Filter theo store và status
+                                var filteredNewOrders = newOrders.toList()
+                                
                                 // Filter theo store nếu cần
-                                val filteredNewOrders = if (selectedStoreId != null) {
-                                    newOrders.filter { it.storeId == selectedStoreId }
-                                } else {
-                                    newOrders
+                                if (selectedStoreId != null) {
+                                    filteredNewOrders = filteredNewOrders.filter { it.storeId == selectedStoreId }
                                 }
+                                
+                                // Filter bỏ DONE và CANCELED nếu đang ở tab "Tất cả" (NOT_COMPLETED)
+                                if (currentStatus == "NOT_COMPLETED") {
+                                    filteredNewOrders = filteredNewOrders.filter { 
+                                        it.status != "DONE" && it.status != "CANCELED" 
+                                    }
+                                }
+                                
                                 displayedOrders.addAll(filteredNewOrders)
                             }
 
-                            Log.d(TAG, "Orders loaded: page=$page, total=${allOrders.size}, hasMore=$hasMoreData")
+                            Log.d(TAG, "Orders loaded: page=$page, total=${allOrders.size}, displayed=${displayedOrders.size}, hasMore=$hasMoreData")
 
                             adapter.notifyDataSetChanged()
                             updateStats()
@@ -448,6 +501,7 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                                 emptyState.visibility = View.VISIBLE
                                 view?.findViewById<TextView>(R.id.tv_empty_message)?.text =
                                     if (selectedStoreId != null) "Không có đơn hàng tại chi nhánh này"
+                                    else if (currentStatus == "NOT_COMPLETED") "Không có đơn hàng đang xử lý"
                                     else "Đơn hàng mới sẽ xuất hiện ở đây"
                             } else {
                                 emptyState.visibility = View.GONE

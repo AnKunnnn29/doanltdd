@@ -22,6 +22,7 @@ import com.example.doan.Adapters.ActivityLogAdapter
 import com.example.doan.Adapters.BlockedIPAdapter
 import com.example.doan.Adapters.MonitoringAlertAdapter
 import com.example.doan.Adapters.RiskScoreAdapter
+import com.example.doan.Adapters.WhitelistIPAdapter
 import com.example.doan.Models.ApiResponse
 import com.example.doan.Models.BlockIPRequest
 import com.example.doan.Models.BlockedIP
@@ -32,6 +33,7 @@ import com.example.doan.Models.PageResponse
 import com.example.doan.Models.User
 import com.example.doan.Models.UserActivityLog
 import com.example.doan.Models.UserRiskScore
+import com.example.doan.Models.WhitelistedIP
 import com.example.doan.Network.ApiService
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
@@ -135,7 +137,8 @@ class UserMonitoringActivity : AppCompatActivity() {
         tabLayout.addTab(tabLayout.newTab().setText("Cảnh báo"))
         tabLayout.addTab(tabLayout.newTab().setText("Hoạt động"))
         tabLayout.addTab(tabLayout.newTab().setText("Rủi ro"))
-        tabLayout.addTab(tabLayout.newTab().setText("IP"))
+        tabLayout.addTab(tabLayout.newTab().setText("Block IP"))
+        tabLayout.addTab(tabLayout.newTab().setText("Whitelist"))
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -183,7 +186,12 @@ class UserMonitoringActivity : AppCompatActivity() {
         btnBlockIP.setOnClickListener { showBlockIPMenu() }
         btnRefresh.setOnClickListener { currentPage = 0; hasMoreData = true; onTabChanged() }
         cardBlockedIPs.setOnClickListener { tabLayout.getTabAt(4)?.select() }
-        fabAction.setOnClickListener { if (currentTab == 4) showAddBlockIPDialog() }
+        fabAction.setOnClickListener { 
+            when (currentTab) {
+                4 -> showAddBlockIPDialog()
+                5 -> showAddWhitelistDialog()
+            }
+        }
     }
 
     private fun onTabChanged() {
@@ -227,6 +235,14 @@ class UserMonitoringActivity : AppCompatActivity() {
                 fabAction.setImageResource(R.drawable.ic_add)
                 setupBlockedIPFilters()
                 loadBlockedIPs()
+            }
+            5 -> {
+                scrollDashboard.visibility = View.GONE
+                frameContent.visibility = View.VISIBLE
+                scrollFilter.visibility = View.GONE
+                fabAction.visibility = View.VISIBLE
+                fabAction.setImageResource(R.drawable.ic_add)
+                loadWhitelistIPs()
             }
         }
     }
@@ -916,5 +932,196 @@ class UserMonitoringActivity : AppCompatActivity() {
 
     private fun showError(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    // ==================== WHITELIST IP FUNCTIONS ====================
+    
+    private var whitelistAdapter: WhitelistIPAdapter? = null
+    
+    /**
+     * 🔓 Load danh sách Whitelist IP
+     */
+    private fun loadWhitelistIPs() {
+        showLoading(true)
+        
+        apiService.getActiveWhitelistIPs().enqueue(object : Callback<ApiResponse<List<WhitelistedIP>>> {
+            override fun onResponse(
+                call: Call<ApiResponse<List<WhitelistedIP>>>,
+                response: Response<ApiResponse<List<WhitelistedIP>>>
+            ) {
+                showLoading(false)
+                swipeRefresh.isRefreshing = false
+                
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val whitelist = response.body()?.data ?: emptyList()
+                    
+                    whitelistAdapter = WhitelistIPAdapter(
+                        whitelist.toMutableList(),
+                        { showWhitelistDetail(it) },
+                        { removeFromWhitelist(it) }
+                    )
+                    recyclerView.adapter = whitelistAdapter
+                    
+                    showEmpty(whitelist.isEmpty(), "Chưa có IP trong whitelist\n\nThêm IP để Admin/Manager có thể truy cập")
+                } else {
+                    showError(response.body()?.message ?: "Lỗi tải whitelist")
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<List<WhitelistedIP>>>, t: Throwable) {
+                showLoading(false)
+                swipeRefresh.isRefreshing = false
+                showError("Lỗi: ${t.message}")
+            }
+        })
+    }
+    
+    /**
+     * 🔓 Hiển thị dialog thêm IP vào whitelist
+     */
+    private fun showAddWhitelistDialog() {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 16)
+        }
+        
+        val etIP = EditText(this).apply { 
+            hint = "Nhập địa chỉ IP (VD: 123.21.109.117)"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+        }
+        val etDescription = EditText(this).apply { 
+            hint = "Mô tả (VD: IP văn phòng, IP nhà...)"
+            minLines = 2
+        }
+        
+        // Thêm nút lấy IP hiện tại
+        val btnGetMyIP = TextView(this).apply {
+            text = "📍 Lấy IP hiện tại của tôi"
+            setTextColor(getColor(R.color.wine_primary))
+            setPadding(0, 16, 0, 16)
+            setOnClickListener {
+                getMyCurrentIP { ip ->
+                    etIP.setText(ip)
+                    Toast.makeText(this@UserMonitoringActivity, "IP của bạn: $ip", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        
+        layout.addView(etIP)
+        layout.addView(btnGetMyIP)
+        layout.addView(TextView(this).apply { text = "Mô tả:"; setPadding(0, 8, 0, 8) })
+        layout.addView(etDescription)
+        
+        AlertDialog.Builder(this)
+            .setTitle("🔓 Thêm IP vào Whitelist")
+            .setMessage("IP trong whitelist sẽ được phép truy cập với quyền Admin/Manager")
+            .setView(layout)
+            .setPositiveButton("Thêm") { _, _ ->
+                val ip = etIP.text.toString().trim()
+                val description = etDescription.text.toString().trim()
+                
+                if (ip.isEmpty()) {
+                    Toast.makeText(this, "Vui lòng nhập IP", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                addToWhitelist(ip, description.ifEmpty { "Thêm từ app" })
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    /**
+     * 🌐 Lấy IP hiện tại của thiết bị
+     */
+    private fun getMyCurrentIP(callback: (String) -> Unit) {
+        apiService.getMyIP().enqueue(object : Callback<ApiResponse<Map<String, Any>>> {
+            override fun onResponse(
+                call: Call<ApiResponse<Map<String, Any>>>,
+                response: Response<ApiResponse<Map<String, Any>>>
+            ) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val ip = response.body()?.data?.get("yourIP") as? String ?: "N/A"
+                    callback(ip)
+                } else {
+                    Toast.makeText(this@UserMonitoringActivity, "Không thể lấy IP", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Map<String, Any>>>, t: Throwable) {
+                Toast.makeText(this@UserMonitoringActivity, "Lỗi: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+    
+    /**
+     * ➕ Thêm IP vào whitelist
+     */
+    private fun addToWhitelist(ipAddress: String, description: String) {
+        val request = mapOf("ipAddress" to ipAddress, "description" to description)
+        
+        apiService.addToWhitelist(request).enqueue(object : Callback<ApiResponse<WhitelistedIP>> {
+            override fun onResponse(
+                call: Call<ApiResponse<WhitelistedIP>>,
+                response: Response<ApiResponse<WhitelistedIP>>
+            ) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Toast.makeText(this@UserMonitoringActivity, "✅ Đã thêm IP vào whitelist", Toast.LENGTH_SHORT).show()
+                    loadWhitelistIPs()
+                } else {
+                    Toast.makeText(this@UserMonitoringActivity, response.body()?.message ?: "Lỗi", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse<WhitelistedIP>>, t: Throwable) {
+                Toast.makeText(this@UserMonitoringActivity, "Lỗi: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+    
+    /**
+     * ➖ Xóa IP khỏi whitelist
+     */
+    private fun removeFromWhitelist(whitelistedIP: WhitelistedIP) {
+        AlertDialog.Builder(this)
+            .setTitle("🔒 Xóa khỏi Whitelist")
+            .setMessage("Xóa IP: ${whitelistedIP.ipAddress}?\n\nAdmin/Manager sẽ không thể truy cập từ IP này nữa.")
+            .setPositiveButton("Xóa") { _, _ ->
+                apiService.removeFromWhitelist(whitelistedIP.id).enqueue(object : Callback<ApiResponse<String>> {
+                    override fun onResponse(
+                        call: Call<ApiResponse<String>>,
+                        response: Response<ApiResponse<String>>
+                    ) {
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            Toast.makeText(this@UserMonitoringActivity, "✅ Đã xóa khỏi whitelist", Toast.LENGTH_SHORT).show()
+                            whitelistAdapter?.removeItem(whitelistedIP)
+                        } else {
+                            Toast.makeText(this@UserMonitoringActivity, response.body()?.message ?: "Lỗi", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
+                        Toast.makeText(this@UserMonitoringActivity, "Lỗi: ${t.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    /**
+     * 📋 Hiển thị chi tiết whitelist IP
+     */
+    private fun showWhitelistDetail(whitelistedIP: WhitelistedIP) {
+        val message = "🌐 IP: ${whitelistedIP.ipAddress}\n" +
+            "📝 Mô tả: ${whitelistedIP.description ?: "N/A"}\n" +
+            "🕐 Thêm lúc: ${whitelistedIP.createdAt?.replace("T", " ")?.take(19) ?: "N/A"}"
+        
+        AlertDialog.Builder(this)
+            .setTitle("🔓 Chi tiết Whitelist IP")
+            .setMessage(message)
+            .setPositiveButton("Đóng", null)
+            .setNegativeButton("Xóa") { _, _ -> removeFromWhitelist(whitelistedIP) }
+            .show()
     }
 }

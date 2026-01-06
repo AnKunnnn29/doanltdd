@@ -39,6 +39,7 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
     private lateinit var badgeWarning: TextView
     private lateinit var tvManagedStores: TextView
     private lateinit var btnNotifications: View
+    private lateinit var badgeMonitoring: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,11 +69,15 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         badgeWarning = findViewById(R.id.badge_warning)
         tvManagedStores = findViewById(R.id.tv_managed_stores)
         btnNotifications = findViewById(R.id.btn_notifications)
+        badgeMonitoring = findViewById(R.id.badge_monitoring)
         
-        // 🛡️ Setup User Monitoring Button (thay thế Notification)
+        // 🛡️ Setup User Monitoring Button
         btnNotifications.setOnClickListener {
             startActivity(Intent(this, UserMonitoringActivity::class.java))
         }
+        
+        // Load số cảnh báo chờ xử lý
+        loadPendingAlertsCount()
         
         // Load chi nhánh quản lý
         loadManagedStores()
@@ -163,6 +168,51 @@ class ManagerActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedLis
         if (badgeWarning.visibility == View.VISIBLE) {
             startWarningAnimation()
         }
+        // Reload số cảnh báo
+        loadPendingAlertsCount()
+    }
+    
+    /**
+     * 🛡️ Load số cảnh báo chờ xử lý để hiển thị badge
+     */
+    private fun loadPendingAlertsCount() {
+        // Chỉ Admin mới xem được monitoring
+        if (!sessionManager.isAdmin()) {
+            badgeMonitoring.visibility = View.GONE
+            return
+        }
+        
+        RetrofitClient.getInstance(this).apiService
+            .getMonitoringDashboard()
+            .enqueue(object : Callback<ApiResponse<com.example.doan.Models.MonitoringDashboard>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<com.example.doan.Models.MonitoringDashboard>>,
+                    response: Response<ApiResponse<com.example.doan.Models.MonitoringDashboard>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val dashboard = response.body()?.data
+                        val pendingCount = dashboard?.totalPendingAlerts ?: 0
+                        
+                        if (pendingCount > 0) {
+                            badgeMonitoring.visibility = View.VISIBLE
+                            badgeMonitoring.text = if (pendingCount > 99) "99+" else pendingCount.toString()
+                            
+                            // Animation nhấp nháy nếu có cảnh báo critical
+                            val criticalCount = dashboard?.criticalAlerts ?: 0
+                            if (criticalCount > 0) {
+                                val pulseAnim = AnimationUtils.loadAnimation(this@ManagerActivity, R.anim.pulse_warning)
+                                badgeMonitoring.startAnimation(pulseAnim)
+                            }
+                        } else {
+                            badgeMonitoring.visibility = View.GONE
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<com.example.doan.Models.MonitoringDashboard>>, t: Throwable) {
+                    Log.e(TAG, "Error loading pending alerts: ${t.message}")
+                }
+            })
     }
 
     private fun showLogoutConfirmation() {

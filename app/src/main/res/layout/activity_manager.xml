@@ -100,15 +100,37 @@
 
         </FrameLayout>
 
-        <ImageView
-            android:id="@+id/btn_notifications"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_manage"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="🛡️ Giám sát người dùng"
-            app:tint="@color/wine_light_surface" />
+        <!-- 🛡️ Nút Giám sát người dùng với Badge -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp">
+
+            <ImageView
+                android:id="@+id/btn_notifications"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:padding="8dp"
+                android:src="@drawable/ic_shield_monitoring"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="🛡️ Giám sát người dùng"
+                app:tint="@color/wine_light_surface" />
+
+            <!-- Badge số cảnh báo -->
+            <TextView
+                android:id="@+id/badge_monitoring"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:background="@drawable/bg_badge_warning"
+                android:gravity="center"
+                android:text="0"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </FrameLayout>
 
     </LinearLayout>
 
