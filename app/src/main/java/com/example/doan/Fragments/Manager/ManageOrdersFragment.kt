@@ -150,11 +150,25 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
                 adapter.notifyItemChanged(displayIndex)
             }
         } else {
-            // Add new order to the beginning
-            allOrders.add(0, newOrder)
-            displayedOrders.add(0, newOrder)
-            adapter.notifyItemInserted(0)
-            rvOrders.scrollToPosition(0)
+            // Add new order và sắp xếp lại theo priority
+            allOrders.add(newOrder)
+            sortOrdersByStatusPriority(allOrders)
+            
+            // Cập nhật displayedOrders
+            displayedOrders.clear()
+            val filteredOrders = if (selectedStoreId != null) {
+                allOrders.filter { it.storeId == selectedStoreId }
+            } else {
+                allOrders
+            }
+            displayedOrders.addAll(filteredOrders)
+            adapter.notifyDataSetChanged()
+            
+            // Scroll đến vị trí đơn mới
+            val newOrderIndex = displayedOrders.indexOfFirst { it.id == newOrder.id }
+            if (newOrderIndex >= 0) {
+                rvOrders.scrollToPosition(newOrderIndex)
+            }
             
             // Play notification sound
             playNotificationSound()
@@ -175,24 +189,54 @@ class ManageOrdersFragment : Fragment(), ManagerOrderAdapter.OnOrderActionListen
         }
     }
     
+    /**
+     * Sắp xếp đơn hàng theo thứ tự trạng thái ưu tiên:
+     * PENDING -> MAKING -> SHIPPING -> READY -> DONE -> CANCELED
+     * Trong mỗi trạng thái: sắp xếp từ cũ đến mới (createdAt ASC)
+     */
+    private fun sortOrdersByStatusPriority(orders: MutableList<Order>) {
+        val statusPriority = mapOf(
+            "PENDING" to 1,
+            "MAKING" to 2,
+            "SHIPPING" to 3,
+            "READY" to 4,
+            "DONE" to 5,
+            "CANCELED" to 6
+        )
+        
+        orders.sortWith(compareBy(
+            { statusPriority[it.status] ?: 7 },  // Sắp xếp theo priority status
+            { it.createdAt }                      // Trong cùng status: cũ đến mới (ASC)
+        ))
+    }
+    
     private fun handleOrderStatusUpdate(updatedOrder: Order) {
         Log.d(TAG, "Order status update via WebSocket: #${updatedOrder.id} -> ${updatedOrder.status}")
         
-        // Chỉ update item đó, không reload tất cả
+        // Cập nhật order trong allOrders
         val allIndex = allOrders.indexOfFirst { it.id == updatedOrder.id }
-        val displayIndex = displayedOrders.indexOfFirst { it.id == updatedOrder.id }
-        
         if (allIndex >= 0 && allIndex < allOrders.size) {
             allOrders[allIndex] = updatedOrder
         }
-        if (displayIndex >= 0 && displayIndex < displayedOrders.size) {
-            displayedOrders[displayIndex] = updatedOrder
-            try {
-                adapter.notifyItemChanged(displayIndex)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error notifying WebSocket update: ${e.message}")
-            }
+        
+        // Sắp xếp lại theo priority status
+        sortOrdersByStatusPriority(allOrders)
+        
+        // Cập nhật displayedOrders
+        displayedOrders.clear()
+        val filteredOrders = if (selectedStoreId != null) {
+            allOrders.filter { it.storeId == selectedStoreId }
+        } else {
+            allOrders
         }
+        displayedOrders.addAll(filteredOrders)
+        
+        try {
+            adapter.notifyDataSetChanged()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error notifying WebSocket update: ${e.message}")
+        }
+        
         updateStats()
     }
     
