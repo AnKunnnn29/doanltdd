@@ -295,19 +295,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 }
             }
         }
-    }
-    
-    private fun calculateShippingFee() {
-        if (selectedDeliveryType == "DELIVERY" && selectedProvince != null) {
-            // Sử dụng VietnamProvinces để lấy phí ship theo tỉnh
-            shippingFee = com.example.doan.Utils.VietnamProvinces.getShippingFee(selectedProvince!!)
-            tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
-            calculateTotalPrice()
-        } else {
-            shippingFee = 0
-            tvShippingFee.text = "Phí ship: 0 VNĐ"
-        }
-
+        
         // Xử lý chọn chi nhánh từ Spinner
         spinnerStore.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -339,6 +327,18 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
         btnCheckout.setOnClickListener { 
             handleCheckout()
+        }
+    }
+    
+    private fun calculateShippingFee() {
+        if (selectedDeliveryType == "DELIVERY" && selectedProvince != null) {
+            // Sử dụng VietnamProvinces để lấy phí ship theo tỉnh
+            shippingFee = com.example.doan.Utils.VietnamProvinces.getShippingFee(selectedProvince!!)
+            tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
+            calculateTotalPrice()
+        } else {
+            shippingFee = 0
+            tvShippingFee.text = "Phí ship: 0 VNĐ"
         }
     }
     
