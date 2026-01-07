@@ -292,9 +292,9 @@ class GroupOrderBillPreviewActivity : AppCompatActivity() {
                             order?.id?.toString() ?: "N/A"
                         )
 
-                        // Navigate to order detail
+                        // Navigate to Home after delay
                         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            navigateToOrderDetail(order?.id)
+                            navigateToHome()
                         }, 2500)
                     } else {
                         val errorMsg = response.body()?.message ?: "Đặt hàng thất bại"
@@ -450,6 +450,16 @@ class GroupOrderBillPreviewActivity : AppCompatActivity() {
             intent.putExtra("ORDER_ID", orderId)
             startActivity(intent)
         }
+        finish()
+    }
+    
+    /**
+     * Navigate về trang Home sau khi đặt hàng thành công
+     */
+    private fun navigateToHome() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
         finish()
     }
 }

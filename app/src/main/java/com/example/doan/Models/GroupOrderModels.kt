@@ -21,6 +21,7 @@ data class GroupOrderDto(
     val orderType: String?,
     val deliveryAddress: String?,
     val expiresAt: String?,
+    val remainingSeconds: Long?, // Số giây còn lại từ server
     val maxMembers: Int?,
     val currentMemberCount: Int?,
     val totalPrice: Double?,

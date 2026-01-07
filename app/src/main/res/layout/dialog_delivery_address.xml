@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nhập địa chỉ giao hàng đầy đủ (bao gồm tỉnh/thành phố để tính phí ship)"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/et_delivery_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="VD: 123 Đường ABC, Quận 1, TP. Hồ Chí Minh"
+        android:inputType="textMultiLine"
+        android:minLines="2"
+        android:maxLines="4"
+        android:padding="12dp"
+        android:background="@drawable/bg_edit_text_rounded" />
+
+    <TextView
+        android:id="@+id/tv_shipping_fee_preview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Nhập địa chỉ để tính phí giao hàng"
+        android:textColor="#5C6BC0"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="💡 Mẹo: Nhập tên tỉnh/thành phố để hệ thống tự động tính phí ship chính xác"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="11sp" />
+
+</LinearLayout>

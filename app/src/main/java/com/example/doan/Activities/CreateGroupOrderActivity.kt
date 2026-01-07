@@ -39,6 +39,14 @@ class CreateGroupOrderActivity : AppCompatActivity() {
         Pair("2 giờ", 120),
         Pair("4 giờ", 240)
     )
+    
+    // Các format thời gian có thể từ backend
+    private val dateTimeFormatters = listOf(
+        java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,8 +86,29 @@ class CreateGroupOrderActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        // Xử lý khi thay đổi loại đơn hàng
         rgOrderType.setOnCheckedChangeListener { _, checkedId ->
-            tilAddress.visibility = if (checkedId == R.id.rb_delivery) View.VISIBLE else View.GONE
+            when (checkedId) {
+                R.id.rb_delivery -> {
+                    tilAddress.visibility = View.VISIBLE
+                    etAddress.requestFocus()
+                }
+                R.id.rb_pickup -> {
+                    tilAddress.visibility = View.GONE
+                    etAddress.text?.clear()
+                }
+            }
+        }
+        
+        // Thêm click listener cho RadioButton để đảm bảo hoạt động
+        rbDelivery.setOnClickListener {
+            tilAddress.visibility = View.VISIBLE
+            etAddress.requestFocus()
+        }
+        
+        rbPickup.setOnClickListener {
+            tilAddress.visibility = View.GONE
+            etAddress.text?.clear()
         }
 
         seekbarMaxMembers.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -162,22 +191,27 @@ class CreateGroupOrderActivity : AppCompatActivity() {
                         val isNewSession = groupOrder?.isNewSession == true
                         
                         // Kiểm tra xem phiên có hết hạn chưa (client-side check)
+                        // Sử dụng nhiều format để parse thời gian từ backend
                         val isExpired = try {
                             if (groupOrder?.expiresAt != null) {
-                                val formatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                                val expireTime = java.time.LocalDateTime.parse(groupOrder.expiresAt, formatter)
-                                expireTime.isBefore(java.time.LocalDateTime.now())
+                                val expireTime = parseDateTime(groupOrder.expiresAt)
+                                expireTime?.isBefore(java.time.LocalDateTime.now()) ?: false
                             } else false
-                        } catch (e: Exception) { false }
+                        } catch (e: Exception) { 
+                            android.util.Log.e("CreateGroupOrder", "Error parsing expiration time", e)
+                            false 
+                        }
                         
-                        if (isExpired) {
-                            // Phiên đã hết hạn, thông báo và reload (tối đa 1 lần retry)
+                        if (isExpired && !isNewSession) {
+                            // Phiên cũ đã hết hạn, thông báo và reload (tối đa 1 lần retry)
                             if (retryCount < 1) {
                                 retryCount++
                                 Toast.makeText(this@CreateGroupOrderActivity, 
                                     "Phiên cũ đã hết hạn, đang tạo phiên mới...", Toast.LENGTH_SHORT).show()
-                                // Gọi lại API để tạo phiên mới (backend sẽ tự động expire phiên cũ)
-                                createGroupOrder()
+                                // Delay một chút để backend xử lý expire
+                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                    createGroupOrder()
+                                }, 500)
                                 return
                             } else {
                                 // Đã retry rồi mà vẫn lỗi, hiển thị thông báo
@@ -216,5 +250,26 @@ class CreateGroupOrderActivity : AppCompatActivity() {
                         "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+    
+    /**
+     * Parse datetime string với nhiều format khác nhau
+     */
+    private fun parseDateTime(dateTimeStr: String): java.time.LocalDateTime? {
+        for (formatter in dateTimeFormatters) {
+            try {
+                return java.time.LocalDateTime.parse(dateTimeStr, formatter)
+            } catch (e: Exception) {
+                // Thử format tiếp theo
+            }
+        }
+        // Thử parse với ZonedDateTime nếu có timezone
+        try {
+            val zonedDateTime = java.time.ZonedDateTime.parse(dateTimeStr)
+            return zonedDateTime.toLocalDateTime()
+        } catch (e: Exception) {
+            // Ignore
+        }
+        return null
     }
 }

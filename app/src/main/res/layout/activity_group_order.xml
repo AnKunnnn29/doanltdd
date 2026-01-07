@@ -326,11 +326,12 @@
 
         <Button
             android:id="@+id/btn_leave"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Rời khỏi nhóm"
-            android:textColor="@android:color/holo_red_dark"
+            android:text="👋 Rời khỏi nhóm"
+            android:textColor="@android:color/holo_orange_dark"
+            app:strokeColor="@android:color/holo_orange_dark"
             android:visibility="gone" />
 
         <Button
@@ -338,7 +339,7 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Hủy phiên"
+            android:text="❌ Hủy phiên"
             android:textColor="@android:color/holo_red_dark"
             android:visibility="gone" />
     </LinearLayout>
