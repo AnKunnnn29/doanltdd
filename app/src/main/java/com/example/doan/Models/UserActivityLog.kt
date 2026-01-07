@@ -14,6 +14,9 @@ data class UserActivityLog(
     @SerializedName("userFullName") val userFullName: String?,
     @SerializedName("userAvatarUrl") val userAvatarUrl: String?,
     
+    // Flag đánh dấu log của user đã xóa
+    @SerializedName("isDeletedUser") val isDeletedUser: Boolean? = false,
+    
     @SerializedName("activityType") val activityType: String,
     @SerializedName("activityTypeDisplay") val activityTypeDisplay: String?,
     @SerializedName("description") val description: String?,

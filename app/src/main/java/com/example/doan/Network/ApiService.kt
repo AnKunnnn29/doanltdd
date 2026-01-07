@@ -711,6 +711,32 @@ interface ApiService {
         @Body request: Map<String, String>
     ): Call<ApiResponse<String>>
 
+    // ==================== 📦 BACKUP DATA (USER ĐÃ XÓA) ====================
+    
+    @GET("monitoring/backup/activity-logs")
+    fun getBackupActivityLogs(
+        @Query("deletedUserId") deletedUserId: Long? = null,
+        @Query("deletedUsername") deletedUsername: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<DeletedUserActivityLog>>>
+    
+    @GET("monitoring/backup/alerts")
+    fun getBackupAlerts(
+        @Query("deletedUserId") deletedUserId: Long? = null,
+        @Query("deletedUsername") deletedUsername: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<DeletedUserMonitoringAlert>>>
+    
+    @GET("monitoring/backup/risk-scores")
+    fun getBackupRiskScores(
+        @Query("deletedUserId") deletedUserId: Long? = null,
+        @Query("deletedUsername") deletedUsername: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Call<ApiResponse<PageResponse<DeletedUserRiskScore>>>
+
     // ==================== 🚫 BLOCKED IP MANAGEMENT ====================
     
     @POST("blocked-ips/block")

@@ -51,7 +51,15 @@ class ActivityLogAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         
-        holder.tvUsername.text = item.username ?: "Unknown"
+        // Hiển thị username với badge nếu là user đã xóa
+        if (item.isDeletedUser == true) {
+            holder.tvUsername.text = "🗑️ ${item.username ?: "Unknown"}"
+            holder.tvUsername.setTextColor(android.graphics.Color.parseColor("#9E9E9E")) // Gray
+        } else {
+            holder.tvUsername.text = item.username ?: "Unknown"
+            holder.tvUsername.setTextColor(android.graphics.Color.parseColor("#212121")) // Dark
+        }
+        
         holder.tvActivityType.text = item.activityTypeDisplay ?: item.activityType
         holder.tvDescription.text = item.description ?: ""
         holder.tvRiskLevel.text = item.riskLevelDisplay ?: item.riskLevel
@@ -68,16 +76,16 @@ class ActivityLogAdapter(
         // Set icon
         holder.ivIcon.setImageResource(item.getActivityIcon())
         
-        // Hiển thị nút Block IP nếu có IP và có callback
-        if (!item.ipAddress.isNullOrEmpty() && onBlockIPClick != null) {
+        // Hiển thị nút Block IP nếu có IP và có callback (không hiển thị cho user đã xóa)
+        if (!item.ipAddress.isNullOrEmpty() && onBlockIPClick != null && item.isDeletedUser != true) {
             holder.btnBlockIP.visibility = View.VISIBLE
             holder.btnBlockIP.setOnClickListener { onBlockIPClick.invoke(item) }
         } else {
             holder.btnBlockIP.visibility = View.GONE
         }
         
-        // Hiển thị nút Whitelist IP nếu có IP và có callback
-        if (!item.ipAddress.isNullOrEmpty() && onWhitelistIPClick != null) {
+        // Hiển thị nút Whitelist IP nếu có IP và có callback (không hiển thị cho user đã xóa)
+        if (!item.ipAddress.isNullOrEmpty() && onWhitelistIPClick != null && item.isDeletedUser != true) {
             holder.btnWhitelistIP.visibility = View.VISIBLE
             holder.btnWhitelistIP.setOnClickListener { onWhitelistIPClick.invoke(item) }
         } else {
