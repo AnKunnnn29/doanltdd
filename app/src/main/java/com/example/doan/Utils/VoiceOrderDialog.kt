@@ -213,14 +213,14 @@ class VoiceOrderDialog(
     
     // VoiceOrderListener callbacks
     override fun onListeningStarted() {
-        tvStatus.text = "Dang nghe..."
+        tvStatus.text = "Đang nghe..."
         tvStatus.setTextColor(ContextCompat.getColor(context, R.color.primary))
         ivMic.setColorFilter(ContextCompat.getColor(context, R.color.primary))
         startPulseAnimation()
     }
     
     override fun onListeningEnded() {
-        tvStatus.text = "Nhan mic de noi lai"
+        tvStatus.text = "Nhấn mic để thử lại"
         ivMic.setColorFilter(ContextCompat.getColor(context, R.color.text_secondary))
         stopPulseAnimation()
     }
