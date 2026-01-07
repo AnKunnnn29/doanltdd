@@ -97,6 +97,15 @@ class ActivityLogAdapter(
         // Xóa items cũ nếu vượt quá giới hạn
         trimToMaxSize()
     }
+    
+    /**
+     * 🔄 Update toàn bộ items (cho silent refresh)
+     */
+    fun updateItems(newItems: List<UserActivityLog>) {
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
+    }
 
     /**
      * 🔌 Thêm item mới vào đầu danh sách (cho WebSocket realtime)

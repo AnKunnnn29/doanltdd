@@ -99,6 +99,15 @@ class RiskScoreAdapter(
         notifyItemRangeInserted(startPos, newItems.size)
         trimToMaxSize()
     }
+    
+    /**
+     * 🔄 Update toàn bộ items (cho silent refresh)
+     */
+    fun updateItems(newItems: List<UserRiskScore>) {
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
+    }
 
     /**
      * 🔌 Cập nhật item trong danh sách (cho WebSocket realtime)

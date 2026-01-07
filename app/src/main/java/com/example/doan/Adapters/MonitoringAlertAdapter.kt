@@ -84,6 +84,15 @@ class MonitoringAlertAdapter(
         notifyItemRangeInserted(startPos, newItems.size)
         trimToMaxSize()
     }
+    
+    /**
+     * 🔄 Update toàn bộ items (cho silent refresh)
+     */
+    fun updateItems(newItems: List<MonitoringAlert>) {
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
+    }
 
     /**
      * 🔌 Thêm item mới vào đầu danh sách (cho WebSocket realtime)

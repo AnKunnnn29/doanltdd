@@ -1,6 +1,12 @@
 package com.example.doan.Activities
 
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
@@ -85,6 +91,21 @@ class UserMonitoringActivity : AppCompatActivity() {
     private var hasMoreData = true
     private var currentRiskFilter: String? = null
     private var currentStatusFilter: String? = null
+    
+    // 🔄 Auto-refresh cho real-time monitoring
+    private val refreshHandler = Handler(Looper.getMainLooper())
+    private var autoRefreshRunnable: Runnable? = null
+    private val AUTO_REFRESH_INTERVAL = 10000L // 10 seconds
+    private var isAutoRefreshEnabled = true
+    
+    // 🔊 Sound & Vibration cho critical alerts
+    private var soundPool: SoundPool? = null
+    private var alertSoundId: Int = 0
+    private var vibrator: Vibrator? = null
+    
+    // 📊 Tracking để detect new alerts - Theo dõi số lượng cảnh báo để phát hiện cảnh báo mới
+    private var lastCriticalAlertCount: Long = 0
+    private var lastPendingAlertCount: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,8 +118,198 @@ class UserMonitoringActivity : AppCompatActivity() {
         setupRecyclerView()
         setupSwipeRefresh()
         setupClickListeners()
+        setupSoundAndVibration()
 
         loadDashboard()
+        startAutoRefresh()
+    }
+    
+    // 🔊 Setup Sound & Vibration
+    private fun setupSoundAndVibration() {
+        // Sound Pool cho alert sound
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(1)
+            .setAudioAttributes(audioAttributes)
+            .build()
+        
+        // Load alert sound (sử dụng system sound)
+        try {
+            alertSoundId = soundPool?.load(this, android.provider.Settings.System.DEFAULT_NOTIFICATION_URI.hashCode(), 1) ?: 0
+        } catch (e: Exception) {
+            // Fallback nếu không load được
+        }
+        
+        // Vibrator
+        vibrator = getSystemService(VIBRATOR_SERVICE) as? Vibrator
+    }
+    
+    // 🔄 Start Auto-Refresh
+    private fun startAutoRefresh() {
+        autoRefreshRunnable = object : Runnable {
+            override fun run() {
+                if (isAutoRefreshEnabled && !isLoading && !swipeRefresh.isRefreshing) {
+                    silentRefresh()
+                }
+                refreshHandler.postDelayed(this, AUTO_REFRESH_INTERVAL)
+            }
+        }
+        refreshHandler.postDelayed(autoRefreshRunnable!!, AUTO_REFRESH_INTERVAL)
+    }
+    
+    // 🔄 Stop Auto-Refresh
+    private fun stopAutoRefresh() {
+        autoRefreshRunnable?.let { refreshHandler.removeCallbacks(it) }
+    }
+    
+    // 🔄 Silent Refresh (không show loading)
+    private fun silentRefresh() {
+        when (currentTab) {
+            0 -> loadDashboardSilent()
+            1 -> loadAlertsSilent()
+            2 -> loadActivitiesSilent()
+            3 -> loadRiskScoresSilent()
+            // Tab 4, 5 không cần auto-refresh
+        }
+    }
+    
+    // 📊 Load Dashboard Silent (không show loading, check new alerts)
+    private fun loadDashboardSilent() {
+        apiService.getMonitoringDashboard().enqueue(object : Callback<ApiResponse<MonitoringDashboard>> {
+            override fun onResponse(call: Call<ApiResponse<MonitoringDashboard>>, response: Response<ApiResponse<MonitoringDashboard>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    response.body()?.data?.let { dashboard ->
+                        // Check for new critical alerts
+                        val newCritical = dashboard.criticalAlerts ?: 0
+                        val newPending = dashboard.totalPendingAlerts ?: 0
+                        
+                        if (newCritical > lastCriticalAlertCount) {
+                            // 🚨 New critical alert detected!
+                            playCriticalAlert()
+                            Toast.makeText(this@UserMonitoringActivity, 
+                                "🚨 ${newCritical - lastCriticalAlertCount} cảnh báo nghiêm trọng mới!", 
+                                Toast.LENGTH_LONG).show()
+                        } else if (newPending > lastPendingAlertCount) {
+                            // ⚠️ New pending alert
+                            playWarningVibration()
+                        }
+                        
+                        lastCriticalAlertCount = newCritical
+                        lastPendingAlertCount = newPending
+                        
+                        updateDashboard(dashboard)
+                    }
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<MonitoringDashboard>>, t: Throwable) {
+                // Silent fail - không show error
+            }
+        })
+        loadBlockedIPCount()
+    }
+    
+    // 📋 Load Alerts Silent
+    private fun loadAlertsSilent() {
+        if (currentPage != 0) return // Chỉ refresh page đầu
+        
+        apiService.getMonitoringAlerts(status = currentStatusFilter, page = 0, size = 20)
+            .enqueue(object : Callback<ApiResponse<PageResponse<MonitoringAlert>>> {
+                override fun onResponse(call: Call<ApiResponse<PageResponse<MonitoringAlert>>>, response: Response<ApiResponse<PageResponse<MonitoringAlert>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val alerts = response.body()?.data?.content ?: emptyList()
+                        alertAdapter?.updateItems(alerts)
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<PageResponse<MonitoringAlert>>>, t: Throwable) {}
+            })
+    }
+    
+    // 📋 Load Activities Silent
+    private fun loadActivitiesSilent() {
+        if (currentPage != 0) return
+        
+        apiService.getActivityLogs(riskLevel = currentRiskFilter, page = 0, size = 20)
+            .enqueue(object : Callback<ApiResponse<PageResponse<UserActivityLog>>> {
+                override fun onResponse(call: Call<ApiResponse<PageResponse<UserActivityLog>>>, response: Response<ApiResponse<PageResponse<UserActivityLog>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val activities = response.body()?.data?.content ?: emptyList()
+                        activityLogAdapter?.updateItems(activities)
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<PageResponse<UserActivityLog>>>, t: Throwable) {}
+            })
+    }
+    
+    // 📋 Load Risk Scores Silent
+    private fun loadRiskScoresSilent() {
+        if (currentPage != 0) return
+        
+        apiService.getRiskScores(riskLevel = currentRiskFilter, page = 0, size = 20)
+            .enqueue(object : Callback<ApiResponse<PageResponse<UserRiskScore>>> {
+                override fun onResponse(call: Call<ApiResponse<PageResponse<UserRiskScore>>>, response: Response<ApiResponse<PageResponse<UserRiskScore>>>) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val scores = response.body()?.data?.content ?: emptyList()
+                        riskScoreAdapter?.updateItems(scores)
+                    }
+                }
+                override fun onFailure(call: Call<ApiResponse<PageResponse<UserRiskScore>>>, t: Throwable) {}
+            })
+    }
+    
+    // 🔊 Play Critical Alert Sound + Vibration
+    private fun playCriticalAlert() {
+        // Vibration pattern: long-short-long
+        vibrator?.let {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                it.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 500, 200, 500), -1))
+            } else {
+                @Suppress("DEPRECATION")
+                it.vibrate(longArrayOf(0, 500, 200, 500), -1)
+            }
+        }
+        
+        // Play notification sound
+        try {
+            val notification = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+            val ringtone = android.media.RingtoneManager.getRingtone(this, notification)
+            ringtone?.play()
+        } catch (e: Exception) {
+            // Ignore sound errors
+        }
+    }
+    
+    // 📳 Play Warning Vibration only
+    private fun playWarningVibration() {
+        vibrator?.let {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                it.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                it.vibrate(200)
+            }
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        isAutoRefreshEnabled = true
+        startAutoRefresh()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        isAutoRefreshEnabled = false
+        stopAutoRefresh()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        stopAutoRefresh()
+        soundPool?.release()
+        soundPool = null
     }
 
     private fun initViews() {
