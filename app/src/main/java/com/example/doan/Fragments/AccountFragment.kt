@@ -20,6 +20,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.doan.Activities.*
@@ -60,18 +61,28 @@ class AccountFragment : Fragment() {
     private lateinit var fabEditAvatar: FloatingActionButton
     private lateinit var deleteAccountOption: RelativeLayout
     private lateinit var memberTierOption: RelativeLayout
-    
+
     // Avatar animation views
     private lateinit var avatarContainer: FrameLayout
     private lateinit var avatarGlowOuter: View
     private lateinit var avatarGlowRing: View
     private lateinit var avatarBorder: View
 
+    private var tempImageUri: Uri? = null
+
     // FIX C1: Use ActivityResultLauncher instead of deprecated startActivityForResult
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { uploadAvatar(it) }
+    }
+
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            tempImageUri?.let { uploadAvatar(it) }
+        }
     }
 
     // FIX C1: Use ActivityResultLauncher for permission request
@@ -82,6 +93,16 @@ class AccountFragment : Fragment() {
             openGallery()
         } else {
             Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val requestCameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            openCamera()
+        } else {
+            Toast.makeText(requireContext(), "Camera permission denied", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -108,18 +129,18 @@ class AccountFragment : Fragment() {
         logoutButton = view.findViewById(R.id.logout_button)
         deleteAccountOption = view.findViewById(R.id.delete_account_option)
         memberTierOption = view.findViewById(R.id.member_tier_option)
-        
+
         // Avatar animation views
         avatarContainer = view.findViewById(R.id.avatar_container)
         avatarGlowOuter = view.findViewById(R.id.avatar_glow_outer)
         avatarGlowRing = view.findViewById(R.id.avatar_glow_ring)
         avatarBorder = view.findViewById(R.id.avatar_border)
-        
+
         // Khởi động animation cho avatar
         startAvatarAnimations()
 
         // Thiết lập sự kiện click.
-        fabEditAvatar.setOnClickListener { openGalleryWithPermission() }
+        fabEditAvatar.setOnClickListener { showImageSourceDialog() }
         userDetailOption.setOnClickListener {
             startActivity(Intent(requireContext(), UserDetailActivity::class.java))
         }
@@ -152,6 +173,53 @@ class AccountFragment : Fragment() {
 
         return view
     }
+
+    private fun showImageSourceDialog() {
+        val options = arrayOf("Chụp ảnh", "Chọn từ thư viện")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Thay đổi ảnh đại diện")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openCameraWithPermission()
+                    1 -> openGalleryWithPermission()
+                }
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+    private fun openCameraWithPermission() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        } else {
+            openCamera()
+        }
+    }
+
+    private fun openCamera() {
+        tempImageUri = createImageFileUri()
+        // Make sure tempImageUri is not null
+        tempImageUri?.let {
+             takePictureLauncher.launch(it)
+        }
+    }
+
+    private fun createImageFileUri(): Uri? {
+        val imageFile = File(requireContext().cacheDir, "temp_avatar_camera.jpg")
+        return try {
+            FileProvider.getUriForFile(
+                requireContext(),
+                // Use your application's package name + .provider
+                "com.example.doan.provider",
+                imageFile
+            )
+        } catch (e: Exception) {
+            Log.e("AccountFragment", "Error creating file URI", e)
+            Toast.makeText(requireContext(), "Lỗi tạo file ảnh. Vui lòng cấu hình FileProvider.", Toast.LENGTH_LONG).show()
+            null
+        }
+    }
+
     private fun showDeleteConfirmationDialog() {
         AlertDialog.Builder(requireContext())
             .setTitle("Xác nhận xóa tài khoản")
@@ -162,7 +230,7 @@ class AccountFragment : Fragment() {
             .setNegativeButton("Hủy", null)
             .show()
     }
-    
+
     /**
      * Khởi động các animation đẹp cho avatar
      */
@@ -170,19 +238,19 @@ class AccountFragment : Fragment() {
         // Animation bounce cho avatar khi xuất hiện
         val bounceAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.avatar_bounce_in)
         profileImage.startAnimation(bounceAnim)
-        
+
         // Animation xoay cho vòng glow bên ngoài
         val rotateAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.avatar_glow_rotate)
         avatarGlowRing.startAnimation(rotateAnim)
-        
+
         // Animation pulse cho border
         val pulseAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.avatar_pulse)
         avatarBorder.startAnimation(pulseAnim)
-        
+
         // Animation scale cho FAB
         val fabAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fab_scale_in)
         fabEditAvatar.startAnimation(fabAnim)
-        
+
         // Animation fade cho outer glow
         avatarGlowOuter.alpha = 0f
         avatarGlowOuter.animate()
@@ -321,118 +389,7 @@ class AccountFragment : Fragment() {
                 .into(profileImage)
         }
     }
-
-    private fun fetchAndShowUserDetails() {
-        Log.d("AccountFragment", "Fetching user details")
-
-        // Kiểm tra cache trước
-        val cachedProfile = DataCache.userProfile
-        if (cachedProfile != null) {
-            showUserDetailDialog(cachedProfile)
-            // Vẫn refresh data trong background
-            refreshUserProfile()
-            return
-        }
-
-        loadingDialog.show("Đang tải thông tin...")
-
-        apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
-            override fun onResponse(
-                call: Call<ApiResponse<UserProfileDto>>,
-                response: Response<ApiResponse<UserProfileDto>>
-            ) {
-                if (!isAdded) return
-                loadingDialog.dismiss()
-
-                if (response.isSuccessful && response.body()?.data != null) {
-                    val profile = response.body()!!.data!!
-
-                    // Lưu vào cache
-                    DataCache.userProfile = profile
-
-                    showUserDetailDialog(profile)
-
-                    sessionManager.saveLoginSession(
-                        userId = profile.id?.toInt() ?: -1,
-                        username = profile.username,
-                        email = profile.email,
-                        fullName = profile.fullName,
-                        phone = profile.phone,
-                        role = sessionManager.getRole(),
-                        memberTier = profile.memberTier,
-                        token = sessionManager.getToken(),
-                        refreshToken = sessionManager.getRefreshToken(),
-                        avatar = profile.avatar
-                    )
-                } else {
-                    Toast.makeText(requireContext(), "Lấy thông tin thất bại", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
-                if (!isAdded) return
-                loadingDialog.dismiss()
-                Toast.makeText(requireContext(), "Lỗi mạng: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun refreshUserProfile() {
-        apiService.getMyProfile().enqueue(object : Callback<ApiResponse<UserProfileDto>> {
-            override fun onResponse(
-                call: Call<ApiResponse<UserProfileDto>>,
-                response: Response<ApiResponse<UserProfileDto>>
-            ) {
-                if (!isAdded) return
-
-                if (response.isSuccessful && response.body()?.data != null) {
-                    val profile = response.body()!!.data!!
-                    DataCache.userProfile = profile
-
-                    sessionManager.saveLoginSession(
-                        userId = profile.id?.toInt() ?: -1,
-                        username = profile.username,
-                        email = profile.email,
-                        fullName = profile.fullName,
-                        phone = profile.phone,
-                        role = sessionManager.getRole(),
-                        memberTier = profile.memberTier,
-                        token = sessionManager.getToken(),
-                        refreshToken = sessionManager.getRefreshToken(),
-                        avatar = profile.avatar
-                    )
-
-                    // Cập nhật UI
-                    profileNameText.text = profile.fullName
-                    profileEmailText.text = profile.email
-                }
-            }
-
-            override fun onFailure(call: Call<ApiResponse<UserProfileDto>>, t: Throwable) {
-                Log.e("AccountFragment", "Failed to refresh profile", t)
-            }
-        })
-    }
-
-    private fun showUserDetailDialog(user: UserProfileDto) {
-        val dialog = Dialog(requireContext())
-        dialog.setContentView(R.layout.dialog_user_profile_detail)
-
-        dialog.findViewById<TextView>(R.id.tv_detail_full_name).text = user.fullName ?: "N/A"
-        dialog.findViewById<TextView>(R.id.tv_detail_username).text = "@${user.username ?: "N/A"}"
-        dialog.findViewById<TextView>(R.id.tv_detail_email).text = user.email ?: "N/A"
-        dialog.findViewById<TextView>(R.id.tv_detail_phone).text = user.phone ?: "N/A"
-        dialog.findViewById<TextView>(R.id.tv_detail_address).text = user.address ?: "N/A"
-        dialog.findViewById<TextView>(R.id.tv_detail_tier).text = user.memberTier ?: "N/A"
-        dialog.findViewById<TextView>(R.id.tv_detail_points).text = "${user.points ?: 0} điểm"
-
-        dialog.findViewById<Button>(R.id.btn_close_dialog).setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
-    }
-
+    
     private fun performLogout() {
         sessionManager.logout()
 
