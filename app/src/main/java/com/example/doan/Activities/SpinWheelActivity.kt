@@ -156,12 +156,12 @@ class SpinWheelActivity : AppCompatActivity() {
         val btnClose = dialogView.findViewById<MaterialButton>(R.id.btnCloseResult)
         
         if (result.discountPercent == 0) {
-            tvTitle.text = "😢 Tiếc quá!"
+            tvTitle.text = "Tiếc quá!"
             tvMessage.text = "Chúc bạn may mắn lần sau!"
             tvVoucherCode.visibility = View.GONE
             btnCopy.visibility = View.GONE
         } else {
-            tvTitle.text = "🎉 Chúc mừng!"
+            tvTitle.text = "Chúc mừng!"
             tvMessage.text = "Bạn nhận được voucher giảm ${result.discountPercent}%"
             tvVoucherCode.visibility = View.VISIBLE
             tvVoucherCode.text = result.voucherCode ?: ""
@@ -189,6 +189,6 @@ class SpinWheelActivity : AppCompatActivity() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("Voucher Code", code)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, "✅ Đã copy mã: $code", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Đã copy mã: $code", Toast.LENGTH_LONG).show()
     }
 }

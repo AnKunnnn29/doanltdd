@@ -1,6 +1,8 @@
 package com.example.doan.Adapters
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.doan.Models.Store
 import com.example.doan.R
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 
 class StoreAdapter(
@@ -16,7 +19,6 @@ class StoreAdapter(
     private val onStoreClick: (Store) -> Unit // Click listener
 ) : RecyclerView.Adapter<StoreAdapter.StoreViewHolder>() {
 
-    // Map storeId -> distance info string
     private var distanceMap: Map<Int, String> = emptyMap()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StoreViewHolder {
@@ -51,6 +53,7 @@ class StoreAdapter(
         private val tvStoreHours: TextView = itemView.findViewById(R.id.tv_store_hours)
         private val chipStoreStatus: Chip = itemView.findViewById(R.id.chip_store_status)
         private val tvDistance: TextView? = itemView.findViewById(R.id.tv_store_distance)
+        private val btnViewOnGoogleMaps: MaterialButton = itemView.findViewById(R.id.btn_view_on_google_maps)
 
         fun bind(store: Store, distanceInfo: String?, isNearest: Boolean) {
             tvStoreName.text = store.storeName
@@ -81,9 +84,38 @@ class StoreAdapter(
                 chipStoreStatus.setChipBackgroundColorResource(R.color.success)
             }
             
+            // Xử lý nút xem trên Google Maps
+            btnViewOnGoogleMaps.setOnClickListener {
+                openGoogleMaps(store)
+            }
+            
             itemView.setOnClickListener {
                 onStoreClick(store)
             }
+        }
+        
+        private fun openGoogleMaps(store: Store) {
+            // Ưu tiên sử dụng tọa độ nếu có
+            val lat = store.latitude
+            val lng = store.longitude
+            val storeName = store.storeName ?: "Cửa hàng"
+            val address = store.address ?: ""
+            
+            val uri = if (lat != 0.0 && lng != 0.0) {
+                // Mở Google Maps với tọa độ chính xác
+                Uri.parse("https://www.google.com/maps/search/?api=1&query=$lat,$lng")
+            } else if (address.isNotEmpty()) {
+                // Fallback: tìm kiếm theo địa chỉ
+                val encodedAddress = Uri.encode("$storeName, $address")
+                Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedAddress")
+            } else {
+                // Fallback cuối: tìm theo tên
+                val encodedName = Uri.encode(storeName)
+                Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedName")
+            }
+            
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            context.startActivity(intent)
         }
     }
 }

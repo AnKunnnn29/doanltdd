@@ -116,6 +116,18 @@
 
         </LinearLayout>
 
+        <!-- Button xem trên Google Maps -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_view_on_google_maps"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="🗺️ Xem trên Google Maps"
+            android:textColor="@color/wine_primary"
+            app:strokeColor="@color/wine_primary"
+            app:cornerRadius="8dp" />
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

@@ -18,27 +18,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.view.drawToBitmap
 
-/**
- * 🛒 AddToCartAnimator - Animation sản phẩm bay vào giỏ hàng
- * 
- * Sử dụng:
- * AddToCartAnimator.animate(
- *     activity = this,
- *     sourceView = productImageView,
- *     targetView = cartIconView,
- *     onComplete = { updateCartBadge() }
- * )
- */
-object AddToCartAnimator {
 
-    /**
-     * Animate sản phẩm bay vào giỏ hàng
-     * 
-     * @param activity Activity hiện tại
-     * @param sourceView View nguồn (ảnh sản phẩm)
-     * @param targetView View đích (icon giỏ hàng)
-     * @param onComplete Callback khi animation hoàn thành
-     */
+object AddToCartAnimator {
     fun animate(
         activity: Activity,
         sourceView: View,
@@ -165,9 +146,7 @@ object AddToCartAnimator {
         }
     }
 
-    /**
-     * Pulse effect cho view
-     */
+
     fun pulseView(view: View) {
         val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.9f, 1f)
         val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.9f, 1f)
@@ -179,9 +158,6 @@ object AddToCartAnimator {
         }
     }
 
-    /**
-     * Shake effect khi có lỗi
-     */
     fun shakeView(view: View) {
         ObjectAnimator.ofFloat(view, "translationX", 0f, 25f, -25f, 25f, -25f, 15f, -15f, 6f, -6f, 0f).apply {
             duration = 500
@@ -189,9 +165,6 @@ object AddToCartAnimator {
         }
     }
 
-    /**
-     * Success checkmark animation
-     */
     fun successAnimation(view: View, onComplete: (() -> Unit)? = null) {
         val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 0f, 1.2f, 1f)
         val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 0f, 1.2f, 1f)

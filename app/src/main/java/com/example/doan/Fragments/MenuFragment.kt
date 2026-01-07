@@ -46,8 +46,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.text.Normalizer
 
-// YÊU CẦU: Chuyển toàn bộ nội dung của trang Home cũ sang đây.
-// TÁC DỤNG: Màn hình này hiển thị toàn bộ thực đơn, cho phép tìm kiếm, lọc theo danh mục và giá.
+
 class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
     private lateinit var productRecyclerView: RecyclerView
@@ -86,7 +85,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
 
     // Cac bien trang thai cho bo loc.
     private var currentSearchQuery = ""
-    private var isPriceAscending: Boolean? = null // null: khong sap xep, true: tang dan, false: giam dan
+    private var isPriceAscending: Boolean? = null
     
     // Permission launcher for microphone
     private val micPermissionLauncher = registerForActivityResult(
@@ -213,9 +212,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         }
     }
     
-    /**
-     * Toggle expand/collapse Quick Actions với animation
-     */
+
     private fun toggleQuickActions() {
         isQuickActionsExpanded = !isQuickActionsExpanded
         
@@ -247,9 +244,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         }
     }
     
-    /**
-     * Hiển thị dialog chọn tạo hoặc tham gia nhóm đặt hàng
-     */
+
     private fun showGroupOrderOptions() {
         val options = arrayOf("🆕 Tạo nhóm mới", "🔗 Tham gia nhóm")
         android.app.AlertDialog.Builder(requireContext())
@@ -263,9 +258,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
             .show()
     }
     
-    /**
-     * Kiểm tra quyền mic và hiển thị Voice Order dialog
-     */
+
     private fun checkMicPermissionAndShowVoiceOrder() {
         when {
             ContextCompat.checkSelfPermission(
@@ -290,10 +283,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
             Toast.makeText(context, "Cần quyền microphone để sử dụng tính năng này", Toast.LENGTH_LONG).show()
         }
     }
-    
-    /**
-     * Hiển thị Voice Order Dialog
-     */
+
     private fun showVoiceOrderDialog() {
         VoiceOrderDialog(requireContext()) { product, quantity, sizeName ->
             // Callback khi user xác nhận đặt hàng bằng giọng nói
@@ -301,9 +291,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
         }.show()
     }
     
-    /**
-     * Thêm sản phẩm vào giỏ hàng từ Voice Order
-     */
+
     private fun addProductToCart(product: Product, quantity: Int, sizeName: String) {
         // Tìm sizeId từ sizeName
         val sizeId = product.sizes?.find { it.sizeName.equals(sizeName, ignoreCase = true) }?.id?.toLong() ?: 0L
@@ -339,7 +327,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     }
 
     private fun setupRecyclerViews() {
-        // TÁC DỤNG: Cấu hình LayoutManager và Adapter cho các RecyclerView.
+        // Cấu hình LayoutManager và Adapter cho các RecyclerView.
         productRecyclerView.layoutManager = GridLayoutManager(context, 2)
         productAdapter = ProductAdapter(currentProductList)
         productRecyclerView.adapter = productAdapter
@@ -361,7 +349,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     }
 
     private fun setupSearch() {
-        // TÁC DỤNG: Thiết lập hành vi cho thanh tìm kiếm.
+        // Thiết lập hành vi cho thanh tìm kiếm.
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 searchView.clearFocus()
@@ -392,7 +380,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     }
 
     private fun updateSearchSuggestions(query: String) {
-        // TÁC DỤNG: Cập nhật danh sách gợi ý tìm kiếm dựa trên từ khóa.
+        // Cập nhật danh sách gợi ý tìm kiếm dựa trên từ khóa.
         val allProducts = DataCache.products ?: return
         val normalizedQuery = removeAccents(query.lowercase())
 
@@ -431,7 +419,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     }
 
     private fun updateFilterIcon() {
-        // TÁC DỤNG: Cập nhật icon của nút lọc giá.
+        // Cập nhật icon của nút lọc giá.
         val iconRes = when (isPriceAscending) {
             true -> R.drawable.ic_sort_ascending
             false -> R.drawable.ic_sort_descending
@@ -462,7 +450,7 @@ class MenuFragment : Fragment(), CategoryAdapter.OnCategoryClickListener {
     }
 
     private fun applyFilters() {
-        // TÁC DỤNG: Áp dụng tất cả các bộ lọc hiện tại vào danh sách sản phẩm.
+        // Áp dụng tất cả các bộ lọc hiện tại vào danh sách sản phẩm.
         val allProducts = DataCache.products ?: return
         var filteredList = allProducts.toList()
 

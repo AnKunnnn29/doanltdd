@@ -62,7 +62,6 @@ class ProductDetailActivity : AppCompatActivity() {
     private var selectedSize: DrinkSize? = null
     private val selectedToppings = mutableSetOf<DrinkTopping>()
     
-    // FIX C5: Lưu reference của các Retrofit calls để cancel khi Activity destroy
     private var loadProductCall: Call<ApiResponse<List<Drink>>>? = null
     private var addToCartCall: Call<ApiResponse<Cart>>? = null
     private var loadReviewsCall: Call<ApiResponse<List<Review>>>? = null
@@ -84,8 +83,7 @@ class ProductDetailActivity : AppCompatActivity() {
         setupReviewsRecyclerView()
         loadProductDetails()
     }
-    
-    // FIX C5: Cancel tất cả pending calls khi Activity bị destroy
+
     override fun onDestroy() {
         super.onDestroy()
         loadProductCall?.cancel()
@@ -157,13 +155,13 @@ class ProductDetailActivity : AppCompatActivity() {
     private fun loadProductDetails() {
         loadingDialog.show("Đang tải sản phẩm...")
         
-        // FIX C5: Lưu reference để có thể cancel
+
         loadProductCall = RetrofitClient.getInstance(this).apiService.getDrinks()
         loadProductCall?.enqueue(object : Callback<ApiResponse<List<Drink>>> {
             override fun onResponse(call: Call<ApiResponse<List<Drink>>>, response: Response<ApiResponse<List<Drink>>>) {
                 loadingDialog.dismiss()
                 
-                // FIX C5: Kiểm tra Activity còn tồn tại không
+                // Kiểm tra Activity còn tồn tại không
                 if (isFinishing || isDestroyed) {
                     Log.d(TAG, "Activity destroyed, ignoring response")
                     return
@@ -177,11 +175,11 @@ class ProductDetailActivity : AppCompatActivity() {
                         displayProductFullDetails(it)
                         loadReviews(productId.toLong())
                     } ?: run {
-                        // FIX C2: Hiển thị lỗi cho user khi không tìm thấy sản phẩm
+                        //Hiển thị lỗi cho user khi không tìm thấy sản phẩm
                         Toast.makeText(this@ProductDetailActivity, "Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    // FIX C2: Xử lý lỗi response và hiển thị cho user
+
                     val errorMessage = try {
                         response.body()?.message ?: response.errorBody()?.string() ?: "Lỗi tải thông tin sản phẩm"
                     } catch (e: Exception) {
@@ -195,13 +193,11 @@ class ProductDetailActivity : AppCompatActivity() {
             override fun onFailure(call: Call<ApiResponse<List<Drink>>>, t: Throwable) {
                 loadingDialog.dismiss()
                 
-                // FIX C5: Kiểm tra Activity còn tồn tại không
                 if (isFinishing || isDestroyed) {
                     Log.d(TAG, "Activity destroyed, ignoring failure")
                     return
                 }
                 
-                // FIX C2: Hiển thị lỗi mạng cho user
                 if (!call.isCanceled) {
                     val errorMessage = when {
                         t is java.net.UnknownHostException -> "Không có kết nối mạng"
@@ -382,14 +378,11 @@ class ProductDetailActivity : AppCompatActivity() {
             note = ""
         )
 
-        // FIX C5: Lưu reference để có thể cancel
-        // Sử dụng API mới - không cần truyền userId (lấy từ JWT token)
         addToCartCall = RetrofitClient.getInstance(this).apiService.addToCart(request)
         addToCartCall?.enqueue(object : Callback<ApiResponse<Cart>> {
             override fun onResponse(call: Call<ApiResponse<Cart>>, response: Response<ApiResponse<Cart>>) {
                 loadingDialog.dismiss()
-                
-                // FIX C5: Kiểm tra Activity còn tồn tại không
+
                 if (isFinishing || isDestroyed) return
                 
                 if (response.isSuccessful && response.body()?.success == true) {
@@ -403,9 +396,7 @@ class ProductDetailActivity : AppCompatActivity() {
                         })
                         finish()
                     } else {
-                        // Kiểm tra settings trước khi animate
                         if (SeasonalEffectManager.isCartAnimationEnabled(this@ProductDetailActivity)) {
-                            // Animate product flying to cart and show notification
                             AddToCartAnimator.animate(
                                 activity = this@ProductDetailActivity,
                                 sourceView = ivProductImage,
@@ -418,7 +409,6 @@ class ProductDetailActivity : AppCompatActivity() {
                                 }
                             )
                         } else {
-                            // Chỉ hiển thị notification
                             InAppNotification.cartAdded(
                                 this@ProductDetailActivity,
                                 product?.name ?: tvProductName.text.toString()
@@ -426,7 +416,6 @@ class ProductDetailActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    // FIX C2: Xử lý lỗi response tốt hơn
                     val errorMessage = try {
                         response.body()?.message ?: response.errorBody()?.string() ?: "Lỗi thêm giỏ hàng"
                     } catch (e: Exception) {
@@ -439,10 +428,8 @@ class ProductDetailActivity : AppCompatActivity() {
             override fun onFailure(call: Call<ApiResponse<Cart>>, t: Throwable) {
                 loadingDialog.dismiss()
                 
-                // FIX C5: Kiểm tra Activity còn tồn tại không
                 if (isFinishing || isDestroyed) return
                 
-                // FIX C2: Hiển thị lỗi mạng cho user
                 if (!call.isCanceled) {
                     val errorMessage = when {
                         t is java.net.UnknownHostException -> "Không có kết nối mạng"

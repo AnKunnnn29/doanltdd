@@ -286,7 +286,7 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="80dp" />
+                android:layout_height="140dp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -297,7 +297,9 @@
         android:background="@android:color/white"
         android:elevation="8dp"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingHorizontal="12dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="16dp">
 
         <LinearLayout
             android:id="@+id/ll_host_actions"

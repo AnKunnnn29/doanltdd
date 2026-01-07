@@ -434,16 +434,16 @@ class OrderDetailActivity : AppCompatActivity() {
         val addedItems = response.itemStatuses?.filter { it.addedToCart } ?: emptyList()
         
         val messageBuilder = StringBuilder()
-        messageBuilder.append("✅ Đã thêm ${addedItems.size} món vào giỏ hàng\n\n")
+        messageBuilder.append(" Đã thêm ${addedItems.size} món vào giỏ hàng\n\n")
         
         if (unavailableItems.isNotEmpty()) {
-            messageBuilder.append("⚠️ Các món không còn bán:\n")
+            messageBuilder.append("Các món không còn bán:\n")
             unavailableItems.forEach { item ->
                 messageBuilder.append("• ${item.drinkName}")
                 item.reason?.let { messageBuilder.append("\n  → $it") }
                 
                 item.suggestions?.takeIf { it.isNotEmpty() }?.let { suggestions ->
-                    messageBuilder.append("\n  💡 Gợi ý: ")
+                    messageBuilder.append("\n  Gợi ý: ")
                     suggestions.take(2).forEachIndexed { index, suggestion ->
                         if (index > 0) messageBuilder.append(", ")
                         messageBuilder.append(suggestion.drinkName)
@@ -458,7 +458,7 @@ class OrderDetailActivity : AppCompatActivity() {
         }
         
         if (itemsWithUnavailableToppings.isNotEmpty()) {
-            messageBuilder.append("ℹ️ Một số topping không còn bán:\n")
+            messageBuilder.append(" Một số topping không còn bán:\n")
             itemsWithUnavailableToppings.forEach { item ->
                 val unavailableToppings = item.toppingStatuses?.filter { !it.available }
                 unavailableToppings?.forEach { topping ->
@@ -632,24 +632,24 @@ class OrderDetailActivity : AppCompatActivity() {
         }
         
         // Order info
-        tvStoreName.text = "🏪 Cửa hàng: ${order.storeName ?: "Chưa xác định"}"
+        tvStoreName.text = "Cửa hàng: ${order.storeName ?: "Chưa xác định"}"
         tvOrderType.text = when (order.type) {
-            "DELIVERY" -> "🚚 Loại đơn: Giao hàng"
-            "PICKUP" -> "🏪 Loại đơn: Lấy tại quầy"
+            "DELIVERY" -> "Loại đơn: Giao hàng"
+            "PICKUP" -> "Loại đơn: Lấy tại quầy"
             else -> "Loại đơn: ${order.type ?: "Không rõ"}"
         }
         
         if (order.type == "DELIVERY" && !order.address.isNullOrEmpty()) {
             tvCustomerAddress.visibility = View.VISIBLE
-            tvCustomerAddress.text = "📍 Địa chỉ: ${order.address}"
+            tvCustomerAddress.text = "Địa chỉ: ${order.address}"
         } else if (order.type == "PICKUP") {
             tvCustomerAddress.visibility = View.VISIBLE
-            tvCustomerAddress.text = "📍 Nhận tại: ${order.storeName ?: "Cửa hàng"}"
+            tvCustomerAddress.text = " Nhận tại: ${order.storeName ?: "Cửa hàng"}"
         } else {
             tvCustomerAddress.visibility = View.GONE
         }
         
-        tvPaymentMethod.text = "💳 Thanh toán: ${getPaymentMethodDisplay(order.paymentMethod)}"
+        tvPaymentMethod.text = "Thanh toán: ${getPaymentMethodDisplay(order.paymentMethod)}"
         
         // Items
         order.items?.let {

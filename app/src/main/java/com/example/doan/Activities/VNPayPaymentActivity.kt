@@ -216,7 +216,6 @@ class VNPayPaymentActivity : AppCompatActivity() {
     }
     
     private fun clearCartOnServer() {
-        // FIX: Chỉ xóa những sản phẩm đã mua, giữ lại các sản phẩm khác trong giỏ hàng
         val itemIds = cartItemIds
         if (itemIds != null && itemIds.isNotEmpty()) {
             removeSelectedItemsFromCart(itemIds)
@@ -237,9 +236,7 @@ class VNPayPaymentActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Xóa từng sản phẩm đã mua khỏi giỏ hàng
-     */
+
     private fun removeSelectedItemsFromCart(itemIds: LongArray) {
         for (cartItemId in itemIds) {
             RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)

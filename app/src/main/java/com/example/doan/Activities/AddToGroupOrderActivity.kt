@@ -1,10 +1,15 @@
 package com.example.doan.Activities
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.doan.Adapters.CombinedVoucherAdapter
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
 import com.example.doan.R
@@ -23,10 +28,14 @@ class AddToGroupOrderActivity : AppCompatActivity() {
     private lateinit var tvDrinkName: TextView
     private lateinit var tvDrinkPrice: TextView
     private lateinit var chipGroupSize: ChipGroup
+    private lateinit var llToppings: LinearLayout
+    private lateinit var tvToppingsLabel: TextView
     private lateinit var btnDecrease: ImageButton
     private lateinit var btnIncrease: ImageButton
     private lateinit var tvQuantity: TextView
     private lateinit var etNote: EditText
+    private lateinit var btnSelectVoucher: Button
+    private lateinit var tvSelectedVoucher: TextView
     private lateinit var btnAddToGroup: Button
     private lateinit var loadingDialog: LoadingDialog
 
@@ -39,6 +48,9 @@ class AddToGroupOrderActivity : AppCompatActivity() {
     private var selectedSize: String = "M"
     private var quantity: Int = 1
     private var product: Product? = null
+    private val selectedToppings = mutableSetOf<DrinkTopping>()
+    private var selectedVoucher: Voucher? = null
+    private var selectedSpinVoucher: SpinRewardDto? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,10 +82,14 @@ class AddToGroupOrderActivity : AppCompatActivity() {
         tvDrinkName = findViewById(R.id.tv_drink_name)
         tvDrinkPrice = findViewById(R.id.tv_drink_price)
         chipGroupSize = findViewById(R.id.chip_group_size)
+        llToppings = findViewById(R.id.ll_toppings)
+        tvToppingsLabel = findViewById(R.id.tv_toppings_label)
         btnDecrease = findViewById(R.id.btn_decrease)
         btnIncrease = findViewById(R.id.btn_increase)
         tvQuantity = findViewById(R.id.tv_quantity)
         etNote = findViewById(R.id.et_note)
+        btnSelectVoucher = findViewById(R.id.btn_select_voucher)
+        tvSelectedVoucher = findViewById(R.id.tv_selected_voucher)
         btnAddToGroup = findViewById(R.id.btn_add_to_group)
 
         // Set initial data
@@ -101,21 +117,68 @@ class AddToGroupOrderActivity : AppCompatActivity() {
             }
         }
 
+        btnSelectVoucher.setOnClickListener {
+            showVoucherSelectionDialog()
+        }
+
         btnAddToGroup.setOnClickListener {
             addToGroupOrder()
         }
     }
 
     private fun loadProductDetails() {
-        // Tìm product từ cache để lấy sizes
+        // Tìm product từ cache để lấy sizes và toppings
         product = DataCache.products?.find { it.id == drinkId.toInt() }
         
         if (product != null) {
             setupSizeChips(product!!.sizes)
+            setupToppings(product!!.toppings)
         } else {
-            // Nếu không có trong cache, tạo size mặc định
-            setupDefaultSizeChips()
+            // Load từ API nếu không có trong cache
+            loadProductFromApi()
         }
+    }
+
+    private fun loadProductFromApi() {
+        loadingDialog.show("Đang tải thông tin sản phẩm...")
+
+        RetrofitClient.getInstance(this).apiService.getDrinkById(drinkId.toInt())
+            .enqueue(object : Callback<ApiResponse<Drink>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<Drink>>,
+                    response: Response<ApiResponse<Drink>>
+                ) {
+                    loadingDialog.dismiss()
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        val drink = response.body()?.data
+                        if (drink != null) {
+                            // Convert Drink to Product
+                            product = Product(
+                                id = drink.id,
+                                name = drink.name,
+                                price = drink.basePrice,
+                                imageUrl = drink.imageUrl,
+                                sizes = drink.sizes,
+                                toppings = drink.toppings
+                            )
+                            setupSizeChips(product!!.sizes)
+                            setupToppings(product!!.toppings)
+                        } else {
+                            Toast.makeText(this@AddToGroupOrderActivity, "Không tìm thấy thông tin sản phẩm.", Toast.LENGTH_SHORT).show()
+                            setupDefaultSizeChips()
+                        }
+                    } else {
+                        Toast.makeText(this@AddToGroupOrderActivity, response.body()?.message ?: "Lỗi tải sản phẩm", Toast.LENGTH_SHORT).show()
+                        setupDefaultSizeChips()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<Drink>>, t: Throwable) {
+                    loadingDialog.dismiss()
+                    Toast.makeText(this@AddToGroupOrderActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                    setupDefaultSizeChips()
+                }
+            })
     }
 
     private fun setupSizeChips(sizes: List<DrinkSize>?) {
@@ -172,29 +235,172 @@ class AddToGroupOrderActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateTotalPrice() {
-        var totalPrice = drinkPrice
+    private fun setupToppings(toppings: List<DrinkTopping>?) {
+        llToppings.removeAllViews()
         
-        // Add size extra price
-        product?.sizes?.find { it.sizeName == selectedSize }?.let { size ->
-            totalPrice += size.extraPrice ?: 0.0
+        if (toppings.isNullOrEmpty()) {
+            tvToppingsLabel.visibility = View.GONE
+            llToppings.visibility = View.GONE
+            return
         }
+
+        tvToppingsLabel.visibility = View.VISIBLE
+        llToppings.visibility = View.VISIBLE
+
+        toppings.forEach { topping ->
+            val checkBox = CheckBox(this).apply {
+                text = "${topping.toppingName} (+${String.format(Locale.getDefault(), "%,.0f VNĐ", topping.price)})"
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        selectedToppings.add(topping)
+                    } else {
+                        selectedToppings.remove(topping)
+                    }
+                    updateTotalPrice()
+                }
+            }
+            llToppings.addView(checkBox)
+        }
+    }
+
+    private fun showVoucherSelectionDialog() {
+        val loadingDialog = LoadingDialog(this)
+        loadingDialog.show("Đang tải voucher...")
+
+        var normalVouchers: List<Voucher> = emptyList()
+        var spinVouchers: List<SpinRewardDto> = emptyList()
+        var loadedCount = 0
+
+        // Load voucher thường
+        RetrofitClient.getInstance(this).apiService.getActivePromotions()
+            .enqueue(object : Callback<ApiResponse<List<Voucher>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<Voucher>>>,
+                    response: Response<ApiResponse<List<Voucher>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        normalVouchers = response.body()?.data ?: emptyList()
+                    }
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<Voucher>>>, t: Throwable) {
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
+                    }
+                }
+            })
+
+        // Load voucher spin
+        RetrofitClient.getInstance(this).apiService.getAvailableRewards()
+            .enqueue(object : Callback<ApiResponse<List<SpinRewardDto>>> {
+                override fun onResponse(
+                    call: Call<ApiResponse<List<SpinRewardDto>>>,
+                    response: Response<ApiResponse<List<SpinRewardDto>>>
+                ) {
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        spinVouchers = response.body()?.data ?: emptyList()
+                    }
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse<List<SpinRewardDto>>>, t: Throwable) {
+                    loadedCount++
+                    if (loadedCount >= 2) {
+                        loadingDialog.dismiss()
+                        showCombinedVoucherDialog(normalVouchers, spinVouchers)
+                    }
+                }
+            })
+    }
+
+    private fun showCombinedVoucherDialog(
+        normalVouchers: List<Voucher>,
+        spinVouchers: List<SpinRewardDto>
+    ) {
+        if (normalVouchers.isEmpty() && spinVouchers.isEmpty()) {
+            Toast.makeText(this, "Không có voucher khả dụng", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_voucher_selection, null)
+        val rvVouchers: RecyclerView = dialogView.findViewById(R.id.rv_vouchers)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Chọn Voucher")
+            .setView(dialogView)
+            .setNegativeButton("Đóng", null)
+            .create()
+
+        val combinedItems = mutableListOf<Any>()
+        combinedItems.addAll(normalVouchers)
+        combinedItems.addAll(spinVouchers)
+
+        val combinedAdapter = CombinedVoucherAdapter(combinedItems) { item ->
+            when (item) {
+                is Voucher -> {
+                    selectedVoucher = item
+                    selectedSpinVoucher = null 
+                    tvSelectedVoucher.text = item.description ?: ""
+                }
+                is SpinRewardDto -> {
+                    selectedSpinVoucher = item
+                    selectedVoucher = null
+                    tvSelectedVoucher.text = item.discountLabel ?: ""
+                }
+            }
+            tvSelectedVoucher.visibility = View.VISIBLE
+            updateTotalPrice()
+            dialog.dismiss()
+        }
+        rvVouchers.layoutManager = LinearLayoutManager(this)
+        rvVouchers.adapter = combinedAdapter
+
+        dialog.show()
+    }
+    
+    private fun updateTotalPrice() {
+        var total = product?.price ?: drinkPrice
         
-        totalPrice *= quantity
-        
-        btnAddToGroup.text = "Thêm vào đơn nhóm - ${String.format(Locale.getDefault(), "%,.0f VNĐ", totalPrice)}"
+        product?.sizes?.find { it.sizeName == selectedSize }?.let {
+            total += it.extraPrice
+        }
+
+        selectedToppings.forEach { 
+            total += it.price
+        }
+
+        total *= quantity
+
+        // TODO: Apply voucher discount
+
+        tvDrinkPrice.text = String.format(Locale.getDefault(), "%,.0f VNĐ", total)
     }
 
     private fun addToGroupOrder() {
-        loadingDialog.show("Đang thêm món...")
+        val selectedToppingIds = selectedToppings.map { it.id.toLong() }
 
         val request = AddGroupOrderItemRequest(
             drinkId = drinkId,
             quantity = quantity,
             sizeName = selectedSize,
-            toppingIds = null,
-            note = etNote.text.toString().takeIf { it.isNotEmpty() }
+            toppingIds = selectedToppingIds,
+            note = etNote.text.toString().takeIf { it.isNotEmpty() },
+            promotionCode = selectedVoucher?.code,
+            spinVoucherCode = selectedSpinVoucher?.voucherCode
         )
+
+        loadingDialog.show("Đang thêm vào nhóm...")
 
         RetrofitClient.getInstance(this).apiService.addGroupOrderItem(groupOrderId, request)
             .enqueue(object : Callback<ApiResponse<GroupOrderDto>> {
@@ -204,20 +410,16 @@ class AddToGroupOrderActivity : AppCompatActivity() {
                 ) {
                     loadingDialog.dismiss()
                     if (response.isSuccessful && response.body()?.success == true) {
-                        Toast.makeText(this@AddToGroupOrderActivity, 
-                            "Đã thêm $drinkName vào đơn nhóm!", Toast.LENGTH_SHORT).show()
-                        setResult(RESULT_OK)
+                        Toast.makeText(this@AddToGroupOrderActivity, "Thêm thành công", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        Toast.makeText(this@AddToGroupOrderActivity,
-                            response.body()?.message ?: "Lỗi thêm món", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddToGroupOrderActivity, response.body()?.message ?: "Lỗi thêm món", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiResponse<GroupOrderDto>>, t: Throwable) {
                     loadingDialog.dismiss()
-                    Toast.makeText(this@AddToGroupOrderActivity, 
-                        "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddToGroupOrderActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
                 }
             })
     }

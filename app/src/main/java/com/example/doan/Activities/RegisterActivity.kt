@@ -30,7 +30,6 @@ class RegisterActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "RegisterActivity"
-        // FIX C6: Regex patterns cho validation
         private val USERNAME_PATTERN = Regex("^[a-zA-Z0-9_]{3,50}$")
         private const val MIN_PASSWORD_LENGTH = 6
         private const val MAX_PASSWORD_LENGTH = 100
@@ -157,7 +156,6 @@ class RegisterActivity : AppCompatActivity() {
         val confirmPassword = confirmPasswordInput.text.toString().trim()
         val email = emailInput.text.toString().trim()
 
-        // FIX C6: Validate tất cả input trước khi gửi API
         if (!validateInputs(username, password, confirmPassword, email)) {
             triggerRiveInput("trigFail")
             return
@@ -179,7 +177,7 @@ class RegisterActivity : AppCompatActivity() {
     }
     
     /**
-     * FIX C6: Validate tất cả input fields
+     * Validate tất cả input fields
      * @return true nếu tất cả input hợp lệ, false nếu có lỗi
      */
     private fun validateInputs(username: String, password: String, confirmPassword: String, email: String): Boolean {

@@ -6,8 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -30,6 +28,9 @@ import com.example.doan.Utils.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 class GroupOrderActivity : AppCompatActivity() {
@@ -69,13 +70,6 @@ class GroupOrderActivity : AppCompatActivity() {
     private var lastOtpSentTime = 0L
     private val OTP_COOLDOWN = 60_000L // 60 giây
     private var currentUserProfile: UserProfileDto? = null
-    
-    // ✅ REALTIME POLLING - Cập nhật thành viên và món mới
-    private val pollingHandler = Handler(Looper.getMainLooper())
-    private var isPollingActive = false
-    private val POLLING_INTERVAL = 5000L // 5 giây
-    private var lastMemberCount = 0
-    private var lastItemCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -262,9 +256,8 @@ class GroupOrderActivity : AppCompatActivity() {
         calculateShippingFee()
 
         // Members
-        val members = order.members ?: emptyList()
         memberAdapter = GroupOrderMemberAdapter(
-            members,
+            order.members ?: emptyList(),
             onKickMember = { /* TODO: Implement kick */ },
             isHost = isHost
         )
@@ -286,10 +279,6 @@ class GroupOrderActivity : AppCompatActivity() {
         // Empty state
         tvEmptyItems.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
         rvItems.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
-        
-        // Update tracking counts cho polling
-        lastMemberCount = order.currentMemberCount ?: members.size
-        lastItemCount = items.size
 
         // Action buttons visibility
         updateActionButtons(order.status)
@@ -382,44 +371,38 @@ class GroupOrderActivity : AppCompatActivity() {
     private fun startExpirationCountdown(expiresAt: String?) {
         countDownTimer?.cancel()
         
-        // Sử dụng remainingSeconds từ server (đã tính sẵn)
-        val remainingSeconds = groupOrder?.remainingSeconds ?: 0L
-        
-        if (remainingSeconds <= 0) {
-            tvExpiresAt.text = "Đã hết hạn"
-            tvExpiresAt.setTextColor(getColor(android.R.color.holo_red_dark))
+        if (expiresAt.isNullOrEmpty()) {
+            tvExpiresAt.text = "Không giới hạn"
             return
         }
 
-        countDownTimer = object : CountDownTimer(remainingSeconds * 1000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                val hours = millisUntilFinished / 3600000
-                val minutes = (millisUntilFinished % 3600000) / 60000
-                val seconds = (millisUntilFinished % 60000) / 1000
-                
-                val timeText = if (hours > 0) {
-                    "⏰ ${hours}h ${minutes}p ${seconds}s"
-                } else {
-                    "⏰ ${minutes}p ${seconds}s"
-                }
-                tvExpiresAt.text = timeText
-                
-                // Đổi màu khi còn ít thời gian
-                if (millisUntilFinished < 300000) { // < 5 phút
-                    tvExpiresAt.setTextColor(getColor(android.R.color.holo_red_dark))
-                } else if (millisUntilFinished < 600000) { // < 10 phút
-                    tvExpiresAt.setTextColor(getColor(android.R.color.holo_orange_dark))
-                } else {
-                    tvExpiresAt.setTextColor(getColor(android.R.color.white))
-                }
+        try {
+            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+            val expireTime = LocalDateTime.parse(expiresAt, formatter)
+            val now = LocalDateTime.now()
+            val remainingSeconds = ChronoUnit.SECONDS.between(now, expireTime)
+
+            if (remainingSeconds <= 0) {
+                tvExpiresAt.text = "Đã hết hạn"
+                return
             }
 
-            override fun onFinish() {
-                tvExpiresAt.text = "Đã hết hạn"
-                tvExpiresAt.setTextColor(getColor(android.R.color.holo_red_dark))
-                loadGroupOrder() // Reload to update status
-            }
-        }.start()
+            countDownTimer = object : CountDownTimer(remainingSeconds * 1000, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    val minutes = millisUntilFinished / 60000
+                    val seconds = (millisUntilFinished % 60000) / 1000
+                    tvExpiresAt.text = "Hết hạn sau: ${minutes}p ${seconds}s"
+                }
+
+                override fun onFinish() {
+                    tvExpiresAt.text = "Đã hết hạn"
+                    loadGroupOrder() // Reload to update status
+                }
+            }.start()
+        } catch (e: Exception) {
+            Log.e("GroupOrderActivity", "Error parsing expiration time", e)
+            tvExpiresAt.text = "Không xác định"
+        }
     }
 
     private fun copyInviteCode() {
@@ -516,17 +499,11 @@ class GroupOrderActivity : AppCompatActivity() {
             return
         }
         
-        // Kiểm tra nếu là DELIVERY thì phải có địa chỉ
         if (groupOrder?.orderType == "DELIVERY" && groupOrder?.deliveryAddress.isNullOrEmpty()) {
             Toast.makeText(this, "Vui lòng nhập địa chỉ giao hàng", Toast.LENGTH_SHORT).show()
-            // Hiển thị dialog nhập địa chỉ
-            showDeliveryAddressDialog("")
             return
         }
-        
-        // Tính phí ship trước khi thanh toán
-        calculateShippingFee()
-        
+
         // ✅ XÁC THỰC OTP TRƯỚC KHI THANH TOÁN
         val phoneNumber = currentUserProfile?.phone
         if (phoneNumber.isNullOrEmpty()) {
@@ -537,108 +514,6 @@ class GroupOrderActivity : AppCompatActivity() {
         
         // Hiển thị dialog xác thực OTP
         showOtpVerificationDialog(phoneNumber)
-    }
-    
-    /**
-     * Hiển thị dialog nhập địa chỉ giao hàng (chỉ khi cần)
-     */
-    private fun showDeliveryAddressDialog(currentAddress: String) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_delivery_address, null)
-        val etAddress = dialogView.findViewById<EditText>(R.id.et_delivery_address)
-        val tvShippingFee = dialogView.findViewById<TextView>(R.id.tv_shipping_fee_preview)
-        
-        etAddress.setText(currentAddress)
-        
-        // Tính phí ship khi nhập địa chỉ
-        etAddress.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) {
-                val address = s.toString()
-                val fee = calculateShippingFeeForAddress(address)
-                tvShippingFee.text = if (fee > 0) {
-                    "Phí giao hàng dự kiến: ${formatPrice(fee.toDouble())}"
-                } else {
-                    "Nhập địa chỉ để tính phí giao hàng"
-                }
-            }
-        })
-        
-        // Trigger initial calculation
-        val initialFee = calculateShippingFeeForAddress(currentAddress)
-        tvShippingFee.text = if (initialFee > 0) {
-            "Phí giao hàng dự kiến: ${formatPrice(initialFee.toDouble())}"
-        } else {
-            "Nhập địa chỉ để tính phí giao hàng"
-        }
-        
-        AlertDialog.Builder(this)
-            .setTitle("Nhập địa chỉ giao hàng")
-            .setView(dialogView)
-            .setPositiveButton("Tiếp tục") { _, _ ->
-                val address = etAddress.text.toString().trim()
-                if (address.isEmpty()) {
-                    Toast.makeText(this, "Vui lòng nhập địa chỉ giao hàng", Toast.LENGTH_SHORT).show()
-                    showDeliveryAddressDialog("")
-                    return@setPositiveButton
-                }
-                // Cập nhật địa chỉ và tiếp tục thanh toán
-                updateDeliveryAddressAndContinue(address)
-            }
-            .setNegativeButton("Hủy", null)
-            .show()
-    }
-    
-    /**
-     * Tính phí ship cho địa chỉ
-     */
-    private fun calculateShippingFeeForAddress(address: String): Int {
-        if (address.isEmpty()) return 0
-        
-        val provinceNames = com.example.doan.Utils.VietnamProvinces.getProvinceNames()
-        for (province in provinceNames) {
-            if (address.contains(province, ignoreCase = true)) {
-                return com.example.doan.Utils.VietnamProvinces.getShippingFee(province)
-            }
-        }
-        return 30000 // Mặc định
-    }
-    
-    /**
-     * Cập nhật địa chỉ giao hàng và tiếp tục thanh toán
-     */
-    private fun updateDeliveryAddressAndContinue(address: String) {
-        loadingDialog.show("Đang cập nhật...")
-        
-        val request = UpdateGroupOrderRequest(deliveryAddress = address)
-        
-        RetrofitClient.getInstance(this).apiService.updateGroupOrder(groupOrderId, request)
-            .enqueue(object : Callback<ApiResponse<GroupOrderDto>> {
-                override fun onResponse(
-                    call: Call<ApiResponse<GroupOrderDto>>,
-                    response: Response<ApiResponse<GroupOrderDto>>
-                ) {
-                    loadingDialog.dismiss()
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        groupOrder = response.body()?.data
-                        updateUI()
-                        
-                        // Tính lại phí ship
-                        calculateShippingFee()
-                        
-                        // Tiếp tục chọn phương thức thanh toán
-                        showPaymentMethodDialog()
-                    } else {
-                        Toast.makeText(this@GroupOrderActivity,
-                            response.body()?.message ?: "Lỗi cập nhật", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onFailure(call: Call<ApiResponse<GroupOrderDto>>, t: Throwable) {
-                    loadingDialog.dismiss()
-                    Toast.makeText(this@GroupOrderActivity, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
-                }
-            })
     }
     
     /**
@@ -925,11 +800,15 @@ class GroupOrderActivity : AppCompatActivity() {
                 ) {
                     loadingDialog.dismiss()
                     if (response.isSuccessful && response.body()?.success == true) {
+                        val order = response.body()?.data
                         Toast.makeText(this@GroupOrderActivity, 
-                            "🎉 Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+                            "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
                         
-                        // Navigate to Home
-                        navigateToHome()
+                        // Navigate to order detail
+                        val intent = Intent(this@GroupOrderActivity, OrderDetailActivity::class.java)
+                        intent.putExtra("ORDER_ID", order?.id)
+                        startActivity(intent)
+                        finish()
                     } else {
                         Toast.makeText(this@GroupOrderActivity,
                             response.body()?.message ?: "Lỗi thanh toán", Toast.LENGTH_SHORT).show()
@@ -942,16 +821,6 @@ class GroupOrderActivity : AppCompatActivity() {
                         "Lỗi kết nối: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
-    }
-    
-    /**
-     * Navigate về trang Home
-     */
-    private fun navigateToHome() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
-        finish()
     }
 
     private fun confirmDeleteItem(item: GroupOrderItemDto) {
@@ -1066,97 +935,11 @@ class GroupOrderActivity : AppCompatActivity() {
         super.onResume()
         if (groupOrderId > 0) {
             loadGroupOrder()
-            // Bắt đầu polling để cập nhật realtime
-            startPolling()
         }
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        // Dừng polling khi activity không visible
-        stopPolling()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         countDownTimer?.cancel()
-        stopPolling()
-    }
-    
-    // ==================== REALTIME POLLING ====================
-    
-    /**
-     * Bắt đầu polling để cập nhật thành viên và món mới
-     */
-    private fun startPolling() {
-        if (isPollingActive) return
-        isPollingActive = true
-        pollingHandler.postDelayed(pollingRunnable, POLLING_INTERVAL)
-    }
-    
-    /**
-     * Dừng polling
-     */
-    private fun stopPolling() {
-        isPollingActive = false
-        pollingHandler.removeCallbacks(pollingRunnable)
-    }
-    
-    /**
-     * Runnable để polling dữ liệu mới
-     */
-    private val pollingRunnable = object : Runnable {
-        override fun run() {
-            if (!isPollingActive) return
-            
-            // Lấy dữ liệu mới (silent - không hiện loading)
-            fetchGroupOrderSilent()
-            
-            // Schedule next poll
-            pollingHandler.postDelayed(this, POLLING_INTERVAL)
-        }
-    }
-    
-    /**
-     * Lấy dữ liệu group order mới (không hiện loading dialog)
-     */
-    private fun fetchGroupOrderSilent() {
-        RetrofitClient.getInstance(this).apiService.getGroupOrder(groupOrderId)
-            .enqueue(object : Callback<ApiResponse<GroupOrderDto>> {
-                override fun onResponse(
-                    call: Call<ApiResponse<GroupOrderDto>>,
-                    response: Response<ApiResponse<GroupOrderDto>>
-                ) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        val newOrder = response.body()?.data ?: return
-                        
-                        // Kiểm tra có thay đổi không
-                        val newMemberCount = newOrder.currentMemberCount ?: 0
-                        val newItemCount = newOrder.items?.size ?: 0
-                        
-                        val hasChanges = newMemberCount != lastMemberCount || 
-                                         newItemCount != lastItemCount ||
-                                         newOrder.status != groupOrder?.status
-                        
-                        if (hasChanges) {
-                            // Cập nhật UI
-                            groupOrder = newOrder
-                            lastMemberCount = newMemberCount
-                            lastItemCount = newItemCount
-                            updateUI()
-                            
-                            // Hiển thị thông báo nếu có thành viên mới
-                            if (newMemberCount > lastMemberCount) {
-                                Toast.makeText(this@GroupOrderActivity, 
-                                    "👋 Có thành viên mới tham gia!", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-                }
-
-                override fun onFailure(call: Call<ApiResponse<GroupOrderDto>>, t: Throwable) {
-                    // Silent fail - không hiện lỗi
-                }
-            })
     }
 }

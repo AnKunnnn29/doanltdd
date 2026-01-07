@@ -42,14 +42,12 @@ class AccountActivity : AppCompatActivity() {
     private lateinit var profileImage: ShapeableImageView
     private lateinit var editAvatarButton: FloatingActionButton
 
-    // FIX C1: Use ActivityResultLauncher instead of deprecated startActivityForResult
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { uploadAvatar(it) }
     }
 
-    // FIX C1: Use ActivityResultLauncher for permission request
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->

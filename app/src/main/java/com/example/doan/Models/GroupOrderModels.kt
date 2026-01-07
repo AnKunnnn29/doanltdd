@@ -90,7 +90,9 @@ data class AddGroupOrderItemRequest(
     val quantity: Int,
     val sizeName: String? = null,
     val toppingIds: List<Long>? = null,
-    val note: String? = null
+    val note: String? = null,
+    val promotionCode: String? = null,
+    val spinVoucherCode: String? = null
 )
 
 data class CheckoutGroupOrderRequest(

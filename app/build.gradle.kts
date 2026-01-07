@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    // FIX C4: Add kotlin-parcelize plugin for Parcelable support
     id("kotlin-parcelize")
     // id("com.google.gms.google-services") // Uncomment this line after adding google-services.json
 }
@@ -22,8 +21,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true  // ✅ BẬT OBFUSCATION
-            isShrinkResources = true  // ✅ XÓA RESOURCE KHÔNG DÙNG
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -43,7 +42,7 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true  // ✅ SECURITY: Cần để sử dụng BuildConfig.DEBUG
+        buildConfig = true
     }
 
     composeOptions {

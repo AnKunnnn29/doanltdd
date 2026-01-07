@@ -205,9 +205,7 @@ class VietQRActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * Hiển thị dialog xác nhận hủy thanh toán
-     */
+
     private fun showCancelPaymentDialog() {
         AlertDialog.Builder(this)
             .setTitle("Hủy thanh toán")
@@ -220,9 +218,7 @@ class VietQRActivity : AppCompatActivity() {
             .show()
     }
     
-    /**
-     * Hiển thị dialog xác nhận đã thanh toán
-     */
+
     private fun showConfirmPaymentDialog() {
         AlertDialog.Builder(this)
             .setTitle("Xác nhận thanh toán")
@@ -234,19 +230,13 @@ class VietQRActivity : AppCompatActivity() {
             .setCancelable(true)
             .show()
     }
-    
-    /**
-     * Xử lý khi user hủy thanh toán
-     */
+
     private fun handlePaymentCancellation() {
         Toast.makeText(this, "Đã hủy thanh toán", Toast.LENGTH_SHORT).show()
         // Chỉ cần finish() vì CartActivity vẫn còn trong stack
         finish()
     }
-    
-    /**
-     * Quay lại giỏ hàng (không sử dụng nữa, giữ lại để backup)
-     */
+
     @Suppress("unused")
     private fun navigateBackToCart() {
         // Lấy orderType từ SharedPreferences
@@ -261,9 +251,7 @@ class VietQRActivity : AppCompatActivity() {
         finish()
     }
 
-    /**
-     * Xử lý khi user xác nhận đã thanh toán
-     */
+
     private fun handlePaymentConfirmation() {
         if (!orderRequestJson.isNullOrEmpty()) {
             createOrderAfterPayment()
@@ -284,8 +272,7 @@ class VietQRActivity : AppCompatActivity() {
             Log.d(TAG, "Creating order with request: $orderRequestJson")
             Log.d(TAG, "Payment method: ${orderRequest.paymentMethod}")
             
-            // Sử dụng endpoint /api/orders thay vì /api/vnpay/create-order-after-payment
-            // vì endpoint orders đã được cấu hình đúng trong SecurityConfig
+
             createOrderCall = RetrofitClient.getInstance(this).apiService.createOrder(orderRequest)
             createOrderCall?.enqueue(object : Callback<ApiResponse<Order>> {
                 override fun onResponse(call: Call<ApiResponse<Order>>, response: Response<ApiResponse<Order>>) {
@@ -293,7 +280,7 @@ class VietQRActivity : AppCompatActivity() {
                     btnPaymentCompleted.isEnabled = true
                     btnBackToCart.isEnabled = true
                     
-                    // Check if activity is still valid
+
                     if (isFinishing || isDestroyed) return
                     
                     if (response.isSuccessful && response.body()?.success == true) {
@@ -337,12 +324,11 @@ class VietQRActivity : AppCompatActivity() {
     }
     
     private fun clearCartOnServer() {
-        // FIX: Chỉ xóa những sản phẩm đã mua, giữ lại các sản phẩm khác trong giỏ hàng
         val itemIds = cartItemIds
         if (itemIds != null && itemIds.isNotEmpty()) {
             removeSelectedItemsFromCart(itemIds)
         } else {
-            // Fallback: xóa toàn bộ giỏ hàng nếu không có danh sách items
+
             val userId = SessionManager(this).getUserId()
             if (userId == -1) return
             
@@ -360,9 +346,7 @@ class VietQRActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Xóa từng sản phẩm đã mua khỏi giỏ hàng
-     */
+
     private fun removeSelectedItemsFromCart(itemIds: LongArray) {
         for (cartItemId in itemIds) {
             RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)

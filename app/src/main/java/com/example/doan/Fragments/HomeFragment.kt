@@ -169,18 +169,7 @@ class HomeFragment : Fragment() {
 
         return view
     }
-    
-    /**
-     * Setup hiệu ứng theo mùa
-     * Tự động chọn hiệu ứng phù hợp dựa trên thời điểm trong năm:
-     * - ❄️ WINTER/CHRISTMAS/NEW_YEAR: Tuyết rơi
-     * - 🌸 SPRING/TET: Hoa đào rơi
-     * - ☀️ SUMMER: Bong bóng & ánh nắng
-     * - 🍂 AUTUMN: Lá rơi
-     * - 💕 VALENTINE: Trái tim bay
-     * 
-     * Hỗ trợ 2 chế độ: REALTIME (tự động) và CUSTOM (tự chọn)
-     */
+
     private fun setupSeasonalEffects(view: View) {
         rootContainer = view as? RelativeLayout
         
@@ -223,11 +212,7 @@ class HomeFragment : Fragment() {
         }, 1000)
     }
     
-    /**
-     * Kiểm tra và hiển thị gợi ý món dự đoán khi mở app
-     * Dựa trên lịch sử đặt hàng và thói quen của user
-     * Hiển thị dưới dạng card trên Home thay vì dialog popup
-     */
+
     private fun checkPredictiveOrder() {
         val sessionManager = SessionManager(requireContext())
         if (!sessionManager.isLoggedIn()) {
@@ -281,10 +266,7 @@ class HomeFragment : Fragment() {
                 }
             })
     }
-    
-    /**
-     * Hiển thị card gợi ý thông minh trên Home
-     */
+
     private fun showSmartSuggestionCard(prediction: com.example.doan.Models.PredictiveOrderResponse) {
         val drink = prediction.predictedDrink ?: return
         currentPredictedDrink = drink
@@ -350,9 +332,7 @@ class HomeFragment : Fragment() {
         currentPredictedDrink = null
     }
     
-    /**
-     * Thêm món được gợi ý vào giỏ hàng
-     */
+
     private fun addPredictedDrinkToCart(drink: com.example.doan.Models.PredictedDrink) {
         val sessionManager = SessionManager(requireContext())
         if (!sessionManager.isLoggedIn()) {
@@ -433,9 +413,7 @@ class HomeFragment : Fragment() {
             })
     }
     
-    /**
-     * Thêm vào giỏ hàng với sizeId đã xác định
-     */
+
     private fun addToCartWithSize(drink: com.example.doan.Models.PredictedDrink, sizeId: Long) {
         val request = com.example.doan.Models.AddToCartRequest(
             drinkId = drink.drinkId,
@@ -484,9 +462,7 @@ class HomeFragment : Fragment() {
         stopAutoScroll()
     }
     
-    /**
-     * FIX Low #17: Remove callbacks trong onDestroyView để tránh memory leak
-     */
+
     override fun onDestroyView() {
         super.onDestroyView()
         stopAutoScroll()
@@ -572,10 +548,7 @@ class HomeFragment : Fragment() {
         }
     }
     
-    /**
-     * Setup khả năng kéo thả cho Quick Actions Card
-     * Cho phép user kéo card đến bất kỳ vị trí nào trên màn hình
-     */
+
     private fun setupDraggableQuickActions(view: View) {
         val parentView = view as? RelativeLayout ?: return
         quickActionsCard?.let { card ->
@@ -665,10 +638,7 @@ class HomeFragment : Fragment() {
         // Update notification badge
         updateNotificationBadge()
     }
-    
-    /**
-     * Load avatar image từ user profile
-     */
+
     private fun loadUserAvatar() {
         val sessionManager = SessionManager(requireContext())
         if (!sessionManager.isLoggedIn()) {
@@ -1026,7 +996,7 @@ class HomeFragment : Fragment() {
         private const val AUTO_SCROLL_DELAY = 4000L // 4 seconds
     }
     
-    // ==================== Voice Order ====================
+
     
     private fun setupVoiceOrder() {
         // Animate buttons khi xuất hiện
@@ -1063,10 +1033,7 @@ class HomeFragment : Fragment() {
         }
     }
     
-    /**
-     * Animation bounce-in cho 4 quick action buttons khi mở app
-     * Với hiệu ứng stagger và glow ring pulse
-     */
+
     private fun animateQuickActionsOnStart() {
         // Stagger animation cho từng button
         val buttons = listOf(fabVoiceOrder, fabChatbot, fabSpinWheel, fabGroupOrder)
@@ -1098,9 +1065,7 @@ class HomeFragment : Fragment() {
         icSpin?.let { startSpinIconRotation(it) }
     }
     
-    /**
-     * Glow ring pulse animation - hiệu ứng phát sáng nhẹ
-     */
+
     private fun startGlowPulseAnimation(view: View) {
         val scaleX = android.animation.ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.15f, 1f)
         val scaleY = android.animation.ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.15f, 1f)
@@ -1120,9 +1085,7 @@ class HomeFragment : Fragment() {
         animatorSet.start()
     }
     
-    /**
-     * Spin icon rotation animation - icon vòng quay xoay liên tục
-     */
+
     private fun startSpinIconRotation(view: View) {
         val rotation = android.animation.ObjectAnimator.ofFloat(view, "rotation", 0f, 360f)
         rotation.duration = 3000
@@ -1130,10 +1093,7 @@ class HomeFragment : Fragment() {
         rotation.interpolator = android.view.animation.LinearInterpolator()
         rotation.start()
     }
-    
-    /**
-     * Animation scale + bounce khi click button
-     */
+
     private fun animateButtonClick(view: View) {
         view.animate()
             .scaleX(0.85f)
@@ -1297,9 +1257,7 @@ class HomeFragment : Fragment() {
             })
     }
     
-    /**
-     * Load thời tiết hiện tại và hiển thị trên header
-     */
+
     private fun loadWeather() {
         RetrofitClient.getInstance(requireContext()).apiService.getPublicWeather()
             .enqueue(object : Callback<ApiResponse<com.example.doan.Models.WeatherResponse>> {
@@ -1345,10 +1303,7 @@ class HomeFragment : Fragment() {
         // Description
         tvWeatherDesc?.text = getWeatherDescription(weather.condition)
     }
-    
-    /**
-     * Lấy mô tả tiếng Việt cho thời tiết
-     */
+
     private fun getWeatherDescription(condition: String?): String {
         return when (condition?.lowercase()) {
             "clear" -> "Trời nắng"

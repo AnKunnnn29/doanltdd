@@ -102,7 +102,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     
     override fun onDestroy() {
         super.onDestroy()
-        // FIX C4: Hủy đăng ký broadcast receiver
         try {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(tokenExpiredReceiver)
         } catch (e: Exception) {

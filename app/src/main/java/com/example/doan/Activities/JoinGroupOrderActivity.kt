@@ -30,7 +30,7 @@ class JoinGroupOrderActivity : AppCompatActivity() {
         loadingDialog = LoadingDialog(this)
         initViews()
         
-        // Check if opened with invite code from deep link
+
         intent.getStringExtra("INVITE_CODE")?.let { code ->
             etInviteCode.setText(code)
             joinGroupOrder(code)

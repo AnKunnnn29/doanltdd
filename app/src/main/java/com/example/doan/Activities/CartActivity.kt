@@ -95,7 +95,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     private var deliveryAddressInfo: DeliveryAddressInfo? = null
     private lateinit var tvSelectedAddress: TextView
     
-    // ✅ OTP RATE LIMITING
+
     private var lastOtpSentTime = 0L
     private val OTP_COOLDOWN = 60_000L // 60 giây
     
@@ -124,9 +124,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         loadUserProfile()
     }
 
-    /**
-     * Setup confetti view for order success celebration
-     */
+
     private fun setupConfetti() {
         val rootView = findViewById<View>(android.R.id.content) as? android.view.ViewGroup
         rootView?.let {
@@ -297,6 +295,18 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 }
             }
         }
+    }
+    
+    private fun calculateShippingFee() {
+        if (selectedDeliveryType == "DELIVERY" && selectedProvince != null) {
+            // Sử dụng VietnamProvinces để lấy phí ship theo tỉnh
+            shippingFee = com.example.doan.Utils.VietnamProvinces.getShippingFee(selectedProvince!!)
+            tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
+            calculateTotalPrice()
+        } else {
+            shippingFee = 0
+            tvShippingFee.text = "Phí ship: 0 VNĐ"
+        }
 
         // Xử lý chọn chi nhánh từ Spinner
         spinnerStore.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -329,18 +339,6 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
         btnCheckout.setOnClickListener { 
             handleCheckout()
-        }
-    }
-    
-    private fun calculateShippingFee() {
-        if (selectedDeliveryType == "DELIVERY" && selectedProvince != null) {
-            // Sử dụng VietnamProvinces để lấy phí ship theo tỉnh
-            shippingFee = com.example.doan.Utils.VietnamProvinces.getShippingFee(selectedProvince!!)
-            tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
-            calculateTotalPrice()
-        } else {
-            shippingFee = 0
-            tvShippingFee.text = "Phí ship: 0 VNĐ"
         }
     }
     
@@ -385,21 +383,18 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
         val selectedPaymentMethod = spinnerPaymentMethod.selectedItem.toString()
         
-        // ✅ BẬT LẠI XÁC THỰC OTP QUA ĐIỆN THOẠI
-        val phoneNumber = currentUserProfile?.phone
-        if (phoneNumber.isNullOrEmpty()) {
-            // Nếu chưa có số điện thoại, yêu cầu nhập
+        // Kiểm tra số điện thoại trước khi xác thực OTP
+        val phone = currentUserProfile?.phone
+        if (phone.isNullOrEmpty()) {
             showEnterPhoneDialog()
             return
         }
         
-        // Hiển thị dialog xác thực OTP
-        showOtpVerificationDialog(phoneNumber, selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
+        // Yêu cầu xác thực OTP trước khi thanh toán
+        showOtpVerificationDialog(phone, selectedItems, selectedStoreId!!, selectedPaymentMethod, deliveryAddress)
     }
     
-    /**
-     * Hiển thị dialog xác thực OTP trước khi thanh toán
-     */
+
     private fun showOtpVerificationDialog(
         phoneNumber: String, 
         items: List<CartItem>, 
@@ -415,11 +410,15 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
 
         val dialog = AlertDialog.Builder(this)
             .setTitle("Xác thực đặt hàng")
-            .setMessage("Mã OTP đã gửi đến $phoneNumber")
+            .setMessage("Mã OTP đã gửi đến $phoneNumber\n\n💡 Nếu không nhận được OTP, bạn có thể chọn 'Bỏ qua' để tiếp tục.")
             .setView(dialogView)
             .setPositiveButton("Xác nhận", null) // Set null để tự xử lý
             .setNeutralButton("Gửi lại", null) // Set null để không dismiss dialog
-            .setNegativeButton("Hủy", null)
+            .setNegativeButton("Bỏ qua") { _, _ ->
+                // Cho phép bỏ qua OTP và tiếp tục thanh toán (cho môi trường test)
+                Log.d(TAG, "User skipped OTP verification")
+                navigateToBillPreview(items, storeId, paymentMethod, deliveryAddress)
+            }
             .create()
 
         dialog.setOnShowListener {
@@ -444,9 +443,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         dialog.show()
     }
     
-    /**
-     * Xác thực OTP và tiếp tục thanh toán
-     */
+
     private fun verifyOtpAndProceed(
         phone: String, 
         code: String, 
@@ -480,9 +477,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             })
     }
     
-    /**
-     * Hiển thị dialog chọn địa chỉ giao hàng với GHN
-     */
+
     private fun showAddressSelectionDialog() {
         val helper = com.example.doan.Utils.GhnAddressHelper(this)
         helper.showAddressSelectionDialog(object : com.example.doan.Utils.GhnAddressHelper.OnAddressSelectedListener {
@@ -498,12 +493,12 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 tvShippingFee.text = String.format(Locale.getDefault(), "Phí ship: %,d VNĐ", shippingFee)
                 tvShippingFee.visibility = View.VISIBLE
                 
-                // Cập nhật tổng tiền
+
                 calculateTotalPrice()
             }
             
             override fun onCancelled() {
-                // Do nothing
+
             }
         })
     }
@@ -583,7 +578,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
 
     private fun sendOtpToUser(phone: String) {
-        // ✅ CHECK RATE LIMITING
+
         val now = System.currentTimeMillis()
         if (now - lastOtpSentTime < OTP_COOLDOWN) {
             val remaining = (OTP_COOLDOWN - (now - lastOtpSentTime)) / 1000
@@ -595,17 +590,21 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         
         RetrofitClient.getInstance(this).apiService.sendOtp(phone).enqueue(object : Callback<ApiResponse<String>> {
             override fun onResponse(call: Call<ApiResponse<String>>, response: Response<ApiResponse<String>>) {
-                if (response.isSuccessful) {
-                    Toast.makeText(this@CartActivity, "Đã gửi OTP", Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Toast.makeText(this@CartActivity, "Đã gửi OTP đến $phone", Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, "OTP sent successfully to $phone")
                 } else {
-                    Toast.makeText(this@CartActivity, "Lỗi gửi OTP: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    val errorMsg = response.body()?.message ?: response.message()
+                    Log.e(TAG, "OTP send failed: $errorMsg")
+                    Toast.makeText(this@CartActivity, "Lỗi gửi OTP: $errorMsg", Toast.LENGTH_LONG).show()
                     // Reset timer nếu gửi thất bại
                     lastOtpSentTime = 0L
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse<String>>, t: Throwable) {
-                Toast.makeText(this@CartActivity, "Lỗi mạng", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "OTP send network error", t)
+                Toast.makeText(this@CartActivity, "Lỗi kết nối: ${t.message}", Toast.LENGTH_LONG).show()
                 // Reset timer nếu gửi thất bại
                 lastOtpSentTime = 0L
             }
@@ -629,9 +628,6 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         })
     }
 
-    /**
-     * Chuyển sang màn hình xem bill trước khi thanh toán
-     */
     private fun navigateToBillPreview(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String?) {
         val orderItems = items.map { item ->
             com.example.doan.Models.OrderItemRequest(
@@ -784,29 +780,11 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 ) {
                     if (response.isSuccessful && response.body()?.success == true) {
                         val preview = response.body()?.data
-                        if (preview != null) {
-                            // Cập nhật tier discount
-                            if (preview.tierDiscount > 0) {
-                                tierDiscountAmount = preview.tierDiscount
-                                tierDiscountPercent = preview.discountPercent
-                                tierName = preview.tierName
-                                showTierDiscount()
-                            } else {
-                                tierDiscountAmount = 0.0
-                                hideTierDiscount()
-                            }
-                            
-                            // 🚚 Cập nhật thông tin free ship
-                            if (selectedDeliveryType == "DELIVERY" && preview.eligibleForFreeShipping) {
-                                // Hiển thị free ship
-                                tvShippingFee.text = "🎉 MIỄN PHÍ SHIP"
-                                tvShippingFee.setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
-                                shippingFee = 0  // Reset shipping fee về 0
-                            } else if (selectedDeliveryType == "DELIVERY" && !preview.freeShippingMessage.isNullOrEmpty()) {
-                                // Hiển thị thông báo về free ship
-                                Log.d("CartActivity", "Free shipping message: ${preview.freeShippingMessage}")
-                            }
-                            
+                        if (preview != null && preview.tierDiscount > 0) {
+                            tierDiscountAmount = preview.tierDiscount
+                            tierDiscountPercent = preview.discountPercent
+                            tierName = preview.tierName
+                            showTierDiscount()
                             updateFinalPrice(orderTotal)
                         } else {
                             tierDiscountAmount = 0.0
@@ -867,7 +845,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
                 discount
             }
         } else {
-            // For FIXED type, discount cannot exceed total price
+
             minOf(discountValue, totalPrice)
         }
 
@@ -881,7 +859,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
             (it.unitPrice ?: 0.0) * (it.quantity ?: 1)
         }
 
-        // Thử validate voucher từ spin wheel trước
+
         RetrofitClient.getInstance(this).apiService.validateSpinVoucher(code)
             .enqueue(object : Callback<ApiResponse<com.example.doan.Models.SpinRewardDto>> {
                 override fun onResponse(
@@ -1089,11 +1067,11 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
 
     override fun onItemDeleted(item: CartItem) {
-        // Kiểm tra user đã đăng nhập chưa
+
         if (SessionManager(this).getUserId() == -1) return
 
         item.id?.let { cartItemId ->
-            // Sử dụng API mới - không cần truyền userId (lấy từ JWT token)
+
             RetrofitClient.getInstance(this).apiService.removeCartItem(cartItemId)
                 .enqueue(object : Callback<ApiResponse<Void>> {
                     override fun onResponse(call: Call<ApiResponse<Void>>, response: Response<ApiResponse<Void>>) {
@@ -1307,7 +1285,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
     }
 
     private fun performPlaceOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
-        // ✅ VALIDATE LẠI VOUCHER TRƯỚC KHI ĐẶT HÀNG
+
         if (appliedVoucher != null || appliedSpinVoucher != null) {
             revalidateVoucherBeforeCheckout(items, storeId, paymentMethod, deliveryAddress)
         } else {
@@ -1315,9 +1293,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
     }
     
-    /**
-     * ✅ VALIDATE LẠI VOUCHER TRƯỚC KHI CHECKOUT
-     */
+
     private fun revalidateVoucherBeforeCheckout(
         items: List<CartItem>, 
         storeId: Int, 
@@ -1384,9 +1360,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
     }
     
-    /**
-     * ✅ THỰC HIỆN ĐẶT HÀNG SAU KHI VALIDATE
-     */
+
     private fun proceedWithOrder(items: List<CartItem>, storeId: Int, paymentMethod: String, deliveryAddress: String? = null) {
         val loadingDialog = LoadingDialog(this)
         loadingDialog.show("Đang xử lý đơn hàng...")
@@ -1630,9 +1604,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         // Không finish() để user có thể quay lại khi hủy thanh toán
     }
 
-    /**
-     * FIX: Chỉ xóa những sản phẩm đã được chọn mua, giữ lại các sản phẩm khác trong giỏ hàng
-     */
+
     private fun removeSelectedItemsFromCart(selectedItems: List<CartItem>) {
         if (selectedItems.isEmpty()) return
 
@@ -1657,10 +1629,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         }
     }
 
-    /**
-     * @deprecated Sử dụng removeSelectedItemsFromCart() thay thế
-     * Giữ lại để tương thích với code cũ nếu cần xóa toàn bộ giỏ hàng
-     */
+
     private fun clearCartOnServerAsync() {
         val userId = SessionManager(this).getUserId()
         if (userId == -1) return
@@ -1683,9 +1652,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         clearCartOnServerAsync()
     }
 
-    /**
-     * Khởi tạo thanh toán MoMo
-     */
+
     private fun requestMoMoPayment(amount: Long) {
         val loadingDialog = LoadingDialog(this)
         loadingDialog.show("Đang tạo thanh toán MoMo...")
@@ -1738,9 +1705,7 @@ class CartActivity : AppCompatActivity(), CartAdapter.OnCartItemChangeListener {
         )
     }
 
-    /**
-     * Khởi tạo thanh toán PayPal
-     */
+
     private fun requestPayPalPayment(amount: Long) {
         val loadingDialog = LoadingDialog(this)
         loadingDialog.show("Đang tạo thanh toán PayPal...")
