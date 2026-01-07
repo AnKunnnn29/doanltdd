@@ -3,7 +3,15 @@ package com.example.doan.Activities
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.SeekBar
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.doan.Models.*
 import com.example.doan.Network.RetrofitClient
@@ -78,8 +86,17 @@ class CreateGroupOrderActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        rgOrderType.setOnCheckedChangeListener { _, checkedId ->
-            tilAddress.visibility = if (checkedId == R.id.rb_delivery) View.VISIBLE else View.GONE
+        // Dùng click listener trực tiếp vì RadioButton nằm trong MaterialCardView
+        rbPickup.setOnClickListener {
+            rbPickup.isChecked = true
+            rbDelivery.isChecked = false
+            tilAddress.visibility = View.GONE
+        }
+        
+        rbDelivery.setOnClickListener {
+            rbDelivery.isChecked = true
+            rbPickup.isChecked = false
+            tilAddress.visibility = View.VISIBLE
         }
 
         seekbarMaxMembers.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
