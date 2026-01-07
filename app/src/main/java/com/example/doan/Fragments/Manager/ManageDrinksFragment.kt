@@ -50,7 +50,6 @@ class ManageDrinksFragment : Fragment() {
     private lateinit var searchCard: MaterialCardView
     private lateinit var headerLayout: View
     private lateinit var tabLayout: TabLayout
-    private lateinit var statsLayout: View
     
     private val drinkList = mutableListOf<Drink>()
     private val categoryList = mutableListOf<Category>()
@@ -89,7 +88,6 @@ class ManageDrinksFragment : Fragment() {
         searchCard = view.findViewById(R.id.search_card)
         headerLayout = view.findViewById(R.id.header_layout)
         tabLayout = view.findViewById(R.id.tab_layout)
-        statsLayout = view.findViewById(R.id.stats_layout)
     }
 
     private fun setupTabs() {
@@ -109,7 +107,6 @@ class ManageDrinksFragment : Fragment() {
                 // Drinks tab
                 swipeRefresh.visibility = View.VISIBLE
                 swipeRefreshCategories.visibility = View.GONE
-                statsLayout.visibility = View.VISIBLE
                 btnAdd.text = "Thêm"
                 editSearch.hint = "Tìm kiếm món..."
                 loadDrinks()
@@ -118,7 +115,6 @@ class ManageDrinksFragment : Fragment() {
                 // Categories tab
                 swipeRefresh.visibility = View.GONE
                 swipeRefreshCategories.visibility = View.VISIBLE
-                statsLayout.visibility = View.GONE
                 btnAdd.text = "Thêm"
                 editSearch.hint = "Tìm kiếm danh mục..."
                 loadCategories()

@@ -24,23 +24,12 @@
             android:layout_marginBottom="20dp">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Thống Kê Doanh Thu"
                 android:textColor="@color/wine_dark_background"
                 android:textSize="20sp"
                 android:textStyle="bold" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_today"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hôm nay"
-                app:chipBackgroundColor="@color/wine_primary"
-                android:textColor="@color/white"
-                app:chipCornerRadius="20dp"
-                style="@style/Widget.Material3.Chip.Assist" />
         </LinearLayout>
 
         <!-- Total Revenue Card với gradient -->
